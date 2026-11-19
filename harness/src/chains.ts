@@ -21,6 +21,13 @@ export const lasna = defineChain({
   blockExplorers: { default: { name: "Reactscan", url: "https://lasna.reactscan.net" } },
 });
 
+/**
+ * Lasna rejects transactions with a zero priority fee ("gas tip cap 0, minimum needed 1"), which is what viem
+ * estimates by default, so it is passed explicitly on every Lasna write (see util.send). 1 gwei is far above the
+ * minimum and costs a negligible amount of lREACT.
+ */
+export const LASNA_PRIORITY_FEE = 1_000_000_000n;
+
 const rawKey = need("PRIVATE_KEY").trim();
 export const account: Account = privateKeyToAccount((rawKey.startsWith("0x") ? rawKey : `0x${rawKey}`) as `0x${string}`);
 

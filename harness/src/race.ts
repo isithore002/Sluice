@@ -6,7 +6,7 @@
  * lender in the same market) waits C seconds after seeing the repayment, then withdraws whatever is still free.
  * Sluice pulls for the queue through Reactive. Capture rate = queue payout traced to this repay / X.
  *
- * Usage: npm run race -- --rounds 10 --x 10 --delays 2,4,6 --speeds 0,6
+ * Usage: npm run race -- --rounds 10 --x 10 --delays 0,1,2,4,8 --speeds 0,6
  */
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -18,19 +18,19 @@ import { allEvents, sleep, usdUnits, waitForEvent } from "./util.js";
 
 const ROUNDS = Number(flag("rounds", "10"));
 const X = usdUnits(Number(flag("x", "10")));
-const DELAYS = flag("delays", "2,4,6").split(",").map(Number);
+const DELAYS = flag("delays", "0,1,2,4,8").split(",").map(Number);
 const SPEEDS = flag("speeds", "0,6").split(",").map((s) => BigInt(s));
 const log = (s: string) => console.log(s);
 
+/**
+ * Start every round from the same state: nobody queued, market at 100% utilization, then exactly X queued.
+ * `normalize` pays any leftover queue with a deposit and borrows any free liquidity, so the previous round never
+ * leaks into this one. Nothing is "restored" after a round: each round shrinks Morpho supply and borrow equally,
+ * and putting the competitor's winnings back would emit a Supply event that triggers Sluice outside the round.
+ */
 async function prepareRound() {
-  const p = await act.pending();
-  if (p < X) await act.requestWithdraw(X - p); // the market is fully borrowed, so this queues
-  if (p > X) {
-    await act.mintUsd(p - X);
-    await act.deposit(p - X); // a deposit pays the queue down to X
-  }
-  const l = await act.liquidity();
-  if (l > 0n) await act.borrow(l);
+  await act.normalize();
+  await act.requestWithdraw(X); // no free liquidity, so this queues
 }
 
 async function round(delayBlocks: bigint, competitorDelayS: number, r: number) {
@@ -39,6 +39,19 @@ async function round(delayBlocks: bigint, competitorDelayS: number, r: number) {
 
   const origin = await act.repay(X);
   const trace = BigInt(origin.hash);
+
+  // Sluice always confirms its pull with StateUpdated(traceId), whether or not anything was left. Watch for it
+  // from the moment of the repayment (concurrently with the competitor below), so the time Sluice acted is not
+  // inflated by however long the competitor waited.
+  const actedWatch = waitForEvent({
+    c: base,
+    address: ADDR.vault,
+    abi: ABI.vault,
+    eventName: "StateUpdated",
+    fromBlock: fromBase,
+    match: (a) => a.traceId === trace,
+    timeoutMs: delayBlocks > 0n ? 60_000 : 40_000,
+  });
 
   // Competitor: C seconds after seeing the repayment, grab whatever is still free.
   await sleep(Math.max(0, competitorDelayS * 1000 - (Date.now() - origin.seenAt)));
@@ -57,16 +70,7 @@ async function round(delayBlocks: bigint, competitorDelayS: number, r: number) {
     }
   }
 
-  // Sluice always confirms its pull with StateUpdated(traceId), whether or not anything was left.
-  const acted = await waitForEvent({
-    c: base,
-    address: ADDR.vault,
-    abi: ABI.vault,
-    eventName: "StateUpdated",
-    fromBlock: fromBase,
-    match: (a) => a.traceId === trace,
-    timeoutMs: delayBlocks > 0n ? 60_000 : 40_000,
-  });
+  const acted = await actedWatch;
   const settled = await allEvents({
     c: base,
     address: ADDR.vault,
@@ -76,12 +80,6 @@ async function round(delayBlocks: bigint, competitorDelayS: number, r: number) {
     match: (a) => a.traceId === trace,
   });
   const sluiceGot = settled.reduce((s, l) => s + (l.args.paid as bigint), 0n);
-
-  // Return the competitor's winnings to the market so its supply doesn't drain across rounds.
-  if (competitorGot > 0n) {
-    await act.competitorSupplyMore(competitorGot);
-    await act.borrow(competitorGot);
-  }
 
   return {
     round: r,

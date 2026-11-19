@@ -1,5 +1,5 @@
 import type { Abi, Address, Hex, Log } from "viem";
-import type { ChainClients } from "./chains.js";
+import { LASNA_PRIORITY_FEE, type ChainClients } from "./chains.js";
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -25,7 +25,8 @@ export async function send(
   value?: bigint,
 ): Promise<Sent> {
   const sentAt = Date.now();
-  const hash = await c.wallet.writeContract({ address, abi, functionName, args, value } as never);
+  const fees = c.name === "lasna" ? { maxPriorityFeePerGas: LASNA_PRIORITY_FEE } : {};
+  const hash = await c.wallet.writeContract({ address, abi, functionName, args, value, ...fees } as never);
   const receipt = await c.pub.waitForTransactionReceipt({ hash, pollingInterval: 100, timeout: 120_000 });
   const seenAt = Date.now();
   if (receipt.status !== "success") throw new Error(`${c.name} ${functionName} reverted: ${hash}`);
