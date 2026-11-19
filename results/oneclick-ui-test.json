@@ -1,0 +1,22 @@
+{
+  "description": "End-to-end test of the dashboard's 'Settle it yourself' panel, run by a brand-new wallet we generated for the test (funded with 0.00003 Base Sepolia ETH for gas). The page ran in a headless browser with a test wallet provider injected in place of a MetaMask popup: it signed with that wallet's key, and every transaction is a real Base Sepolia transaction.",
+  "date": "2026-11-19T14:42:30.637Z",
+  "visitor": "0xBA29820E632Af0404068173bDe18bF78E1D0790a",
+  "txs": {
+    "visitorSettle": "0x82db92a8e94825d7258c693593ac2661dedf69a7ae4ae276817fb106b6826236",
+    "reactiveCallback": "0xc106ab4c6212ae2d0ec64e3aff5fe815d9d90d185b0555348e7a0a16172af5fb"
+  },
+  "links": {
+    "visitorSettle": "https://sepolia.basescan.org/tx/0x82db92a8e94825d7258c693593ac2661dedf69a7ae4ae276817fb106b6826236",
+    "reactiveCallback": "https://sepolia.basescan.org/tx/0xc106ab4c6212ae2d0ec64e3aff5fe815d9d90d185b0555348e7a0a16172af5fb",
+    "visitor": "https://sepolia.basescan.org/address/0xBA29820E632Af0404068173bDe18bF78E1D0790a"
+  },
+  "callbackSentBy": "0xf7e866d726658f6c3f14b8ee537fe268a4d91ddb",
+  "callbackSentByReactiveSigner": true,
+  "panelReported": [
+    "\u2713 Reactive paid the queue 3.44 s after your transaction was mined.",
+    "10 mUSD to request #257"
+  ],
+  "clickToResultMs": 5269,
+  "pageErrors": []
+}
