@@ -1,0 +1,23 @@
+{
+  "name": "sluice-harness",
+  "private": true,
+  "type": "module",
+  "description": "Latency, race and status tooling for Sluice",
+  "scripts": {
+    "status": "tsx src/status.ts",
+    "flowB": "tsx src/flowB.ts",
+    "flowC": "tsx src/flowC.ts",
+    "race": "tsx src/race.ts",
+    "summary": "tsx src/summary.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "viem": "^2.58.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
