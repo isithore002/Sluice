@@ -76,7 +76,7 @@ Three liquidity sources, three flows:
 **Omni**'s ~1s blocks matter when freed liquidity is **contested**. At 100% utilization, every lender wants out, and whoever acts first after a repayment gets the funds. We measure this directly with a **latency race**:
 
 - A competitor bot (another lender in the same market) tries to withdraw freed liquidity *C* seconds after each repayment.
-- We measure the share the queue captures with Sluice at native Omni speed, and with the *same contracts* slowed by `delayBlocks = 6` to approximate legacy (~7s) speed.
+- We measure the share the queue captures with Sluice at native Omni speed, and with the *same contracts* slowed by `delayBlocks = 6` to reproduce the legacy network's ~7 s blocks. The legacy network itself no longer exists (Lasna and Reactive Mainnet both moved to the Omni fork in October 2026), so this is the only way to compare today.
 
 ## Results
 
@@ -112,7 +112,7 @@ When freed liquidity is contested, how much does the queue capture? A competitor
 
 - At Omni speed the queue beats any competitor that reacts a second or more after the repayment, and loses to an instant one (an instant competitor beats it most of the time).
 - At legacy-like speed the queue loses to every competitor except the slowest. That gap is the case for Omni here.
-- The "+6 blocks" rows add delay on Omni (`delayBlocks = 6`). They approximate legacy speed; they are not runs on the legacy network.
+- The "+6 blocks" rows reproduce the legacy network's cadence on Omni (`delayBlocks = 6`). The legacy network no longer exists (Lasna and Reactive Mainnet both moved to the Omni fork in October 2026), so it can't be run today. Reactive's own figure for legacy blocks is about 7 seconds ([announcement](https://blog.reactive.network/reactive-omni-buildathon-thirty-days-to-find-out-what-one-second-buys/)).
 - The competitor runs on one machine through a public RPC, so its own transaction takes ~1.2 to 1.4 s to land. An in-region bot would be faster, so the 0 s row is not the speed limit.
 
 ### One repayment, many withdrawals
@@ -196,6 +196,7 @@ Deployed with [`scripts/deploy.sh`](scripts/deploy.sh). Addresses are in [`deplo
 | Demo market oracle (fixed price) | Base Sepolia | [`0x26f814373D575bDC074175A686c3Ff197D4e3b07`](https://sepolia.basescan.org/address/0x26f814373D575bDC074175A686c3Ff197D4e3b07) | [verified ✓](https://repo.sourcify.dev/84532/0x26f814373D575bDC074175A686c3Ff197D4e3b07) |
 | SiblingVault | Unichain Sepolia (1301) | [`0x2CD91D217610083aBfF78b6609c79193E619b5d7`](https://sepolia.uniscan.xyz/address/0x2CD91D217610083aBfF78b6609c79193E619b5d7) | [verified ✓](https://repo.sourcify.dev/1301/0x2CD91D217610083aBfF78b6609c79193E619b5d7) |
 | MockUSD | Unichain Sepolia | [`0xdAFaC2C362d3D811124be77B0ABF84e677091750`](https://sepolia.uniscan.xyz/address/0xdAFaC2C362d3D811124be77B0ABF84e677091750) | [verified ✓](https://repo.sourcify.dev/1301/0xdAFaC2C362d3D811124be77B0ABF84e677091750) |
+| OneClickRepay (helper for the dashboard's one-click test) | Base Sepolia | [`0x8bAcfF9D6d55801f25368170411BD2A2b5095C11`](https://sepolia.basescan.org/address/0x8bAcfF9D6d55801f25368170411BD2A2b5095C11) | [verified ✓](https://repo.sourcify.dev/84532/0x8bAcfF9D6d55801f25368170411BD2A2b5095C11) |
 
 All Sluice contracts are source-verified on [Sourcify](https://sourcify.dev) with an **exact match** (creation and runtime bytecode), so the code at each address is exactly this repository's code.
 
@@ -209,9 +210,14 @@ Our Morpho market id: `0xfa6e6efff85e0699003a9a81cb4b3a8113b520799e8bcb81a68a2d5
 <!-- TRYIT:START -->
 Anyone can trigger a real Sluice settlement from their own wallet, with nothing of ours involved. In Morpho Blue, **anyone can repay on behalf of a borrower**, and our demo token is open-mint.
 
+**One click:** the dashboard's *Settle it yourself* panel does it from your browser wallet. It calls [`0x8bAcfF9D6d55801f25368170411BD2A2b5095C11`](https://sepolia.basescan.org/address/0x8bAcfF9D6d55801f25368170411BD2A2b5095C11) (source verified), which mints 10 demo mUSD and repays them on the borrower's behalf in a single transaction, so you confirm one transaction instead of three. We tested the panel end to end with a brand-new wallet we created: [its transaction](https://sepolia.basescan.org/tx/0x82db92a8e94825d7258c693593ac2661dedf69a7ae4ae276817fb106b6826236) was settled by [this callback](https://sepolia.basescan.org/tx/0xc106ab4c6212ae2d0ec64e3aff5fe815d9d90d185b0555348e7a0a16172af5fb), sent by Reactive's signer ([`results/oneclick-ui-test.json`](results/oneclick-ui-test.json); the test injected a wallet provider in place of a MetaMask popup).
+
+**From a terminal**, the same three steps with `cast`:
+
+
 **You need:** a throwaway testnet key with a little Base Sepolia ETH for gas (a fraction of a cent), and [Foundry](https://book.getfoundry.sh/)'s `cast`.
 
-**First, check the demo is armed.** The dashboard's *Withdrawal queue* card should show a pending amount above 0 (a withdrawal waiting to be paid). If it shows 0, the last settlement already happened, and the demo needs re-arming (`npm run arm` in `harness/`).
+**First, check the demo is armed.** The dashboard's *Withdrawal queue* card should show a pending amount above 0 (a withdrawal waiting to be paid). If it shows 0, the last settlement already happened, and the demo needs re-arming (`npm run arm -- --x 10 --slots 10` in `harness/` queues ten withdrawals, one per repayment).
 
 ```bash
 export RPC=https://sepolia.base.org
@@ -313,7 +319,7 @@ cd dashboard && npm install && npm run build    # static site in dashboard/out
 - **It can't create liquidity.** If every chain is drained, the queue waits.
 - **A same-block searcher beats Sluice** to freed Morpho liquidity, and beats any reactive system. Inside the vault, the reservation rule guarantees order.
 - **Cross-chain uses a pre-funded relayer reserve and pre-committed credit,** not a bridge. Both are capital set aside in advance. **We don't claim Sluice reduces idle capital.**
-- **The ~legacy comparison is simulated** by adding delay on Omni. It's not a run on the legacy network.
+- **The ~legacy comparison is reproduced on Omni, not re-run.** The legacy network no longer exists: Lasna moved to the Omni fork on Oct 7, 2026 ([Reactive](https://blog.reactive.network/lasna-testnet-completes-migration-to-omni-fork/)) and Reactive Mainnet on Oct 28 ([Reactive](https://blog.reactive.network/reactive-mainnet-migration-complete/)). We reproduce its cadence by delaying Sluice 6 Lasna blocks. Reactive puts legacy blocks at about 7 seconds ([buildathon announcement](https://blog.reactive.network/reactive-omni-buildathon-thirty-days-to-find-out-what-one-second-buys/)), and the delayed Sluice acted in about 7.6 s.
 - **The demo market uses `irm = address(0)`,** so there's no interest. Vault shares are 1:1, and the vault is ERC-7540-*style*, not a full ERC-7540 implementation.
 - **The demo is staged by us.** The market, tokens, oracle, vault funding and the queued withdrawal are ours (unavoidable on a testnet). Most loops reuse one wallet for several roles; the independent-actor loops and the try-it-yourself steps above exist so you can check Sluice doesn't depend on that.
 

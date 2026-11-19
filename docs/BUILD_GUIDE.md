@@ -215,10 +215,12 @@ The loops above reuse one wallet for several roles. To show Sluice doesn't depen
 
 ```bash
 npm run independent -- --n 5 --x 10     # separate fresh wallets: Alice queues, Bob repays on behalf of the borrower
-npm run arm -- --x 10                   # leaves one withdrawal queued, so an outsider can settle it
+npm run arm -- --x 10 --slots 10        # queues ten withdrawals, so ten outsiders can each settle one
 ```
 
 `npm run arm` is also what you run before recording the demo or leaving the project for judges. Then run the README's three "Try it yourself" commands from a **fresh wallet** to confirm they work: that is how the outsider test in `results/outsider-tryit.json` was made. **Check:** the settlement transaction is sent by Reactive's signer, and your fresh wallet sent exactly three transactions.
+
+The dashboard's *Settle it yourself* panel lets a visitor do the same from their own wallet in one transaction. It calls the `OneClickRepay` helper, deployed once with `scripts/deploy.sh 9` (it writes `deployments/base-tryit.json`; rebuild the dashboard afterwards).
 
 Each settlement costs the reactive contract about 0.08 lREACT, so keep it funded while judges may try it.
 
@@ -228,7 +230,7 @@ Each settlement costs the reactive contract about 0.08 lREACT, so keep it funded
 npm run batch -- --n 40 --each 1   # 40 wallets queue, then ONE repayment pays them all across 2 callbacks
 npm run replay                     # results/replay-race.json: each race round plus the Lasna transaction that reacted to it
 npm run casestudy                  # results/case-study-flowC.json: rebuilds the explanation of a failed cross-chain loop from chain data
-npm run arm -- --x 10              # the batch run pays the armed withdrawal: re-arm afterwards
+npm run arm -- --x 10 --slots 10   # the batch run pays the armed withdrawals: re-arm afterwards
 ```
 
 **Check:** `batch` ends with `OK: 40 withdrawals, 2 callbacks, FIFO verified, all lenders paid in full`. It is resumable: a public RPC can time out on a transaction that was in fact mined, so every staging step checks on-chain state first and after any error, and a queue that already holds a prefix of its lenders is continued rather than paid out. A run costs the reactive contract about 1.6 lREACT (it reacts to every deposit and request). `replay` and `casestudy` only read chains (Lasna keeps recent history, so run them soon after the race and the failed run, then commit the output).

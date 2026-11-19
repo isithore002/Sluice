@@ -3,7 +3,7 @@
  * deployments/*.json, so numbers, addresses and links are never typed by hand.
  * Usage (after `npm run summary`): npx tsx src/readme.ts
  */
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { DEPLOYMENTS, RESULTS, ROOT } from "./env.js";
 
@@ -28,6 +28,10 @@ const B = summary.flowB;
 const C = summary.flowC;
 const I = summary.independent;
 const O = JSON.parse(readFileSync(resolve(RESULTS, "outsider-tryit.json"), "utf8"));
+const tryitFile = resolve(DEPLOYMENTS, "base-tryit.json");
+const TRY = existsSync(tryitFile) ? JSON.parse(readFileSync(tryitFile, "utf8")) : null;
+const ocFile = resolve(RESULTS, "oneclick-ui-test.json");
+const OC = existsSync(ocFile) ? JSON.parse(readFileSync(ocFile, "utf8")) : null;
 const date = String(summary.generatedAt).slice(0, 10);
 const BT = summary.batch;
 const CASE = summary.crossChainCaseStudy;
@@ -70,7 +74,7 @@ ${[...new Set(summary.race.map((r: any) => r.competitorDelayS))]
 
 - At Omni speed the queue beats any competitor that reacts a second or more after the repayment, and loses to an instant one (an instant competitor beats it most of the time).
 - At legacy-like speed the queue loses to every competitor except the slowest. That gap is the case for Omni here.
-- The "+6 blocks" rows add delay on Omni (\`delayBlocks = 6\`). They approximate legacy speed; they are not runs on the legacy network.
+- The "+6 blocks" rows reproduce the legacy network's cadence on Omni (\`delayBlocks = 6\`). The legacy network no longer exists (Lasna and Reactive Mainnet both moved to the Omni fork in October 2026), so it can't be run today. Reactive's own figure for legacy blocks is about 7 seconds ([announcement](https://blog.reactive.network/reactive-omni-buildathon-thirty-days-to-find-out-what-one-second-buys/)).
 - The competitor runs on one machine through a public RPC, so its own transaction takes ~1.2 to 1.4 s to land. An in-region bot would be faster, so the 0 s row is not the speed limit.
 
 ${BT ? `### One repayment, many withdrawals
@@ -144,7 +148,8 @@ Deployed with [\`scripts/deploy.sh\`](scripts/deploy.sh). Addresses are in [\`de
 | Demo market collateral token | Base Sepolia | ${a(BASE, market.mockCollateral)} | ${src(84532, market.mockCollateral)} |
 | Demo market oracle (fixed price) | Base Sepolia | ${a(BASE, market.oracle)} | ${src(84532, market.oracle)} |
 | SiblingVault | Unichain Sepolia (1301) | ${a(UNI, uniSluice.siblingVault)} | ${src(1301, uniSluice.siblingVault)} |
-| MockUSD | Unichain Sepolia | ${a(UNI, uniToken.mockUSD)} | ${src(1301, uniToken.mockUSD)} |
+| MockUSD | Unichain Sepolia | ${a(UNI, uniToken.mockUSD)} | ${src(1301, uniToken.mockUSD)} |${TRY ? `
+| OneClickRepay (helper for the dashboard's one-click test) | Base Sepolia | ${a(BASE, TRY.oneClickRepay)} | ${src(84532, TRY.oneClickRepay)} |` : ""}
 
 All Sluice contracts are source-verified on [Sourcify](https://sourcify.dev) with an **exact match** (creation and runtime bytecode), so the code at each address is exactly this repository's code.
 
@@ -153,10 +158,15 @@ Our Morpho market id: \`${market.marketId}\` (loan token MockUSD, zero-rate IRM,
 
 const tryit = `
 Anyone can trigger a real Sluice settlement from their own wallet, with nothing of ours involved. In Morpho Blue, **anyone can repay on behalf of a borrower**, and our demo token is open-mint.
+${TRY ? `
+**One click:** the dashboard's *Settle it yourself* panel does it from your browser wallet. It calls ${a(BASE, TRY.oneClickRepay)} (source verified), which mints 10 demo mUSD and repays them on the borrower's behalf in a single transaction, so you confirm one transaction instead of three.${OC ? ` We tested the panel end to end with a brand-new wallet we created: [its transaction](${OC.links.visitorSettle}) was settled by [this callback](${OC.links.reactiveCallback}), sent by Reactive's signer ([\`results/oneclick-ui-test.json\`](results/oneclick-ui-test.json); the test injected a wallet provider in place of a MetaMask popup).` : ""}
+
+**From a terminal**, the same three steps with \`cast\`:
+` : ""}
 
 **You need:** a throwaway testnet key with a little Base Sepolia ETH for gas (a fraction of a cent), and [Foundry](https://book.getfoundry.sh/)'s \`cast\`.
 
-**First, check the demo is armed.** The dashboard's *Withdrawal queue* card should show a pending amount above 0 (a withdrawal waiting to be paid). If it shows 0, the last settlement already happened, and the demo needs re-arming (\`npm run arm\` in \`harness/\`).
+**First, check the demo is armed.** The dashboard's *Withdrawal queue* card should show a pending amount above 0 (a withdrawal waiting to be paid). If it shows 0, the last settlement already happened, and the demo needs re-arming (\`npm run arm -- --x 10 --slots 10\` in \`harness/\` queues ten withdrawals, one per repayment).
 
 \`\`\`bash
 export RPC=https://sepolia.base.org
