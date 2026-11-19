@@ -1,6 +1,6 @@
 # Sluice measurement summary
 
-Generated 2026-11-19T09:54:25.041Z.
+Generated 2026-11-19T13:30:58.621Z.
 
 ## Flow B: Morpho repayment → queue paid (one reactive hop)
 
@@ -29,6 +29,20 @@ Succeeded 6/6; every loop's repayment, withdrawal request and payout involved ad
 | Measure | Median | p95 | Max |
 |---|---|---|---|
 | Repay (by an outsider) → queue paid (wall clock) | 1.56 s | 1.75 s | 1.75 s |
+
+## Batch continuation: one repayment, more queued withdrawals than one callback may pay
+
+40 withdrawals queued by 40 separate wallets, then ONE repayment. The vault pays at most 25 per callback, so Reactive scheduled the next batch itself: 2 callbacks (25 + 15 payments). Request ids were paid in strict FIFO order: true.
+
+| Measure | Value |
+|---|---|
+| Repay → first batch paid (wall clock) | 1.93 s |
+| Repay → queue empty (wall clock) | 2.97 s |
+| Largest callback gas / limit | 933,746 / 1,500,000 |
+
+## The cross-chain loop that is not in the measured numbers
+
+32 of 32 cross-chain loops completed on-chain (user paid, relayer reimbursed); 31 were measured. The other one finished correctly, then the harness's own cleanup call `commitCredit()` ran out of gas (34,915 of 34,915) before the loop's timings were saved. Full reconstruction in results/case-study-flowC.json and docs/CASE_STUDY_FLOW_C.md.
 
 ## Latency race: share of contested liquidity captured by the queue
 

@@ -1,0 +1,351 @@
+{
+  "flow": "D",
+  "ok": true,
+  "date": "2026-11-19T13:16:06.426Z",
+  "n": 40,
+  "each": "1000000",
+  "total": "40000000",
+  "cap": 25,
+  "firstRequestId": 216,
+  "txs": {
+    "repay": "0x27f7da1287439112f2f41740437fb01804c045635b893aebba03af029a4b3ba9"
+  },
+  "links": {
+    "repay": "https://sepolia.basescan.org/tx/0x27f7da1287439112f2f41740437fb01804c045635b893aebba03af029a4b3ba9"
+  },
+  "callbacks": [
+    {
+      "batch": 1,
+      "tx": "0x13907a69b2f84aa12fd832ddcbd947f4193b67ec0bec97b22e0b6959148ea31d",
+      "link": "https://sepolia.basescan.org/tx/0x13907a69b2f84aa12fd832ddcbd947f4193b67ec0bec97b22e0b6959148ea31d",
+      "block": "60861452",
+      "chainSecondsAfterRepay": 2,
+      "payments": 25,
+      "firstRequestId": 216,
+      "lastRequestId": 240,
+      "gasUsed": 933746,
+      "gasLimitRequested": 1500000
+    },
+    {
+      "batch": 2,
+      "tx": "0xc884be68fd90e294adbfc4f789539955aefdf61a0eb9bbc246951311dbcf3746",
+      "link": "https://sepolia.basescan.org/tx/0xc884be68fd90e294adbfc4f789539955aefdf61a0eb9bbc246951311dbcf3746",
+      "block": "60861458",
+      "chainSecondsAfterRepay": 3,
+      "payments": 15,
+      "firstRequestId": 241,
+      "lastRequestId": 255,
+      "gasUsed": 559939,
+      "gasLimitRequested": 1500000
+    }
+  ],
+  "reactive": [
+    {
+      "tx": "0x7bf06febfcfa9767a578f8f369f70f01732b2e4b14875ce9d4d774c202e4add4",
+      "link": "https://lasna.reactscan.net/tx/0x7bf06febfcfa9767a578f8f369f70f01732b2e4b14875ce9d4d774c202e4add4",
+      "block": "8736066",
+      "attempt": 0,
+      "chainSecond": 1795094157
+    },
+    {
+      "tx": "0x6f88ea2d86173972ad030bc737dd408f316731064b5cc64d109e1c6d1c1d14b8",
+      "link": "https://lasna.reactscan.net/tx/0x6f88ea2d86173972ad030bc737dd408f316731064b5cc64d109e1c6d1c1d14b8",
+      "block": "8736067",
+      "attempt": 0,
+      "chainSecond": 1795094158
+    }
+  ],
+  "timing": {
+    "repayToFirstBatchMs": 1930,
+    "repayToQueueEmptyMs": 2968,
+    "firstBatchToQueueEmptyMs": 1038
+  },
+  "fifo": {
+    "ok": true,
+    "ids": [
+      216,
+      217,
+      218,
+      219,
+      220,
+      221,
+      222,
+      223,
+      224,
+      225,
+      226,
+      227,
+      228,
+      229,
+      230,
+      231,
+      232,
+      233,
+      234,
+      235,
+      236,
+      237,
+      238,
+      239,
+      240,
+      241,
+      242,
+      243,
+      244,
+      245,
+      246,
+      247,
+      248,
+      249,
+      250,
+      251,
+      252,
+      253,
+      254,
+      255
+    ]
+  },
+  "allLendersPaidInFull": true,
+  "queued": [
+    {
+      "requestId": 216,
+      "owner": "0xb85f846272192670d4Dcb5B882c8AF5BEd89BCAE",
+      "tx": "0x360db42a5028e924fbea432b1c50c57b232051c8624aecd07dbcb6aa31b151cc",
+      "link": "https://sepolia.basescan.org/tx/0x360db42a5028e924fbea432b1c50c57b232051c8624aecd07dbcb6aa31b151cc"
+    },
+    {
+      "requestId": 217,
+      "owner": "0xba82B25e9C41BE1158D0328ba21078a3F7B69217",
+      "tx": "0x27a700ab0113cd528068e6178670b5aa9b2186f50a8f12988e60651d7ae4aab9",
+      "link": "https://sepolia.basescan.org/tx/0x27a700ab0113cd528068e6178670b5aa9b2186f50a8f12988e60651d7ae4aab9"
+    },
+    {
+      "requestId": 218,
+      "owner": "0xED4819a809CadE6EBC8aa7cfcbF473CC33c12450",
+      "tx": "0x580650f1e78894e4d197c60660113c9e801f4a095fdd06a7c119911fcc61b9d4",
+      "link": "https://sepolia.basescan.org/tx/0x580650f1e78894e4d197c60660113c9e801f4a095fdd06a7c119911fcc61b9d4"
+    },
+    {
+      "requestId": 219,
+      "owner": "0x6D5E903B9b258Fd733cAf0c23A904959a8a49986",
+      "tx": "0xb617572c964bffbabd724ed3b94891072783cfefd68b03a0be936f1a71307268",
+      "link": "https://sepolia.basescan.org/tx/0xb617572c964bffbabd724ed3b94891072783cfefd68b03a0be936f1a71307268"
+    },
+    {
+      "requestId": 220,
+      "owner": "0x2ca13F9D3d1d40BfA0Cf4b12E6614Cc475d32Cf6",
+      "tx": "0x4ecb887bb75791c6a60d73a8525fd34d5484f53f7cb2ab2e46e5145ec6a5e1b1",
+      "link": "https://sepolia.basescan.org/tx/0x4ecb887bb75791c6a60d73a8525fd34d5484f53f7cb2ab2e46e5145ec6a5e1b1"
+    },
+    {
+      "requestId": 221,
+      "owner": "0x6C53BC2Ace4aBA86ED4C2797b60102f3F1dF9C0B",
+      "tx": "0xddfc4c11dda5e1488140b5ac0177295c612c1bea2916fa334b276e31ed39a60f",
+      "link": "https://sepolia.basescan.org/tx/0xddfc4c11dda5e1488140b5ac0177295c612c1bea2916fa334b276e31ed39a60f"
+    },
+    {
+      "requestId": 222,
+      "owner": "0xA2Cebb73f5520c6E71d5C4f1f3f585528a0f64AA",
+      "tx": "0xf26fa35108c2ea42fa905d969ffe5c7a1464243b822ecd479510254fb8fcdb0b",
+      "link": "https://sepolia.basescan.org/tx/0xf26fa35108c2ea42fa905d969ffe5c7a1464243b822ecd479510254fb8fcdb0b"
+    },
+    {
+      "requestId": 223,
+      "owner": "0xD4659B5DeEBFF3a95edB6A3f5875Eb1597f83fFd",
+      "tx": "0xa6115e00ad0440d51050e60cd589167b11412ffb05a84672470ae4f37194abd5",
+      "link": "https://sepolia.basescan.org/tx/0xa6115e00ad0440d51050e60cd589167b11412ffb05a84672470ae4f37194abd5"
+    },
+    {
+      "requestId": 224,
+      "owner": "0x8A6e5932B96a86B36341e275EF5525580bCE2F58",
+      "tx": "0xe3a0941a2acfcfb1d7342c01ff97220fac275407453942cf48a384b2a48b0811",
+      "link": "https://sepolia.basescan.org/tx/0xe3a0941a2acfcfb1d7342c01ff97220fac275407453942cf48a384b2a48b0811"
+    },
+    {
+      "requestId": 225,
+      "owner": "0xae82B03beFDEC895816239a4306749559526f313",
+      "tx": "0xeb22bd989199b2aaaf94224e7b2b9128654dc645f3e2d8f102b5a9769140d195",
+      "link": "https://sepolia.basescan.org/tx/0xeb22bd989199b2aaaf94224e7b2b9128654dc645f3e2d8f102b5a9769140d195"
+    },
+    {
+      "requestId": 226,
+      "owner": "0x210746b7a845e9932c99Cb599689d3C59b43e528",
+      "tx": "0x0052b1ee6cec7b2072280f8f6bdc4f7f0683d67ad5a70d11cdd0cd48920de195",
+      "link": "https://sepolia.basescan.org/tx/0x0052b1ee6cec7b2072280f8f6bdc4f7f0683d67ad5a70d11cdd0cd48920de195"
+    },
+    {
+      "requestId": 227,
+      "owner": "0x281F8d91F827E99CeCf6Df468e2F6b636DAD4065",
+      "tx": "0x673bec8a0b722b7cb26191e8ebfaf15d84abf57aa238607033864007acd2f7ca",
+      "link": "https://sepolia.basescan.org/tx/0x673bec8a0b722b7cb26191e8ebfaf15d84abf57aa238607033864007acd2f7ca"
+    },
+    {
+      "requestId": 228,
+      "owner": "0x67CaE81A8B652Fb55f6E81De5f8A228Fc6b1ae0A",
+      "tx": "0x0bb4e08191122b09c52ffae1a31ab1c5ad5a67e4e559402991ae00cdb4209569",
+      "link": "https://sepolia.basescan.org/tx/0x0bb4e08191122b09c52ffae1a31ab1c5ad5a67e4e559402991ae00cdb4209569"
+    },
+    {
+      "requestId": 229,
+      "owner": "0x6CBBe3f84bF72e0c3457e0855Efa462153F1d4AA",
+      "tx": "0x29de81563296fc782318babf15aa2a42abc405e8baabc8537f9742d9ba16000b",
+      "link": "https://sepolia.basescan.org/tx/0x29de81563296fc782318babf15aa2a42abc405e8baabc8537f9742d9ba16000b"
+    },
+    {
+      "requestId": 230,
+      "owner": "0x13dc4D29731EfD03A0020Ac46a978A09D6460522",
+      "tx": "0x2b5b7de3cb695fc796907acda3f3b01738432226bd652f202bbc9048ed39c7e3",
+      "link": "https://sepolia.basescan.org/tx/0x2b5b7de3cb695fc796907acda3f3b01738432226bd652f202bbc9048ed39c7e3"
+    },
+    {
+      "requestId": 231,
+      "owner": "0xe3fCd8B0961B8ADEFC04CCe88C88aE455DB2ce6D",
+      "tx": "0x35b439cb56a7094fa19842646454a3cedc8638c040f33b850228783bb4364298",
+      "link": "https://sepolia.basescan.org/tx/0x35b439cb56a7094fa19842646454a3cedc8638c040f33b850228783bb4364298"
+    },
+    {
+      "requestId": 232,
+      "owner": "0x9F946Bc2c76fae9797F3ADa1Fe43074007C74dab",
+      "tx": "0x2831711dc431f63bb6edf0695f2fd7776b2d2818b648769187a623ede4036a4d",
+      "link": "https://sepolia.basescan.org/tx/0x2831711dc431f63bb6edf0695f2fd7776b2d2818b648769187a623ede4036a4d"
+    },
+    {
+      "requestId": 233,
+      "owner": "0xf1BCDc123a0a1F1FDE27c6EC983747F2dB012991",
+      "tx": "0x70e25d7bc6d26e0806112b805afc0bd3796975ee89df413c151909b16a585d13",
+      "link": "https://sepolia.basescan.org/tx/0x70e25d7bc6d26e0806112b805afc0bd3796975ee89df413c151909b16a585d13"
+    },
+    {
+      "requestId": 234,
+      "owner": "0x73213fB38a4C04d0Bc3c436D441a4a3DBAC89312",
+      "tx": "0xd3df253b51f5a4f87b5c728ca59a2a9ff1e1fc3830f956025191d895eb533427",
+      "link": "https://sepolia.basescan.org/tx/0xd3df253b51f5a4f87b5c728ca59a2a9ff1e1fc3830f956025191d895eb533427"
+    },
+    {
+      "requestId": 235,
+      "owner": "0x4fc988C1AA21efe5fE61958EDBfcE1b94c5fB216",
+      "tx": "0x59c64453dbc5014a7ea25138ad902b9e32cda4d118b871e4818b1ee3014b3150",
+      "link": "https://sepolia.basescan.org/tx/0x59c64453dbc5014a7ea25138ad902b9e32cda4d118b871e4818b1ee3014b3150"
+    },
+    {
+      "requestId": 236,
+      "owner": "0xfEb2c4eeeC494f9cA809005f9F4C3fc8410dA3e3",
+      "tx": "0xaf7e72e9deea3090019c09fe4905ef3062b3e236ac58e32fef10b1389b0803e5",
+      "link": "https://sepolia.basescan.org/tx/0xaf7e72e9deea3090019c09fe4905ef3062b3e236ac58e32fef10b1389b0803e5"
+    },
+    {
+      "requestId": 237,
+      "owner": "0x4899B238f1883da2E6D8f21db4419A62EBfF6543",
+      "tx": "0x025be0fa4b300c16d5c7574d032b8b6f301f8b4e6675e300e9664f4dcbd41c62",
+      "link": "https://sepolia.basescan.org/tx/0x025be0fa4b300c16d5c7574d032b8b6f301f8b4e6675e300e9664f4dcbd41c62"
+    },
+    {
+      "requestId": 238,
+      "owner": "0xBa3B544CC647533A4E2B571D49b6632E88d722e6",
+      "tx": "0x78755a6eaf6739f0602aab0d6f2102d98eab0c3a3d43d790644b73287acd47c0",
+      "link": "https://sepolia.basescan.org/tx/0x78755a6eaf6739f0602aab0d6f2102d98eab0c3a3d43d790644b73287acd47c0"
+    },
+    {
+      "requestId": 239,
+      "owner": "0x8520066A0AeeA85896642FfAB58a663Ce841056C",
+      "tx": "0xd7275a9cb14bf848811b133582970e4dc9b6f37fded2ed060f88ae179765b8c0",
+      "link": "https://sepolia.basescan.org/tx/0xd7275a9cb14bf848811b133582970e4dc9b6f37fded2ed060f88ae179765b8c0"
+    },
+    {
+      "requestId": 240,
+      "owner": "0xbcc60559e08345Ed96DddE93b43cF89bcbecDe51",
+      "tx": "0x1f7889b63b0d814a3b39397dc030537003b7379593e1289b32c7ffe11ac50c19",
+      "link": "https://sepolia.basescan.org/tx/0x1f7889b63b0d814a3b39397dc030537003b7379593e1289b32c7ffe11ac50c19"
+    },
+    {
+      "requestId": 241,
+      "owner": "0x6b7E63d660e83C39a131ccD2bC7C8a11bC2857DC",
+      "tx": "0xc0679d3759bb5a9c731f1b39afb03f2ed1f88cbc8cda31379c59213e85c8a509",
+      "link": "https://sepolia.basescan.org/tx/0xc0679d3759bb5a9c731f1b39afb03f2ed1f88cbc8cda31379c59213e85c8a509"
+    },
+    {
+      "requestId": 242,
+      "owner": "0x04F3bFbDdfC68796f5A3e30c0c41FaDf6Ee3F24D",
+      "tx": "0x657212ff6ab5dbebeeedb77040280f377cc76eb9b3e0dc4befb27d92cc0fe787",
+      "link": "https://sepolia.basescan.org/tx/0x657212ff6ab5dbebeeedb77040280f377cc76eb9b3e0dc4befb27d92cc0fe787"
+    },
+    {
+      "requestId": 243,
+      "owner": "0x45490e7860D627AeeCFB03188088Cf9510100Ba6",
+      "tx": "0x06cf9023d8525405e1c0f77ffae435e896a9a7d272bb626d4391cdc1e023893c",
+      "link": "https://sepolia.basescan.org/tx/0x06cf9023d8525405e1c0f77ffae435e896a9a7d272bb626d4391cdc1e023893c"
+    },
+    {
+      "requestId": 244,
+      "owner": "0xAc0AE26Cb811288C60b7f7e988A5E717cD8A67ff",
+      "tx": "0xb9012c97258ddc5fcc3adf699dee1f6751e68ef6cd1ad1e7ea5ba10eb736c0f9",
+      "link": "https://sepolia.basescan.org/tx/0xb9012c97258ddc5fcc3adf699dee1f6751e68ef6cd1ad1e7ea5ba10eb736c0f9"
+    },
+    {
+      "requestId": 245,
+      "owner": "0x74417E0CBb3517185cCFea272265fdC28898B231",
+      "tx": "0x737c6101841bd98830bec1ada1fdc7d013c72407c762075753413dee2d3088f1",
+      "link": "https://sepolia.basescan.org/tx/0x737c6101841bd98830bec1ada1fdc7d013c72407c762075753413dee2d3088f1"
+    },
+    {
+      "requestId": 246,
+      "owner": "0x229A60d4b16f36824358158E5404EF95d75856E3",
+      "tx": "0xb48ff7368af90a43c886768807fec05fb7370db4b778457526ffef4449f49834",
+      "link": "https://sepolia.basescan.org/tx/0xb48ff7368af90a43c886768807fec05fb7370db4b778457526ffef4449f49834"
+    },
+    {
+      "requestId": 247,
+      "owner": "0x03C48D505D7Bd8b333d278a6dEbb8daf7C819a72",
+      "tx": "0xd6452ee5352966749ea6df9e08b52bccbdfd24ea47dd0e32a432a0ad25005693",
+      "link": "https://sepolia.basescan.org/tx/0xd6452ee5352966749ea6df9e08b52bccbdfd24ea47dd0e32a432a0ad25005693"
+    },
+    {
+      "requestId": 248,
+      "owner": "0x671385314dEaB3A0A6e33AB9a760a8826735aC7E",
+      "tx": "0x0f12f4f29c055409f4d331361f86f541a0c0ed626e03c46a2eded802381cba81",
+      "link": "https://sepolia.basescan.org/tx/0x0f12f4f29c055409f4d331361f86f541a0c0ed626e03c46a2eded802381cba81"
+    },
+    {
+      "requestId": 249,
+      "owner": "0x77d2E0eB08d3540C904Df83E1cf012E432078BE4",
+      "tx": "0x1882edadc583d640d4249cb6823144b6ebc259ad096a4dcb09779bf268ec35c5",
+      "link": "https://sepolia.basescan.org/tx/0x1882edadc583d640d4249cb6823144b6ebc259ad096a4dcb09779bf268ec35c5"
+    },
+    {
+      "requestId": 250,
+      "owner": "0x803D6312062025a9C608739efB6dB8F306f5450D",
+      "tx": "0x1b86d1ad5bfac0fbb62c512f7f813220435c656558dea045f967be12d28ee7e0",
+      "link": "https://sepolia.basescan.org/tx/0x1b86d1ad5bfac0fbb62c512f7f813220435c656558dea045f967be12d28ee7e0"
+    },
+    {
+      "requestId": 251,
+      "owner": "0x6a56175Ea7cFa5AF9aa058CF652CC0A67DF1667b",
+      "tx": "0xb5b1071a9a92a60182af08e13f6ffb3f0e971dae781a0f0939a254364289192d",
+      "link": "https://sepolia.basescan.org/tx/0xb5b1071a9a92a60182af08e13f6ffb3f0e971dae781a0f0939a254364289192d"
+    },
+    {
+      "requestId": 252,
+      "owner": "0x2dEd462fE8822712b2824218f6e60B6E0c23eE85",
+      "tx": "0x381e57ef42412e03365db4b5aea9ebae14ba12b1c15f510e13028b10ce560d82",
+      "link": "https://sepolia.basescan.org/tx/0x381e57ef42412e03365db4b5aea9ebae14ba12b1c15f510e13028b10ce560d82"
+    },
+    {
+      "requestId": 253,
+      "owner": "0x18cA540B65d14d0A61C1a891c77Ce46f15c066c8",
+      "tx": "0x6302799ee49ae6c65bbb34595d1c80d47c422c4256358426430b86e75f0e6bc4",
+      "link": "https://sepolia.basescan.org/tx/0x6302799ee49ae6c65bbb34595d1c80d47c422c4256358426430b86e75f0e6bc4"
+    },
+    {
+      "requestId": 254,
+      "owner": "0x7CFCFf063D76eaEdADB96668b543DBD7dF389C50",
+      "tx": "0xd26860aa47de0925122dd11b6dfbc80404c5158fbf4c12f7ab5c7f5a1819e4ce",
+      "link": "https://sepolia.basescan.org/tx/0xd26860aa47de0925122dd11b6dfbc80404c5158fbf4c12f7ab5c7f5a1819e4ce"
+    },
+    {
+      "requestId": 255,
+      "owner": "0x44Ea1b2417b31814ec9687a28c668Cea1c11d36A",
+      "tx": "0xde4c59a5bc11efeafd9ceea9b38929338bb92c9ba9ec398eb7faf55487dede18",
+      "link": "https://sepolia.basescan.org/tx/0xde4c59a5bc11efeafd9ceea9b38929338bb92c9ba9ec398eb7faf55487dede18"
+    }
+  ]
+}

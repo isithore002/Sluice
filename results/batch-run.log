@@ -1,0 +1,25 @@
+Batch continuation: 40 lenders queue 1 mUSD each, then ONE repayment of 40 mUSD
+  the vault pays at most 25 requests per callback, so 2 callbacks are needed
+  resuming: 33 of 40 lenders are already queued (ids 216..248)
+  funded gas for 0 of 40 wallets
+  10/40 lenders have deposited
+  20/40 lenders have deposited
+  30/40 lenders have deposited
+  40/40 lenders have deposited
+  10/40 withdrawals queued
+  20/40 withdrawals queued
+  30/40 withdrawals queued
+  step failed (ContractFunctionExecutionError: The request took too long to respond.); checking the chain, then retrying
+  40/40 withdrawals queued
+  queue: 40 requests (ids 216..255), 40 mUSD pending, nothing reachable
+
+Repaying 40 mUSD in Morpho (one transaction)...
+  repay tx 0x27f7da1287439112f2f41740437fb01804c045635b893aebba03af029a4b3ba9
+  first batch paid 1930 ms after the repayment
+  queue empty 2968 ms after the repayment
+
+OK: 40 withdrawals, 2 callbacks, FIFO verified, all lenders paid in full
+  callback 1: 25 payments (ids 216..240)  gas 9,33,746 of 15,00,000  https://sepolia.basescan.org/tx/0x13907a69b2f84aa12fd832ddcbd947f4193b67ec0bec97b22e0b6959148ea31d
+  callback 2: 15 payments (ids 241..255)  gas 5,59,939 of 15,00,000  https://sepolia.basescan.org/tx/0xc884be68fd90e294adbfc4f789539955aefdf61a0eb9bbc246951311dbcf3746
+  repay -> first batch 1930 ms, repay -> queue empty 2968 ms
+results: H:\reactive\results\batch-2026-11-19T13-16-06-427Z.json

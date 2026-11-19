@@ -1,0 +1,5 @@
+Replay data from race-2026-11-19T08-47-18-617Z.json: 60 rounds
+  Lasna blocks 8720909..8721742
+  60 PullRequested and 30 PullScheduled events
+  linked an Omni reaction to 60 of 60 rounds
+wrote results/replay-race.json

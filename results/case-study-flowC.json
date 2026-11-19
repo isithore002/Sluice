@@ -1,0 +1,149 @@
+{
+  "generatedAt": "2026-11-19T13:18:16.234Z",
+  "counts": {
+    "attempted": 32,
+    "recorded": 31,
+    "completedOnChain": 32
+  },
+  "outcome": {
+    "userPaid": "10000000",
+    "relayerReimbursed": "10000000",
+    "fillStage": "DONE",
+    "requestId": 136
+  },
+  "steps": [
+    {
+      "key": "origin",
+      "label": "User asks to withdraw",
+      "chain": "base",
+      "tx": "0xccb5e6b1ef3d8e35160bc8dbe572b3330b00a19da549cb76775a24fc3bfef0ec",
+      "link": "https://sepolia.basescan.org/tx/0xccb5e6b1ef3d8e35160bc8dbe572b3330b00a19da549cb76775a24fc3bfef0ec",
+      "block": "60785226",
+      "ts": 1795078914,
+      "status": "ok",
+      "note": "requestWithdraw(10 mUSD): request #136, queued with a shortfall because Morpho had no free cash"
+    },
+    {
+      "key": "react",
+      "label": "Omni reacts to the queue",
+      "chain": "lasna",
+      "tx": "0x7ecb28d629f49c0a65fc1783ba819c581c105633bb7ad5de2f3fb1f621be4eca",
+      "link": "https://lasna.reactscan.net/tx/0x7ecb28d629f49c0a65fc1783ba819c581c105633bb7ad5de2f3fb1f621be4eca",
+      "block": "8721746",
+      "ts": 1795078913,
+      "status": "ok",
+      "note": "SluiceReactive sees the shortfall and asks the relayer reserve to front it"
+    },
+    {
+      "key": "pay",
+      "label": "User is paid on Base",
+      "chain": "base",
+      "tx": "0xc12c73b249b662f2260021e452693bdf8c0576bcebf820f844e3516b90f692a8",
+      "link": "https://sepolia.basescan.org/tx/0xc12c73b249b662f2260021e452693bdf8c0576bcebf820f844e3516b90f692a8",
+      "block": "60785233",
+      "ts": 1795078915,
+      "status": "ok",
+      "note": "the reserve fronts 10 mUSD and the vault pays request #136 in full (0 left owed)"
+    },
+    {
+      "key": "fronted",
+      "label": "Omni sees the payout",
+      "chain": "lasna",
+      "tx": "0x03846575b22c3657c78d07266d783018613be7640fdf0041f82ddd4959ca7119",
+      "link": "https://lasna.reactscan.net/tx/0x03846575b22c3657c78d07266d783018613be7640fdf0041f82ddd4959ca7119",
+      "block": "8721747",
+      "ts": 1795078914,
+      "status": "ok",
+      "note": "SluiceReactive sees Fronted and asks Unichain to reimburse exactly what was sent"
+    },
+    {
+      "key": "reimburse",
+      "label": "Relayer is reimbursed on Unichain",
+      "chain": "uni",
+      "tx": "0x7cfa0c31ee4721579b72de494de81e10a7df69daf166f8d1c226b8f6f4310725",
+      "link": "https://sepolia.uniscan.xyz/tx/0x7cfa0c31ee4721579b72de494de81e10a7df69daf166f8d1c226b8f6f4310725",
+      "block": "68226489",
+      "ts": 1795078917,
+      "status": "ok",
+      "note": "SiblingVault reimburses 10 mUSD; 1,990 credit left"
+    },
+    {
+      "key": "closed",
+      "label": "Omni closes the fill",
+      "chain": "lasna",
+      "tx": "0x48d4d2a53ad52ab573d9168870dffd853e1f51416c17373f190534c6e1c51ff9",
+      "link": "https://lasna.reactscan.net/tx/0x48d4d2a53ad52ab573d9168870dffd853e1f51416c17373f190534c6e1c51ff9",
+      "block": "8721749",
+      "ts": 1795078916,
+      "status": "ok",
+      "note": "fill #1 ends in stage DONE"
+    },
+    {
+      "key": "restore1",
+      "label": "Harness cleanup, step 1",
+      "chain": "uni",
+      "tx": "0xe3b8e975f8c52d1bd893f32b0a5177a8bff94294e06118a2db4c1d9f1e38559f",
+      "link": "https://sepolia.uniscan.xyz/tx/0xe3b8e975f8c52d1bd893f32b0a5177a8bff94294e06118a2db4c1d9f1e38559f",
+      "block": "68226503",
+      "ts": 1795078931,
+      "status": "ok",
+      "note": "puts the reimbursed amount back into the sibling vault"
+    },
+    {
+      "key": "restore2",
+      "label": "Harness cleanup, step 2",
+      "chain": "uni",
+      "tx": "0x4ed65cfdd281f70c8487594eef28b84395d5146ab997a443016f6b1cfc694591",
+      "link": "https://sepolia.uniscan.xyz/tx/0x4ed65cfdd281f70c8487594eef28b84395d5146ab997a443016f6b1cfc694591",
+      "block": "68226504",
+      "ts": 1795078932,
+      "status": "failed",
+      "note": "commitCredit() ran out of gas"
+    }
+  ],
+  "failure": {
+    "tx": "0x4ed65cfdd281f70c8487594eef28b84395d5146ab997a443016f6b1cfc694591",
+    "link": "https://sepolia.uniscan.xyz/tx/0x4ed65cfdd281f70c8487594eef28b84395d5146ab997a443016f6b1cfc694591",
+    "chain": "uni",
+    "contract": "0x2CD91D217610083aBfF78b6609c79193E619b5d7",
+    "call": "commitCredit()",
+    "gasLimit": 34915,
+    "gasUsed": 34915,
+    "status": "reverted: out of gas",
+    "block": "68226504",
+    "cause": "The gas estimate for the call came up just short on Unichain Sepolia. The transaction was sent with a gas limit of 34,915 and used every unit of it."
+  },
+  "fix": {
+    "description": "Every harness transaction now carries a 30% gas buffer over the node's estimate, so a short estimate cannot end a loop.",
+    "file": "harness/src/util.ts"
+  },
+  "rerun": {
+    "file": "flowC-2026-11-19T09-14-20-131Z.json",
+    "loops": 2,
+    "succeeded": 2,
+    "examples": [
+      {
+        "loop": 0,
+        "links": {
+          "origin": "https://sepolia.basescan.org/tx/0x2d531d1ababb20b8087de28a0169ad9a200aa16ea2c20533c07c0a855eade0d7",
+          "reactive": "https://lasna.reactscan.net/tx/0xf95e56435be00944860e6c7346ce0c37a37cded94510690ab179110981cb9a74",
+          "front": "https://sepolia.basescan.org/tx/0x9ce5a8e3bc362ae6816191fb86357e4085a89a216715c5f1069201ff1b3e8622",
+          "reimburse": "https://sepolia.uniscan.xyz/tx/0x4e5b7e84e33e7f7925bb2c052980a16c9c678be6ab5736e51478990a28828eac"
+        },
+        "userPaidMs": 1159,
+        "relayerReimbursedMs": 4148
+      },
+      {
+        "loop": 1,
+        "links": {
+          "origin": "https://sepolia.basescan.org/tx/0x78f6c46dc048f3e1b89cf9f259c62e55f9add5c0f6ce56292be7222a3bdba132",
+          "reactive": "https://lasna.reactscan.net/tx/0x621e8b2c67dbec7e94501a354306581d61d80c6610f90b2729a101102cfc98f0",
+          "front": "https://sepolia.basescan.org/tx/0x9fb54433c063460a3d77abcbb8443c9716cf68a883e381f8988e37e5aeb0281e",
+          "reimburse": "https://sepolia.uniscan.xyz/tx/0xe64e8cde4c7dcbd98774baa80798d55ffc15759a521acfdea9d318a542f79ac6"
+        },
+        "userPaidMs": 1605,
+        "relayerReimbursedMs": 4076
+      }
+    ]
+  }
+}

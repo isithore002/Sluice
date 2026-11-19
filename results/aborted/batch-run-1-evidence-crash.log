@@ -1,0 +1,19 @@
+Batch continuation: 40 lenders queue 1 mUSD each, then ONE repayment of 40 mUSD
+  the vault pays at most 25 requests per callback, so 2 callbacks are needed
+  normalize: 10000000 still queued, depositing to clear it
+  funded gas for 40 of 40 wallets
+  10/40 lenders deposited
+  20/40 lenders deposited
+  30/40 lenders deposited
+  40/40 lenders deposited
+  normalize: borrowing 40000000 free liquidity
+  10/40 withdrawals queued
+  20/40 withdrawals queued
+  30/40 withdrawals queued
+  40/40 withdrawals queued
+  queue: 40 requests (ids 176..215), 40 mUSD pending, nothing reachable
+
+Repaying 40 mUSD in Morpho (one transaction)...
+  queue empty 2491 ms after the repayment
+--- the run then crashed while reading evidence: 40 parallel balanceOf calls hit 'HttpRequestError: fetch failed' on the public Base Sepolia RPC.
+--- The on-chain settlement itself had completed (queue empty 2491 ms after the repayment). batch.ts now retries reads and does them 5 at a time; the run was repeated.

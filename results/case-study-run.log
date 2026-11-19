@@ -1,0 +1,6 @@
+Failed loop #0 in flowC-2026-11-19T09-01-51-039Z.json: commitCredit reverted 0x4ed65cfdd281f70c8487594eef28b84395d5146ab997a443016f6b1cfc694591
+  commitCredit(): gas limit 34915, used 34915, status reverted
+  loop trace 0xccb5e6b1ef3d8e35160bc8dbe572b3330b00a19da549cb76775a24fc3bfef0ec, fill #1, reimbursed 10 mUSD at Unichain block 68226489
+
+wrote results/case-study-flowC.json: 8 steps, 32/32 loops completed on-chain, 31 measured
+  fill #1 stage DONE; paid 10 mUSD; relayer reimbursed 10 mUSD

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-19T09:54:25.041Z",
+  "generatedAt": "2026-11-19T13:30:58.621Z",
   "flowB": {
     "attempted": 33,
     "succeeded": 33,
@@ -104,6 +104,42 @@
         "callbackSentBy": "0xf7e866d726658f6c3f14b8ee537fe268a4d91ddb"
       }
     }
+  },
+  "batch": {
+    "n": 40,
+    "cap": 25,
+    "callbacks": 2,
+    "payments": [
+      25,
+      15
+    ],
+    "repayToFirstBatchMs": 1930,
+    "repayToQueueEmptyMs": 2968,
+    "fifoOk": true,
+    "maxGasUsed": 933746,
+    "gasLimit": 1500000,
+    "each": "1000000",
+    "total": "40000000",
+    "firstRequestId": 216,
+    "lastRequestId": 255,
+    "reactiveLinks": [
+      "https://lasna.reactscan.net/tx/0x7bf06febfcfa9767a578f8f369f70f01732b2e4b14875ce9d4d774c202e4add4",
+      "https://lasna.reactscan.net/tx/0x6f88ea2d86173972ad030bc737dd408f316731064b5cc64d109e1c6d1c1d14b8"
+    ],
+    "repayLink": "https://sepolia.basescan.org/tx/0x27f7da1287439112f2f41740437fb01804c045635b893aebba03af029a4b3ba9",
+    "callbackLinks": [
+      "https://sepolia.basescan.org/tx/0x13907a69b2f84aa12fd832ddcbd947f4193b67ec0bec97b22e0b6959148ea31d",
+      "https://sepolia.basescan.org/tx/0xc884be68fd90e294adbfc4f789539955aefdf61a0eb9bbc246951311dbcf3746"
+    ]
+  },
+  "crossChainCaseStudy": {
+    "attempted": 32,
+    "recorded": 31,
+    "completedOnChain": 32,
+    "failedTx": "https://sepolia.uniscan.xyz/tx/0x4ed65cfdd281f70c8487594eef28b84395d5146ab997a443016f6b1cfc694591",
+    "failedCall": "commitCredit()",
+    "gasLimit": 34915,
+    "gasUsed": 34915
   },
   "race": [
     {
