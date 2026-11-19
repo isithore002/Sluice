@@ -15,7 +15,7 @@ Built for the [Reactive Omni Buildathon](https://dorahacks.io/hackathon/reactive
 | Networks | Reactive Lasna (5318007), Base Sepolia (84532), Unichain Sepolia (1301) |
 | Protocol integrated | Morpho Blue (the live deployment on Base Sepolia, `0xBBBB…FFCb`) |
 | Tests | 62 passing, against **Morpho's real bytecode** and **the real Omni system contracts** |
-| Results | Latency loops and the latency race: *pending live runs, see [Results](#results)* |
+| Results | Live on testnet: 33/33 flow B loops, 31/32 flow C loops, a 60-round latency race. See [Results](#results) |
 
 ---
 
@@ -80,15 +80,76 @@ Three liquidity sources, three flows:
 
 ## Results
 
-> **Pending live runs.** The harness, the race and the dashboard are built and tested. Numbers appear here after the live testnet runs (`harness/`, then `npm run summary` writes `results/SUMMARY.md`). Nothing below will be estimated or simulated.
+<!-- RESULTS:START -->
+Measured on live testnets and generated from [`results/summary.json`](results/summary.json) (2026-11-19). Every record in [`results/`](results/) carries the transaction hashes of each hop. Wall-clock times come from polling every ~150 ms, so each includes up to one poll interval of observation delay.
 
-- Flow B latency (repay → queue paid): *pending*
-- Flow C latency (shortfall → user paid, and → relayer reimbursed): *pending*
-- Latency race (queue capture at Omni vs ~legacy speed): *pending*
+### Latency
+
+| Loop | Success | Median | p95 | Max |
+|---|---|---|---|---|
+| **Flow B:** Morpho repay → queue paid | 33/33 | **1.58 s** | 2.10 s | 2.20 s |
+|   of which repay → Lasna react | | 1.17 s | 1.83 s | 1.99 s |
+| **Flow C:** shortfall → user paid by the reserve | 31/32 | **1.36 s** | 2.16 s | 2.19 s |
+|   shortfall → relayer reimbursed on Unichain | | 4.60 s | 5.08 s | 5.31 s |
+
+The user is paid after **one** reactive hop; the relayer is reimbursed one hop later, only after `Fronted` is confirmed.
+
+### The latency race
+
+When freed liquidity is contested, how much does the queue capture? A competitor bot (a lender in the same Morpho market) fires a withdrawal `C` seconds after seeing each repayment, with no market read and a fixed gas limit. Capture = the share of the repaid amount that reaches the queue. 6 rounds per cell, 60 rounds in total, every round accounted for exactly (queue payout + competitor payout = amount).
+
+| Competitor sends after | Omni native (Sluice acts in ~1.42 s) | +6 Lasna blocks (~legacy, acts in ~7.64 s) |
+|---|---|---|
+| 0 s | 17% | 0% |
+| 1 s | 100% | 0% |
+| 2 s | 100% | 0% |
+| 4 s | 100% | 0% |
+| 8 s | 100% | 100% |
+
+**Reading it honestly:**
+
+- At Omni speed the queue beats any competitor that reacts a second or more after the repayment, and loses to an instant one (an instant competitor beats it most of the time).
+- At legacy-like speed the queue loses to every competitor except the slowest. That gap is the case for Omni here.
+- The "+6 blocks" rows add delay on Omni (`delayBlocks = 6`). They approximate legacy speed; they are not runs on the legacy network.
+- The competitor runs on one machine through a public RPC, so its own transaction takes ~1.2 to 1.4 s to land. An in-region bot would be faster, so the 0 s row is not the speed limit.
+
+### Verify a loop yourself
+
+One real loop of each flow. Only the first transaction in each is sent by our wallet. The callbacks are sent by Reactive's signer, and nothing of ours runs in between.
+
+**Flow B (Morpho repayment settles the queue):**
+1. [Borrower repays in Morpho, Base Sepolia](https://sepolia.basescan.org/tx/0x3b8552c579a76f54fbb3d982478a2420ab18b3bd7429a9f1be5c8952570bc6d5)
+2. [SluiceReactive reacts, Reactive Lasna](https://lasna.reactscan.net/tx/0xbc8931dc34f64aa89ede11c0310a298c1e382fa506970beea5637939c3d5fffb)
+3. [Callback pays the queue, Base Sepolia](https://sepolia.basescan.org/tx/0x676ae7d7ccbf0b0146c12091fa8a3915d21be3853c4c853eec6118076bbbca30)
+
+**Flow C (shortfall fronted, relayer reimbursed):**
+1. [Withdrawal queued with a shortfall, Base Sepolia](https://sepolia.basescan.org/tx/0xe074b45195f9d15e6af2390a31922406655170f89bb3c06dc8492b1673cb45f9)
+2. [SluiceReactive reacts, Reactive Lasna](https://lasna.reactscan.net/tx/0x462e19cad21afe52d440c962843d1e9936d93ac7b8e3149d5abe748284cb8f60)
+3. [Reserve fronts and the user is paid, Base Sepolia](https://sepolia.basescan.org/tx/0x6d643b9485732145190ce578ad7d52302bab406a6304bf29e50d50c79684066a)
+4. [Relayer reimbursed, Unichain Sepolia](https://sepolia.uniscan.xyz/tx/0x1db0937b563d71a8eff8efddaf469f8033d3747364af65ae9739931f7d2f7c93)
+
+Failures and discarded runs are documented in [`results/README.md`](results/README.md).
+<!-- RESULTS:END -->
 
 ## Deployed contracts
 
-*Pending live deployment.* After `scripts/deploy.sh`, addresses are in [`deployments/`](deployments/) and every deployment transaction is in `broadcast/`.
+<!-- DEPLOYED:START -->
+Deployed with [`scripts/deploy.sh`](scripts/deploy.sh). Addresses are in [`deployments/`](deployments/), and every deployment transaction is in [`broadcast/`](broadcast/).
+
+| Contract | Network | Address |
+|---|---|---|
+| SluiceReactive | Reactive Lasna (5318007) | [`0xD49236Bb296e8935dC302De0cccFDf5EC5413157`](https://lasna.reactscan.net/address/0xD49236Bb296e8935dC302De0cccFDf5EC5413157) |
+| SluiceVault | Base Sepolia (84532) | [`0x3d65a5E73d43B5D20Afe7484eecC5D1364e3dEd6`](https://sepolia.basescan.org/address/0x3d65a5E73d43B5D20Afe7484eecC5D1364e3dEd6) |
+| RelayerReserve | Base Sepolia | [`0x48cbca9BAad89fACBEc9AcC083782B6fE10C04de`](https://sepolia.basescan.org/address/0x48cbca9BAad89fACBEc9AcC083782B6fE10C04de) |
+| Morpho Blue (third party, pre-existing) | Base Sepolia | [`0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb`](https://sepolia.basescan.org/address/0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb) |
+| Demo market loan token (MockUSD) | Base Sepolia | [`0x586c3d4bee371Df96063F045Aee49081Bc2e7cf7`](https://sepolia.basescan.org/address/0x586c3d4bee371Df96063F045Aee49081Bc2e7cf7) |
+| Demo market collateral token | Base Sepolia | [`0xB5b2E077521E43647cc75BF10e5285F036C22DBb`](https://sepolia.basescan.org/address/0xB5b2E077521E43647cc75BF10e5285F036C22DBb) |
+| Demo market oracle (fixed price) | Base Sepolia | [`0x26f814373D575bDC074175A686c3Ff197D4e3b07`](https://sepolia.basescan.org/address/0x26f814373D575bDC074175A686c3Ff197D4e3b07) |
+| SiblingVault | Unichain Sepolia (1301) | [`0x2CD91D217610083aBfF78b6609c79193E619b5d7`](https://sepolia.uniscan.xyz/address/0x2CD91D217610083aBfF78b6609c79193E619b5d7) |
+| MockUSD | Unichain Sepolia | [`0xdAFaC2C362d3D811124be77B0ABF84e677091750`](https://sepolia.uniscan.xyz/address/0xdAFaC2C362d3D811124be77B0ABF84e677091750) |
+
+Our Morpho market id: `0xfa6e6efff85e0699003a9a81cb4b3a8113b520799e8bcb81a68a2d5e85ea4980` (loan token MockUSD, zero-rate IRM, 86% LLTV).
+<!-- DEPLOYED:END -->
 
 ---
 
