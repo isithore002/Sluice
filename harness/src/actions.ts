@@ -1,4 +1,4 @@
-import { parseAbi, type Address } from "viem";
+import { parseAbi, type Address, type Hex } from "viem";
 import { account, base, rnk, uni } from "./chains.js";
 import { ABI, ADDR } from "./contracts.js";
 import { read, send, type Sent } from "./util.js";
@@ -80,6 +80,30 @@ export async function borrow(x: bigint): Promise<Sent> {
 /** The race competitor: a lender withdrawing its own supply from the same market. */
 export async function competitorWithdraw(x: bigint): Promise<Sent> {
   return send(base, ADDR.morpho, ABI.morpho, "withdraw", [await marketParams(), x, 0n, me, me]);
+}
+
+export interface FastWithdraw {
+  hash: Hex;
+  ok: boolean;
+  blockNumber: bigint;
+}
+
+/**
+ * The race competitor, built to be as fast as a real bot: it does not read the market first and does not estimate
+ * gas (a fixed gas limit skips estimation), so it fires immediately. If Sluice already took the liquidity the
+ * withdrawal reverts on-chain and `ok` is false: the competitor lost the race. Any other failure throws.
+ */
+export async function competitorWithdrawFast(x: bigint): Promise<FastWithdraw> {
+  const params = await marketParams(); // cached after the first call, so it adds no latency in a round
+  const hash = await base.wallet.writeContract({
+    address: ADDR.morpho,
+    abi: ABI.morpho,
+    functionName: "withdraw",
+    args: [params, x, 0n, me, me],
+    gas: 400_000n,
+  } as never);
+  const receipt = await base.pub.waitForTransactionReceipt({ hash, pollingInterval: 100, timeout: 60_000 });
+  return { hash, ok: receipt.status === "success", blockNumber: receipt.blockNumber };
 }
 
 export async function competitorSupplyMore(x: bigint): Promise<Sent> {

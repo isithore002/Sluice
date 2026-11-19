@@ -1,0 +1,35 @@
+Flow C: 30 loops of 10 mUSD
+  resume cross-chain fronting
+  #0 FAILED: Error: uni commitCredit reverted: 0x4ed65cfdd281f70c8487594eef28b84395d5146ab997a443016f6b1cfc694591
+  #1 ok  user paid 805 ms (chain 1s)  relayer reimbursed 4057 ms
+  #2 ok  user paid 1364 ms (chain 2s)  relayer reimbursed 4604 ms
+  #3 ok  user paid 1762 ms (chain 2s)  relayer reimbursed 4668 ms
+  #4 ok  user paid 808 ms (chain 1s)  relayer reimbursed 4204 ms
+  #5 ok  user paid 1766 ms (chain 2s)  relayer reimbursed 5026 ms
+  #6 ok  user paid 1268 ms (chain 1s)  relayer reimbursed 4597 ms
+  #7 ok  user paid 1752 ms (chain 2s)  relayer reimbursed 5080 ms
+  #8 ok  user paid 1780 ms (chain 2s)  relayer reimbursed 4904 ms
+  #9 ok  user paid 951 ms (chain 1s)  relayer reimbursed 4458 ms
+  #10 ok  user paid 1702 ms (chain 2s)  relayer reimbursed 5307 ms
+  #11 ok  user paid 1236 ms (chain 2s)  relayer reimbursed 4758 ms
+  #12 ok  user paid 1292 ms (chain 2s)  relayer reimbursed 4736 ms
+  #13 ok  user paid 1211 ms (chain 1s)  relayer reimbursed 3502 ms
+  #14 ok  user paid 1923 ms (chain 2s)  relayer reimbursed 4749 ms
+  #15 ok  user paid 1731 ms (chain 1s)  relayer reimbursed 3781 ms
+  #16 ok  user paid 1259 ms (chain 1s)  relayer reimbursed 4231 ms
+  #17 ok  user paid 1735 ms (chain 2s)  relayer reimbursed 4680 ms
+  #18 ok  user paid 1311 ms (chain 2s)  relayer reimbursed 4337 ms
+  #19 ok  user paid 1776 ms (chain 1s)  relayer reimbursed 4096 ms
+  #20 ok  user paid 1698 ms (chain 1s)  relayer reimbursed 4014 ms
+  #21 ok  user paid 1664 ms (chain 1s)  relayer reimbursed 5048 ms
+  #22 ok  user paid 2156 ms (chain 2s)  relayer reimbursed 5066 ms
+  #23 ok  user paid 1276 ms (chain 1s)  relayer reimbursed 4599 ms
+  #24 ok  user paid 2195 ms (chain 2s)  relayer reimbursed 4734 ms
+  #25 ok  user paid 1259 ms (chain 1s)  relayer reimbursed 3683 ms
+  #26 ok  user paid 860 ms (chain 0s)  relayer reimbursed 3767 ms
+  #27 ok  user paid 1364 ms (chain 1s)  relayer reimbursed 4034 ms
+  #28 ok  user paid 1275 ms (chain 2s)  relayer reimbursed 3971 ms
+  #29 ok  user paid 1198 ms (chain 1s)  relayer reimbursed 5060 ms
+
+success 29/30   user-paid wall ms: median 1364, p95 2156, max 2195
+results: H:\reactive\results\flowC-2026-11-19T09-01-51-039Z.json

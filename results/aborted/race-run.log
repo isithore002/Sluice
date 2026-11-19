@@ -1,0 +1,38 @@
+Race: 6 rounds x speeds [0,6] x competitor delays [0,1,2,4,8]s, X = 10 mUSD
+  delayBlocks=0 C=0s #0: queue got 100% (Sluice acted at 1270 ms)
+  delayBlocks=0 C=0s #1: queue got 100% (Sluice acted at 1829 ms)
+  delayBlocks=0 C=0s #2: queue got 100% (Sluice acted at 1295 ms)
+  delayBlocks=0 C=0s #3: queue got 100% (Sluice acted at 856 ms)
+  delayBlocks=0 C=0s #4: queue got 100% (Sluice acted at 1542 ms)
+  delayBlocks=0 C=0s #5: queue got 100% (Sluice acted at 1358 ms)
+  => delayBlocks=0, C=0s: mean capture 100%
+  delayBlocks=0 C=1s #0: queue got 100% (Sluice acted at 1541 ms)
+  delayBlocks=0 C=1s #1: queue got 100% (Sluice acted at 1767 ms)
+  delayBlocks=0 C=1s #2: queue got 100% (Sluice acted at 1421 ms)
+  delayBlocks=0 C=1s #3: queue got 100% (Sluice acted at 1240 ms)
+  delayBlocks=0 C=1s #4: queue got 100% (Sluice acted at 1596 ms)
+  delayBlocks=0 C=1s #5: queue got 100% (Sluice acted at 1666 ms)
+  => delayBlocks=0, C=1s: mean capture 100%
+  delayBlocks=0 C=2s #0: queue got 100% (Sluice acted at 1315 ms)
+  delayBlocks=0 C=2s #1: queue got 100% (Sluice acted at 906 ms)
+  delayBlocks=0 C=2s #2: queue got 100% (Sluice acted at 1206 ms)
+  delayBlocks=0 C=2s #3: queue got 100% (Sluice acted at 2395 ms)
+  delayBlocks=0 C=2s #4: queue got 100% (Sluice acted at 1681 ms)
+  delayBlocks=0 C=2s #5: queue got 100% (Sluice acted at 1276 ms)
+  => delayBlocks=0, C=2s: mean capture 100%
+  delayBlocks=0 C=4s #0: queue got 100% (Sluice acted at 1748 ms)
+  delayBlocks=0 C=4s #1: queue got 100% (Sluice acted at 1264 ms)
+  delayBlocks=0 C=4s #2: queue got 100% (Sluice acted at 1626 ms)
+  delayBlocks=0 C=4s #3: queue got 100% (Sluice acted at 1752 ms)
+  delayBlocks=0 C=4s #4: queue got 100% (Sluice acted at 2163 ms)
+  delayBlocks=0 C=4s #5: queue got 100% (Sluice acted at 1745 ms)
+  => delayBlocks=0, C=4s: mean capture 100%
+  delayBlocks=0 C=8s #0: queue got 100% (Sluice acted at 1763 ms)
+  delayBlocks=0 C=8s #1: queue got 100% (Sluice acted at 2159 ms)
+  delayBlocks=0 C=8s #2: queue got 100% (Sluice acted at 1671 ms)
+  delayBlocks=0 C=8s #3: queue got 100% (Sluice acted at 2156 ms)
+  delayBlocks=0 C=8s #4: queue got 100% (Sluice acted at 1695 ms)
+  delayBlocks=0 C=8s #5: queue got 100% (Sluice acted at 1753 ms)
+  => delayBlocks=0, C=8s: mean capture 100%
+  set delayBlocks = 6
+  delayBlocks=6 C=0s #0: queue got 0% (Sluice acted at 7333 ms)

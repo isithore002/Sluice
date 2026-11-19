@@ -33,6 +33,18 @@ export function RaceChart({ cells }: { cells: RaceCell[] }) {
   const x = (d: number) => (xMax === xMin ? L + (W - L - R) / 2 : L + ((d - xMin) / (xMax - xMin)) * (W - L - R));
   const y = (p: number) => T + (1 - p) * (H - T - B);
 
+  // End-of-line labels: when both series end at (nearly) the same height, push them apart so they never overprint.
+  const endY = (key: string) => {
+    const pts = series.find((s) => s.key === key)?.points ?? [];
+    return pts.length ? y(pts[pts.length - 1].meanCapture) + 4 : 0;
+  };
+  const labelY = (key: string) => {
+    const a = endY("native"), b = endY("legacy");
+    if (Math.abs(a - b) >= 16 || a === 0 || b === 0) return key === "native" ? a : b;
+    const mid = (a + b) / 2;
+    return key === "native" ? mid - 9 : mid + 9;
+  };
+
   return (
     <div className="chart-wrap" ref={wrapRef}>
       <div className="legend" aria-hidden="true">
@@ -93,7 +105,7 @@ export function RaceChart({ cells }: { cells: RaceCell[] }) {
             {s.points.length > 0 && (
               <text
                 x={x(s.points[s.points.length - 1].competitorDelayS) + 12}
-                y={y(s.points[s.points.length - 1].meanCapture) + 4}
+                y={labelY(s.key)}
                 fontSize="12"
                 fill="var(--ink-2)"
               >

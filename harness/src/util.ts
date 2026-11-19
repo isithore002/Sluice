@@ -26,7 +26,18 @@ export async function send(
 ): Promise<Sent> {
   const sentAt = Date.now();
   const fees = c.name === "lasna" ? { maxPriorityFeePerGas: LASNA_PRIORITY_FEE } : {};
-  const hash = await c.wallet.writeContract({ address, abi, functionName, args, value, ...fees } as never);
+  // Node gas estimates can land just under what a storage write needs (seen on Unichain Sepolia: the tx reverted
+  // with ReentrancySentryOOG at 34,915 gas), so every harness transaction gets a 30% buffer.
+  const estimate = (await c.pub.estimateContractGas({
+    address,
+    abi,
+    functionName,
+    args,
+    value,
+    account: c.wallet.account,
+  } as never)) as bigint;
+  const gas = (estimate * 130n) / 100n;
+  const hash = await c.wallet.writeContract({ address, abi, functionName, args, value, gas, ...fees } as never);
   const receipt = await c.pub.waitForTransactionReceipt({ hash, pollingInterval: 100, timeout: 120_000 });
   const seenAt = Date.now();
   if (receipt.status !== "success") throw new Error(`${c.name} ${functionName} reverted: ${hash}`);

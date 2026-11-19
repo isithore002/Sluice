@@ -1,0 +1,154 @@
+[
+  {
+    "round": 0,
+    "delayBlocks": 0,
+    "competitorDelayS": 1,
+    "x": "10000000",
+    "sluiceGot": "10000000",
+    "competitorGot": "0",
+    "capture": 1,
+    "sluiceActedAfterMs": 1637,
+    "competitorSentAfterMs": 1002,
+    "txs": {
+      "repay": "0x1dca97f7eda496e969705fc75b063f1caf17d519f8402e72544202e386536128",
+      "competitor": null,
+      "sluice": "0x709a68cddfedafb7d225f225a121341a09ad77533a06a1c3f0c7d65656d4a204"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0x1dca97f7eda496e969705fc75b063f1caf17d519f8402e72544202e386536128"
+    }
+  },
+  {
+    "round": 0,
+    "delayBlocks": 0,
+    "competitorDelayS": 2,
+    "x": "10000000",
+    "sluiceGot": "10000000",
+    "competitorGot": "0",
+    "capture": 1,
+    "sluiceActedAfterMs": 2559,
+    "competitorSentAfterMs": 2001,
+    "txs": {
+      "repay": "0xc2e93a6071cb2947d1afa95b25e9c9f0d175cb3f0e21d2b17783f9c8b884687d",
+      "competitor": null,
+      "sluice": "0x3fc4d950923f9bba4c99470c5a1010b14e356a1bc0594bd409d5b301d0421cb8"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0xc2e93a6071cb2947d1afa95b25e9c9f0d175cb3f0e21d2b17783f9c8b884687d"
+    }
+  },
+  {
+    "round": 0,
+    "delayBlocks": 0,
+    "competitorDelayS": 4,
+    "x": "10000000",
+    "sluiceGot": "10000000",
+    "competitorGot": "0",
+    "capture": 1,
+    "sluiceActedAfterMs": 4882,
+    "competitorSentAfterMs": 4001,
+    "txs": {
+      "repay": "0x5f1d17693864244a88bab456135b5ed7b48b30093bac7219350e7a5fa7025207",
+      "competitor": null,
+      "sluice": "0x2644e0bcc0ff59b6f63238d7fe69e57f547d6674a4eb14771af8815cf5adba98"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0x5f1d17693864244a88bab456135b5ed7b48b30093bac7219350e7a5fa7025207"
+    }
+  },
+  {
+    "round": 0,
+    "delayBlocks": 0,
+    "competitorDelayS": 8,
+    "x": "10000000",
+    "sluiceGot": "10000000",
+    "competitorGot": "0",
+    "capture": 1,
+    "sluiceActedAfterMs": 8908,
+    "competitorSentAfterMs": 8012,
+    "txs": {
+      "repay": "0x9cf6f1539a58cb82c842c6393cd73c90164032a3505caeb9fc7592aff7963070",
+      "competitor": null,
+      "sluice": "0x36484ff806f74c0f146fa5a5fee4f9edaeea304ac47f64b0fc04942897d421f3"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0x9cf6f1539a58cb82c842c6393cd73c90164032a3505caeb9fc7592aff7963070"
+    }
+  },
+  {
+    "round": 0,
+    "delayBlocks": 6,
+    "competitorDelayS": 1,
+    "x": "10000000",
+    "sluiceGot": "0",
+    "competitorGot": "10000000",
+    "capture": 0,
+    "sluiceActedAfterMs": 7916,
+    "competitorSentAfterMs": 1343,
+    "txs": {
+      "repay": "0x80f8f45599e2132587f872078d765084a6b06cfb8dedd1227d3039cff425efda",
+      "competitor": "0x445b940304fd96c06fa32901a1bce7cc53d7bda595db0ade6ee257cac1970552",
+      "sluice": "0xe20b8d3a588c81147999fbcd6da6d74d2b7e7c75b213a07c2e4aed126364fa5d"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0x80f8f45599e2132587f872078d765084a6b06cfb8dedd1227d3039cff425efda"
+    }
+  },
+  {
+    "round": 0,
+    "delayBlocks": 6,
+    "competitorDelayS": 2,
+    "x": "10000000",
+    "sluiceGot": "0",
+    "competitorGot": "10000000",
+    "capture": 0,
+    "sluiceActedAfterMs": 8555,
+    "competitorSentAfterMs": 2438,
+    "txs": {
+      "repay": "0xfb67880dc6e9a85afe0c4ba8c537c501ed22d8747e6a5c83c74ba7a7f919128c",
+      "competitor": "0x37b07454d5333fa47f3821a2db495db48827c87b23e9b7f554ebf1d1fc1fe687",
+      "sluice": "0xc73746a2c10bd9cce8815431f755ee178d19a8b6d417fee8491e9d9ff47bc00b"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0xfb67880dc6e9a85afe0c4ba8c537c501ed22d8747e6a5c83c74ba7a7f919128c"
+    }
+  },
+  {
+    "round": 0,
+    "delayBlocks": 6,
+    "competitorDelayS": 4,
+    "x": "10000000",
+    "sluiceGot": "0",
+    "competitorGot": "10000000",
+    "capture": 0,
+    "sluiceActedAfterMs": 8797,
+    "competitorSentAfterMs": 4479,
+    "txs": {
+      "repay": "0x3407054dd4fbef8bd9fc6769b930dc3deb7f8a69fc07069245f6448bf915f27d",
+      "competitor": "0x8bf3ebe882a335f9c7f0d90ecca9ec3bc2f0909529f8ce566d503336d020bc75",
+      "sluice": "0x83d42601d55e42eea890247f5f53f743fa466e5c7ba8f21c3d4757a18c27b89d"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0x3407054dd4fbef8bd9fc6769b930dc3deb7f8a69fc07069245f6448bf915f27d"
+    }
+  },
+  {
+    "round": 0,
+    "delayBlocks": 6,
+    "competitorDelayS": 8,
+    "x": "10000000",
+    "sluiceGot": "10000000",
+    "competitorGot": "0",
+    "capture": 1,
+    "sluiceActedAfterMs": 8735,
+    "competitorSentAfterMs": 8002,
+    "txs": {
+      "repay": "0x3dc2a5deec7808e50b20cde63820f31a5a945cdcd2b789028fedf220fe0d98b0",
+      "competitor": null,
+      "sluice": "0x8421d6b6bd7210ef1764e3fe58a7808828824f13e2a5c3a45ec27c612349e72a"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0x3dc2a5deec7808e50b20cde63820f31a5a945cdcd2b789028fedf220fe0d98b0"
+    }
+  }
+]

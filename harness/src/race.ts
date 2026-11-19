@@ -53,21 +53,26 @@ async function round(delayBlocks: bigint, competitorDelayS: number, r: number) {
     timeoutMs: delayBlocks > 0n ? 60_000 : 40_000,
   });
 
-  // Competitor: C seconds after seeing the repayment, grab whatever is still free.
+  // Competitor: a bot that reacts C seconds after seeing the repayment. It fires a withdrawal of X immediately,
+  // with no market read and no gas estimation (see competitorWithdrawFast). If Sluice already took the
+  // liquidity the withdrawal reverts, which means the competitor lost.
   await sleep(Math.max(0, competitorDelayS * 1000 - (Date.now() - origin.seenAt)));
+  const competitorSentAfterMs = Date.now() - origin.seenAt;
   let competitorGot = 0n;
   let competitorTx: string | null = null;
-  let competitorSentAfterMs = Date.now() - origin.seenAt;
-  const free = await act.liquidity();
-  if (free > 0n) {
-    competitorSentAfterMs = Date.now() - origin.seenAt;
-    try {
-      const w = await act.competitorWithdraw(free);
-      competitorGot = free;
-      competitorTx = w.hash;
-    } catch {
-      competitorGot = 0n; // Sluice got there between the read and the withdrawal
-    }
+  let competitorOk = false;
+  let competitorBlock: string | null = null;
+  let competitorLandedAfterMs: number | null = null;
+  let competitorError: string | null = null;
+  try {
+    const w = await act.competitorWithdrawFast(X);
+    competitorTx = w.hash;
+    competitorOk = w.ok;
+    competitorBlock = w.blockNumber.toString();
+    competitorLandedAfterMs = Date.now() - origin.seenAt;
+    if (w.ok) competitorGot = X;
+  } catch (e) {
+    competitorError = String(e).split("\n")[0].slice(0, 200);
   }
 
   const acted = await actedWatch;
@@ -90,7 +95,12 @@ async function round(delayBlocks: bigint, competitorDelayS: number, r: number) {
     competitorGot: competitorGot.toString(),
     capture: Number(sluiceGot) / Number(X),
     sluiceActedAfterMs: acted ? acted.seenAt - origin.seenAt : null,
+    sluiceBlock: acted?.log.blockNumber?.toString() ?? null,
     competitorSentAfterMs,
+    competitorLandedAfterMs,
+    competitorOk,
+    competitorBlock,
+    competitorError,
     txs: { repay: origin.hash, competitor: competitorTx, sluice: settled[0]?.transactionHash ?? acted?.log.transactionHash ?? null },
     links: { repay: txUrl(base, origin.hash) },
   };

@@ -167,6 +167,36 @@ export default function Page() {
         </section>
       )}
 
+      {summary && (summary.flowB.example || summary.flowC.example) && (
+        <section>
+          <h2>Verified example loops</h2>
+          <p className="sub">One real loop of each flow. Open each transaction on its explorer and follow the chain of events yourself.</p>
+          <div className="grid">
+            {summary.flowB.example && (
+              <div className="card">
+                <h3>Flow B: Morpho repayment → queue paid</h3>
+                <ol className="hops">
+                  <li><a href={summary.flowB.example.origin} target="_blank" rel="noreferrer">Borrower repays in Morpho (Base Sepolia) ↗</a></li>
+                  <li><a href={summary.flowB.example.reactive} target="_blank" rel="noreferrer">SluiceReactive reacts (Reactive Lasna) ↗</a></li>
+                  <li><a href={summary.flowB.example.callback} target="_blank" rel="noreferrer">Callback pays the queue (Base Sepolia) ↗</a></li>
+                </ol>
+              </div>
+            )}
+            {summary.flowC.example && (
+              <div className="card">
+                <h3>Flow C: shortfall → fronted → reimbursed</h3>
+                <ol className="hops">
+                  <li><a href={summary.flowC.example.origin} target="_blank" rel="noreferrer">Withdrawal queued with a shortfall (Base Sepolia) ↗</a></li>
+                  <li><a href={summary.flowC.example.reactive} target="_blank" rel="noreferrer">SluiceReactive reacts (Reactive Lasna) ↗</a></li>
+                  <li><a href={summary.flowC.example.front} target="_blank" rel="noreferrer">Reserve fronts, user paid (Base Sepolia) ↗</a></li>
+                  <li><a href={summary.flowC.example.reimburse} target="_blank" rel="noreferrer">Relayer reimbursed (Unichain Sepolia) ↗</a></li>
+                </ol>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
       <section>
         <h2>Live state</h2>
         {!manifest && !loadError && <p className="sub">Loading…</p>}

@@ -128,3 +128,6 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .banner { border: 1px dashed var(--baseline); border-radius: var(--radius); padding: 14px 16px; color: var(--ink-2); background: var(--surface); }
 .err { color: var(--critical); font-size: 13px; }
 footer { margin-top: 48px; color: var(--muted); font-size: 13px; }
+
+.hops { margin: 0; padding-left: 20px; font-size: 14px; }
+.hops li { margin: 6px 0; }

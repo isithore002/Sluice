@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { Address, Hex } from "viem";
+import type { Address, Hex, PublicClient } from "viem";
 import { erc20Abi, morphoAbi, payerAbi, reactiveAbi, reserveAbi, siblingAbi, vaultAbi } from "./abis";
 import { CHAINS, PROXIES, clients, type ChainKey } from "./config";
 
@@ -33,6 +33,20 @@ export interface FeedEvent {
 
 const POLL_MS = 4000;
 const FEED_MAX = 40;
+/** Base Sepolia's public RPC rejects eth_getLogs over more than 200 blocks, so logs are fetched in chunks. */
+const MAX_RANGE = 150n;
+const MAX_CHUNKS = 6;
+
+async function getLogsChunked(c: PublicClient, params: Record<string, unknown>, from: bigint, to: bigint) {
+  const out: any[] = [];
+  let hi = to;
+  for (let i = 0; i < MAX_CHUNKS && hi >= from; i++) {
+    const lo = hi - MAX_RANGE + 1n > from ? hi - MAX_RANGE + 1n : from;
+    out.push(...((await c.getLogs({ ...params, fromBlock: lo, toBlock: hi } as never)) as any[]));
+    hi = lo - 1n;
+  }
+  return out;
+}
 const usd = (v: bigint) => (Number(v) / 1e6).toLocaleString("en-US", { maximumFractionDigits: 2 });
 
 function describe(name: string, a: Record<string, any>): string {
@@ -127,13 +141,13 @@ export function useLive(addresses: Record<string, string> | null) {
       const queries =
         k === "base"
           ? [
-              c.getLogs({ address: A.sluiceVault, events: vaultAbi.filter((x) => x.type === "event"), fromBlock: from, toBlock: latest }),
-              c.getLogs({ address: A.morpho, event: morphoAbi[0], args: { id: A.marketId as Hex }, fromBlock: from, toBlock: latest }),
-              c.getLogs({ address: A.relayerReserve, events: reserveAbi, fromBlock: from, toBlock: latest }),
+              getLogsChunked(c, { address: A.sluiceVault, events: vaultAbi.filter((x) => x.type === "event") }, from, latest),
+              getLogsChunked(c, { address: A.morpho, event: morphoAbi[0], args: { id: A.marketId as Hex } }, from, latest),
+              getLogsChunked(c, { address: A.relayerReserve, events: reserveAbi }, from, latest),
             ]
           : k === "uni"
-            ? [c.getLogs({ address: A.siblingVault, events: siblingAbi.filter((x) => x.type === "event"), fromBlock: from, toBlock: latest })]
-            : [c.getLogs({ address: A.sluiceReactive, events: reactiveAbi.filter((x) => x.type === "event"), fromBlock: from, toBlock: latest })];
+            ? [getLogsChunked(c, { address: A.siblingVault, events: siblingAbi.filter((x) => x.type === "event") }, from, latest)]
+            : [getLogsChunked(c, { address: A.sluiceReactive, events: reactiveAbi.filter((x) => x.type === "event") }, from, latest)];
       const logs = (await Promise.all(queries)).flat() as any[];
       cursors.current[k] = latest;
       const out: FeedEvent[] = [];

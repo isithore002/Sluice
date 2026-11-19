@@ -1,0 +1,220 @@
+{
+  "generatedAt": "2026-11-19T09:15:22.351Z",
+  "flowB": {
+    "attempted": 33,
+    "succeeded": 33,
+    "totalWallMs": {
+      "n": 33,
+      "min": 767,
+      "median": 1579,
+      "p95": 2105,
+      "max": 2201,
+      "mean": 1483.6363636363637
+    },
+    "originToReactiveWallMs": {
+      "n": 33,
+      "min": 319,
+      "median": 1170,
+      "p95": 1828,
+      "max": 1985,
+      "mean": 1202.3333333333333
+    },
+    "reactiveToCallbackWallMs": {
+      "n": 33,
+      "min": -350,
+      "median": 408,
+      "p95": 746,
+      "max": 1345,
+      "mean": 281.3030303030303
+    },
+    "totalChainSeconds": {
+      "n": 33,
+      "min": 1,
+      "median": 1,
+      "p95": 2,
+      "max": 2,
+      "mean": 1.393939393939394
+    },
+    "example": {
+      "origin": "https://sepolia.basescan.org/tx/0x3b8552c579a76f54fbb3d982478a2420ab18b3bd7429a9f1be5c8952570bc6d5",
+      "reactive": "https://lasna.reactscan.net/tx/0xbc8931dc34f64aa89ede11c0310a298c1e382fa506970beea5637939c3d5fffb",
+      "callback": "https://sepolia.basescan.org/tx/0x676ae7d7ccbf0b0146c12091fa8a3915d21be3853c4c853eec6118076bbbca30"
+    }
+  },
+  "flowC": {
+    "attempted": 32,
+    "succeeded": 31,
+    "userPaidWallMs": {
+      "n": 31,
+      "min": 805,
+      "median": 1364,
+      "p95": 2156,
+      "max": 2195,
+      "mean": 1456.1612903225807
+    },
+    "relayerReimbursedWallMs": {
+      "n": 31,
+      "min": 3502,
+      "median": 4597,
+      "p95": 5080,
+      "max": 5307,
+      "mean": 4450.806451612903
+    },
+    "userPaidChainSeconds": {
+      "n": 31,
+      "min": 0,
+      "median": 1,
+      "p95": 2,
+      "max": 2,
+      "mean": 1.4193548387096775
+    },
+    "example": {
+      "origin": "https://sepolia.basescan.org/tx/0xe074b45195f9d15e6af2390a31922406655170f89bb3c06dc8492b1673cb45f9",
+      "reactive": "https://lasna.reactscan.net/tx/0x462e19cad21afe52d440c962843d1e9936d93ac7b8e3149d5abe748284cb8f60",
+      "front": "https://sepolia.basescan.org/tx/0x6d643b9485732145190ce578ad7d52302bab406a6304bf29e50d50c79684066a",
+      "reimburse": "https://sepolia.uniscan.xyz/tx/0x1db0937b563d71a8eff8efddaf469f8033d3747364af65ae9739931f7d2f7c93"
+    }
+  },
+  "race": [
+    {
+      "delayBlocks": 0,
+      "competitorDelayS": 0,
+      "rounds": 6,
+      "meanCapture": 0.16666666666666666,
+      "sluiceActedMs": {
+        "n": 6,
+        "min": 819,
+        "median": 1443,
+        "p95": 1774,
+        "max": 1774,
+        "mean": 1436.3333333333333
+      }
+    },
+    {
+      "delayBlocks": 0,
+      "competitorDelayS": 1,
+      "rounds": 6,
+      "meanCapture": 1,
+      "sluiceActedMs": {
+        "n": 6,
+        "min": 757,
+        "median": 1717,
+        "p95": 2212,
+        "max": 2212,
+        "mean": 1579.1666666666667
+      }
+    },
+    {
+      "delayBlocks": 0,
+      "competitorDelayS": 2,
+      "rounds": 6,
+      "meanCapture": 1,
+      "sluiceActedMs": {
+        "n": 6,
+        "min": 885,
+        "median": 1459,
+        "p95": 2648,
+        "max": 2648,
+        "mean": 1789
+      }
+    },
+    {
+      "delayBlocks": 0,
+      "competitorDelayS": 4,
+      "rounds": 6,
+      "meanCapture": 1,
+      "sluiceActedMs": {
+        "n": 6,
+        "min": 680,
+        "median": 1193,
+        "p95": 1633,
+        "max": 1633,
+        "mean": 1179.1666666666667
+      }
+    },
+    {
+      "delayBlocks": 0,
+      "competitorDelayS": 8,
+      "rounds": 6,
+      "meanCapture": 1,
+      "sluiceActedMs": {
+        "n": 6,
+        "min": 811,
+        "median": 1284,
+        "p95": 1757,
+        "max": 1757,
+        "mean": 1370
+      }
+    },
+    {
+      "delayBlocks": 6,
+      "competitorDelayS": 0,
+      "rounds": 6,
+      "meanCapture": 0,
+      "sluiceActedMs": {
+        "n": 6,
+        "min": 7581,
+        "median": 7760,
+        "p95": 8019,
+        "max": 8019,
+        "mean": 7796.666666666667
+      }
+    },
+    {
+      "delayBlocks": 6,
+      "competitorDelayS": 1,
+      "rounds": 6,
+      "meanCapture": 0,
+      "sluiceActedMs": {
+        "n": 6,
+        "min": 7679,
+        "median": 7842,
+        "p95": 8335,
+        "max": 8335,
+        "mean": 7980.666666666667
+      }
+    },
+    {
+      "delayBlocks": 6,
+      "competitorDelayS": 2,
+      "rounds": 6,
+      "meanCapture": 0,
+      "sluiceActedMs": {
+        "n": 6,
+        "min": 7279,
+        "median": 7415,
+        "p95": 7931,
+        "max": 7931,
+        "mean": 7571.666666666667
+      }
+    },
+    {
+      "delayBlocks": 6,
+      "competitorDelayS": 4,
+      "rounds": 6,
+      "meanCapture": 0,
+      "sluiceActedMs": {
+        "n": 6,
+        "min": 7470,
+        "median": 7661,
+        "p95": 8314,
+        "max": 8314,
+        "mean": 7941.5
+      }
+    },
+    {
+      "delayBlocks": 6,
+      "competitorDelayS": 8,
+      "rounds": 6,
+      "meanCapture": 1,
+      "sluiceActedMs": {
+        "n": 6,
+        "min": 7230,
+        "median": 7505,
+        "p95": 8082,
+        "max": 8082,
+        "mean": 7709.833333333333
+      }
+    }
+  ]
+}
