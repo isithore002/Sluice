@@ -155,11 +155,11 @@ event StateUpdated(uint256 pendingTotal, uint256 shortfall, uint256 traceId); //
 **Functions**
 - `fund(uint256)` and `withdrawInventory(uint256)`: relayer only. Both emit `InventoryUpdated(balance)`.
 - `front(address rvm, uint256 fillId, uint256 amount, uint256 traceId)` (both guards):
-  - **If `fills[fillId].done`:** re-emit `Fronted` with the **stored** values and return. Repeats are no-ops that still confirm.
-  - **Otherwise:**
-    1. `sent = min(amount, balance)` and store the fill.
-    2. If `sent > 0`, transfer `sent` to the vault and call `vault.onFronted(fillId, sent, traceId)`.
-    3. Emit `Fronted(fillId, amount, sent, balance, traceId)`.
+  1. **First time for this fill only:** `sent = min(amount, balance)`, store the fill, and transfer `sent` to the vault.
+  2. **Always**, including repeats and `sent == 0`: call `vault.onFronted(fillId, sent, traceId)`, so the vault publishes fresh absolute state (`StateUpdated`).
+  3. Then emit `Fronted(fillId, requested, sent, inventory, traceId)` with the stored values.
+
+  **The ordering matters.** SluiceReactive always sees the vault's current shortfall *before* the confirmation. So even if it missed both events of the original execution, a retry can't make it front the same shortfall twice. The test suite found this case; see `test_crossChain_bothEventsMissed_retryDoesNotDoubleFront`.
 
 ```solidity
 event Fronted(uint256 indexed fillId, uint256 requested, uint256 sent, uint256 inventory, uint256 traceId);
@@ -244,6 +244,7 @@ Compute the topic0 values with `cast sig-event`, and confirm the `Liquidate` dat
 - `resync(pending, shortfall, inventory, credit)`: overwrite the caches with values read using `cast`.
 - `retryFill(fillId)` and `retryPull()`: reset the attempt counters and re-send.
 - `setDelayBlocks(uint256)`: for the race experiment.
+- `halt()`: manual stop for cross-chain fronting. Used in emergencies, and to isolate the Morpho path during the race.
 - `resume()`: clears `halted`.
 - `closeFill(fillId, stage)`: manual repair.
 
@@ -253,7 +254,7 @@ Every handled event emits `Handled(uint256 indexed traceId, uint8 kind, uint256 
 
 | Callback | Gas limit |
 |---|---|
-| `pullFromMorpho` | 1,500,000 (Morpho withdraw plus up to 25 fills; **measure it**, and lower `MAX_FILLS_PER_CALL` if it's tight) |
+| `pullFromMorpho` | 1,500,000. **Measured: 748k** for a Morpho withdraw plus 25 payments to 25 distinct addresses (`test_pull_gasBounded_with100DistinctQueuedUsers`) |
 | `front` | 1,500,000 (it also calls `vault.onFronted`, which settles the queue) |
 | `reimburse` | 300,000 |
 
@@ -391,13 +392,15 @@ Getting a `callbackSender` wrong can't be fixed, because it's immutable. You'd h
 
 ---
 
-## 11. To verify in the first two days
+## 11. Verification status
 
-- [ ] Borrowing works in a market with `irm = address(0)` (fork test).
-- [ ] The `FixedOracle` price scale (`ORACLE_PRICE_SCALE`) and decimals.
-- [ ] The `Liquidate` data layout, especially `badDebtAssets`.
-- [ ] Logs from one origin tx reach `react()` in log order. The design tolerates reordering, but confirm it.
-- [ ] Whether events are delivered exactly once. The design tolerates duplicates (idempotent, absolute values), but note what's observed.
+- [x] Borrowing works with `irm = address(0)`, the oracle price scale is right, and the full borrow → 100% utilization → repay cycle works. All of it runs in tests against **Morpho Blue's real bytecode**, captured from Base Sepolia into `test/fixtures/`.
+- [x] `Liquidate` data layout: checked against `EventsLib.sol` in `morpho-blue@v1.0.0`.
+- [x] Callback gas: `pullFromMorpho` with 25 payments uses 748k of its 1.5M limit.
+- [x] The full deploy (all 8 scripts) rehearsed on local forks of all three live chains: real Morpho, real callback proxies, real Lasna system contract.
+- [ ] Logs from one origin tx reach `react()` in log order (on the live network). The design tolerates reordering.
+- [ ] Whether events are delivered exactly once (on the live network). The design tolerates duplicates.
 - [ ] The lREACT cost per Cron tick, to budget the race.
-- [ ] Callback gas actually used by `pullFromMorpho` with 25 fills, and by `front` → `onFronted`.
-- [ ] Explorer URL formats for Lasna, Base Sepolia and Unichain Sepolia (for dashboard links).
+- [ ] The Lasna explorer URL format for transaction links.
+
+Note: in `reactive-test-lib`, simulated Cron events carry the block number as an indexed topic (the docs say it's in `data`), and simulated events have `txHash = 0`. SluiceReactive reads neither field from Cron events, so both forms work.
