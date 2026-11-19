@@ -159,7 +159,7 @@ Our Morpho market id: \`${market.marketId}\` (loan token MockUSD, zero-rate IRM,
 const tryit = `
 Anyone can trigger a real Sluice settlement from their own wallet, with nothing of ours involved. In Morpho Blue, **anyone can repay on behalf of a borrower**, and our demo token is open-mint.
 ${TRY ? `
-**One click:** the dashboard's *Settle it yourself* panel does it from your browser wallet. It calls ${a(BASE, TRY.oneClickRepay)} (source verified), which mints 10 demo mUSD and repays them on the borrower's behalf in a single transaction, so you confirm one transaction instead of three.${OC ? ` We tested the panel end to end with a brand-new wallet we created: [its transaction](${OC.links.visitorSettle}) was settled by [this callback](${OC.links.reactiveCallback}), sent by Reactive's signer ([\`results/oneclick-ui-test.json\`](results/oneclick-ui-test.json); the test injected a wallet provider in place of a MetaMask popup).` : ""}
+**One click:** the dashboard's *Try it* panel does it from your browser wallet. It calls ${a(BASE, TRY.oneClickRepay)} (source verified), which mints 10 demo mUSD and repays them on the borrower's behalf in a single transaction, so you confirm one transaction instead of three.${OC ? ` We tested the panel end to end with a brand-new wallet we created: [its transaction](${OC.links.visitorSettle}) was settled by [this callback](${OC.links.reactiveCallback}), sent by Reactive's signer ([\`results/oneclick-ui-test.json\`](results/oneclick-ui-test.json); the test injected a wallet provider in place of a MetaMask popup).` : ""}
 
 **From a terminal**, the same three steps with \`cast\`:
 ` : ""}

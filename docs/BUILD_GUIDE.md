@@ -220,7 +220,7 @@ npm run arm -- --x 10 --slots 10        # queues ten withdrawals, so ten outside
 
 `npm run arm` is also what you run before recording the demo or leaving the project for judges. Then run the README's three "Try it yourself" commands from a **fresh wallet** to confirm they work: that is how the outsider test in `results/outsider-tryit.json` was made. **Check:** the settlement transaction is sent by Reactive's signer, and your fresh wallet sent exactly three transactions.
 
-The dashboard's *Settle it yourself* panel lets a visitor do the same from their own wallet in one transaction. It calls the `OneClickRepay` helper, deployed once with `scripts/deploy.sh 9` (it writes `deployments/base-tryit.json`; rebuild the dashboard afterwards).
+The dashboard's *Try it* panel lets a visitor do the same from their own wallet in one transaction. It calls the `OneClickRepay` helper, deployed once with `scripts/deploy.sh 9` (it writes `deployments/base-tryit.json`; rebuild the dashboard afterwards).
 
 Each settlement costs the reactive contract about 0.08 lREACT, so keep it funded while judges may try it.
 

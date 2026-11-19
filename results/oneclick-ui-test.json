@@ -1,5 +1,5 @@
 {
-  "description": "End-to-end test of the dashboard's 'Settle it yourself' panel, run by a brand-new wallet we generated for the test (funded with 0.00003 Base Sepolia ETH for gas). The page ran in a headless browser with a test wallet provider injected in place of a MetaMask popup: it signed with that wallet's key, and every transaction is a real Base Sepolia transaction.",
+  "description": "End-to-end test of the dashboard's 'Try it' panel, run by a brand-new wallet we generated for the test (funded with 0.00003 Base Sepolia ETH for gas). The page ran in a headless browser with a test wallet provider injected in place of a MetaMask popup: it signed with that wallet's key, and every transaction is a real Base Sepolia transaction.",
   "date": "2026-11-19T14:42:30.637Z",
   "visitor": "0xBA29820E632Af0404068173bDe18bF78E1D0790a",
   "txs": {

@@ -5,9 +5,9 @@ import { usd } from "./format";
 
 /**
  * The four live-state cards (Morpho market, withdrawal queue, cross-chain liquidity, the Reactive contract), then one
- * plain sentence on why the queue looks the way it does, so a queue that is waiting on purpose never reads as a fault.
+ * plain sentence on why the queue looks the way it does, so a queue that is waiting for cash never reads as a fault.
  */
-export function LiveCards({ state, canTry }: { state: LiveState; canTry: boolean }) {
+export function LiveCards({ state, canTry, hasCase }: { state: LiveState; canTry: boolean; hasCase: boolean }) {
   const util = state.supply > 0n ? Number((state.borrow * 10000n) / state.supply) / 100 : 0;
   return (
     <>
@@ -73,12 +73,12 @@ export function LiveCards({ state, canTry }: { state: LiveState; canTry: boolean
           </div>
         </div>
       </div>
-      <QueueNote state={state} canTry={canTry} />
+      <QueueNote state={state} canTry={canTry} hasCase={hasCase} />
     </>
   );
 }
 
-function QueueNote({ state, canTry }: { state: LiveState; canTry: boolean }) {
+function QueueNote({ state, canTry, hasCase }: { state: LiveState; canTry: boolean; hasCase: boolean }) {
   if (state.queued === 0n) return <p className="sl-note live-why">Nothing is waiting: every withdrawal has been paid.</p>;
   if (state.shortfall === 0n) {
     return <p className="sl-note live-why">There is cash for every waiting withdrawal, so Reactive is paying them now.</p>;
@@ -91,19 +91,35 @@ function QueueNote({ state, canTry }: { state: LiveState; canTry: boolean }) {
       </p>
     );
   }
+  // Nobody has to act on the queue: it waits for cash, and pays itself the moment cash comes back. The demo pauses
+  // cross-chain fronting (otherwise these would already be paid), and says so, because the credit is on screen.
   const dry = state.supply > 0n && state.borrow >= state.supply;
   return (
     <p className="sl-note live-why">
-      <b>Waiting on purpose.</b> {dry ? "Every mUSD in the Morpho market is borrowed" : "Morpho is short of free cash"} and the demo
-      halts cross-chain fronting, so these withdrawals wait in Sluice&apos;s queue, in order, until someone repays.
-      {canTry && (
+      <b>Waiting for cash, not for anyone to act.</b> {dry ? "Every mUSD in the Morpho market is borrowed" : "Morpho is short of free cash"}, so
+      there is nothing to pay these with yet. The moment a borrower repays, Reactive pays the next one by itself
+      {canTry ? (
         <>
-          {" "}
+          :{" "}
           <a className="sl-link" href="#tryit">
-            Settle one yourself
+            repay part of the demo loan yourself
           </a>{" "}
-          and Reactive pays the next one within seconds.
+          and watch.
         </>
+      ) : (
+        "."
+      )}{" "}
+      Cross-chain fronting is paused for this demo. With it on, Sluice would already have paid these through its cross-chain reserve
+      {hasCase ? (
+        <>
+          , as the{" "}
+          <a className="sl-link" href="#case">
+            case study
+          </a>{" "}
+          shows.
+        </>
+      ) : (
+        "."
       )}
     </p>
   );

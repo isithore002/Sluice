@@ -85,18 +85,21 @@ export default function Dashboard() {
           {!manifest && !loadError && <p className="sl-note">Loading…</p>}
           {loadError && <p className="sl-err">{loadError}</p>}
           {manifest && !manifest.deployed && <div className="sl-banner">Not deployed yet. Run scripts/deploy.sh, then rebuild the dashboard.</div>}
-          {error && <p className="sl-err">RPC error: {error}</p>}
-          {state && <LiveCards state={state} canTry={Boolean(manifest?.deployed && manifest.addresses.oneClickRepay)} />}
+          {error && <p className="sl-err">{error}</p>}
+          {state && (
+            <LiveCards state={state} canTry={Boolean(manifest?.deployed && manifest.addresses.oneClickRepay)} hasCase={Boolean(caseStudy)} />
+          )}
         </section>
 
         {manifest?.deployed && manifest.addresses.oneClickRepay && (
           <section id="tryit" className="sl-section tight sl-wrap" data-ascii-avoid="0.8">
             <Reveal>
               <p className="sl-kicker">Try it</p>
-              <h2>Trigger a real settlement from your own wallet</h2>
+              <h2>Repay a loan, and watch the queue settle itself</h2>
               <p className="dash-intro">
-                Don&apos;t take our wallets&apos; word for it. One transaction from yours frees liquidity in the Morpho market, and you can watch Reactive pay
-                the queue, usually within two seconds. Nothing here is simulated: it runs on the live contracts.
+                Don&apos;t take our wallets&apos; word for it. Repay part of the demo borrower&apos;s loan from your own wallet. You never call Sluice: Reactive
+                sees the cash come back and pays the next withdrawal in the queue on its own, usually within two seconds. Nothing here is simulated: it
+                runs on the live contracts.
               </p>
               <TryIt addresses={manifest.addresses} queued={state?.queued ?? null} />
             </Reveal>

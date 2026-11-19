@@ -5,7 +5,7 @@ import {IMorpho, MarketParams} from "morpho-blue/interfaces/IMorpho.sol";
 import {OneClickRepay} from "../src/demo/OneClickRepay.sol";
 import {SluiceScript} from "./SluiceScript.sol";
 
-/// @notice Step 9 (Base Sepolia, optional): the one-click helper the dashboard's "Settle it yourself" panel calls.
+/// @notice Step 9 (Base Sepolia, optional): the one-click helper the dashboard's "Try it" panel calls.
 ///         The demo borrower is the deployer (step 7 borrows from this wallet), so that is whose debt it repays.
 contract DeployOneClick is SluiceScript {
     string internal constant TRYIT_FILE = "deployments/base-tryit.json";

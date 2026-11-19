@@ -1,6 +1,6 @@
 /**
  * Arms the demo for outsiders: leaves withdrawals queued in the vault, so that anyone who repays on behalf of the
- * borrower in our Morpho market (the dashboard's "Settle it yourself" button, or "Try it yourself" in the README)
+ * borrower in our Morpho market (the dashboard's "Try it" panel, or "Try it yourself" in the README)
  * triggers a real settlement. Each repayment of X settles one queued withdrawal, first come first served, so
  * `--slots N` keeps the demo usable for N visitors before it needs re-arming.
  * Usage: npm run arm -- --x 10 --slots 10

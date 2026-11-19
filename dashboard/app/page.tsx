@@ -257,11 +257,12 @@ export default function Landing() {
                 <h2>Don&apos;t take our word for it.</h2>
                 <p className="sl-p">
                   A fresh wallet we created for this test, which had never touched these contracts, repaid 10 mUSD in the Morpho market. The settlement that paid the queue
-                  was sent by Reactive&apos;s signer, not by us. Open it, or better, trigger one yourself: one transaction from your own wallet, and Reactive pays the queue in about two seconds.
+                  was sent by Reactive&apos;s signer, not by us. Open it, or better, try it yourself: repay part of the loan from your own wallet, and watch the
+                  queue settle itself in about two seconds.
                 </p>
                 <div className="sl-cta">
                   <Link href="/dashboard#tryit" className="sl-btn primary">
-                    Settle one yourself <span aria-hidden="true">→</span>
+                    Try it from your wallet <span aria-hidden="true">→</span>
                   </Link>
                   <a href={baseTx(OUTSIDER.settlement)} target="_blank" rel="noreferrer" className="sl-btn">
                     View our test settlement ↗

@@ -60,7 +60,7 @@ async function ensureBaseSepolia(p: Eip1193) {
 }
 
 /**
- * "Settle it yourself": a visitor's own wallet sends ONE transaction (OneClickRepay.settle), which repays part of the
+ * The "Try it" panel: a visitor's own wallet sends ONE transaction (OneClickRepay.settle), which repays part of the
  * demo borrower's Morpho debt. Nothing here calls Sluice: Reactive sees the repayment and pays the head of the queue.
  * The panel then finds that payout on-chain by its trace id, which is the visitor's own transaction hash.
  */
@@ -212,7 +212,7 @@ export function TryIt({ addresses, queued }: { addresses: Record<string, string>
         <h3>Your wallet</h3>
         <div className="sl-kv">
           <span>Withdrawals waiting</span>
-          <span>{queued === null ? "…" : `${queued.toString()} (each click settles one)`}</span>
+          <span>{queued === null ? "…" : `${queued.toString()} (each repayment pays one)`}</span>
         </div>
 
         {!checked ? null : !provider ? (

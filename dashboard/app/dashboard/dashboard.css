@@ -118,7 +118,7 @@
 .cs-full > div { background: linear-gradient(90deg, var(--bad), #fb923c); }
 .cs-first { margin-top: 0; }
 
-/* ---- settle it yourself ---- */
+/* ---- try it: repay from your own wallet, watch the queue settle itself ---- */
 .ti { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
 @media (max-width: 900px) { .ti { grid-template-columns: 1fr; } }
 .ti-steps { margin: 0; padding-left: 20px; display: grid; gap: 10px; color: var(--ink-2); font-size: 15px; }

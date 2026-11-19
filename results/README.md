@@ -11,7 +11,7 @@ Raw measurements from live runs on Base Sepolia, Unichain Sepolia and Reactive L
 | `flowC-run.log` | Console log of the 30-loop flow C run |
 | `batch-*.json`, `batch-run.log` | Batch continuation (flow D): 40 withdrawals from 40 wallets paid by ONE repayment across 2 callbacks, with FIFO order, gas and every transaction. Produced by `npm run batch` |
 | `replay-race.json`, `replay-run.log` | The 60 race rounds plus the Lasna transactions that reacted to each repayment, for the dashboard's replay. Produced by `npm run replay` from the recorded race file; nothing is re-measured |
-| `oneclick-ui-test.json` | End-to-end test of the dashboard's *Settle it yourself* panel by a brand-new wallet we generated: its one transaction, and the callback that paid the queue (sent by Reactive's signer). The page ran in a headless browser with a test wallet provider in place of a MetaMask popup; the transactions are real |
+| `oneclick-ui-test.json` | End-to-end test of the dashboard's *Try it* panel by a brand-new wallet we generated: its one transaction, and the callback that paid the queue (sent by Reactive's signer). The page ran in a headless browser with a test wallet provider in place of a MetaMask popup; the transactions are real |
 | `case-study-flowC.json`, `case-study-run.log` | The cross-chain loop that is not in the 31/32, reconstructed step by step from chain data. Produced by `npm run casestudy`; see [`docs/CASE_STUDY_FLOW_C.md`](../docs/CASE_STUDY_FLOW_C.md) |
 | `aborted/` | **Runs that were discarded, kept for transparency.** See below |
 
