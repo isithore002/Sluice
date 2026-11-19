@@ -29,6 +29,11 @@ const C = summary.flowC;
 const I = summary.independent;
 const O = JSON.parse(readFileSync(resolve(RESULTS, "outsider-tryit.json"), "utf8"));
 const date = String(summary.generatedAt).slice(0, 10);
+const BT = summary.batch;
+const CASE = summary.crossChainCaseStudy;
+const CSJ = CASE ? JSON.parse(readFileSync(resolve(RESULTS, "case-study-flowC.json"), "utf8")) : null;
+const usd = (v: string) => (Number(v) / 1e6).toLocaleString("en-US", { maximumFractionDigits: 2 });
+const chainName: Record<string, string> = { base: "Base Sepolia", uni: "Unichain Sepolia", lasna: "Reactive Lasna" };
 
 const results = `
 Measured on live testnets and generated from [\`results/summary.json\`](results/summary.json) (${date}). Every record in [\`results/\`](results/) carries the transaction hashes of each hop. Wall-clock times come from polling every ~150 ms, so each includes up to one poll interval of observation delay.
@@ -42,7 +47,9 @@ Measured on live testnets and generated from [\`results/summary.json\`](results/
 | **Flow C:** shortfall → user paid by the reserve | ${C.succeeded}/${C.attempted} | **${s(C.userPaidWallMs.median)}** | ${s(C.userPaidWallMs.p95)} | ${s(C.userPaidWallMs.max)} |
 |   shortfall → relayer reimbursed on Unichain | | ${s(C.relayerReimbursedWallMs.median)} | ${s(C.relayerReimbursedWallMs.p95)} | ${s(C.relayerReimbursedWallMs.max)} |
 
-The user is paid after **one** reactive hop; the relayer is reimbursed one hop later, only after \`Fronted\` is confirmed.
+The user is paid after **one** reactive hop; the relayer is reimbursed one hop later, only after \`Fronted\` is confirmed.${CASE ? `
+
+Flow C shows ${C.succeeded}/${C.attempted} because one loop's timings were never saved, not because a payout failed: that loop completed on-chain too ([details below](#the-cross-chain-loop-that-is-not-in-the-numbers)).` : ""}
 
 ### The latency race
 
@@ -66,7 +73,22 @@ ${[...new Set(summary.race.map((r: any) => r.competitorDelayS))]
 - The "+6 blocks" rows add delay on Omni (\`delayBlocks = 6\`). They approximate legacy speed; they are not runs on the legacy network.
 - The competitor runs on one machine through a public RPC, so its own transaction takes ~1.2 to 1.4 s to land. An in-region bot would be faster, so the 0 s row is not the speed limit.
 
-### Verify a loop yourself
+${BT ? `### One repayment, many withdrawals
+
+A callback pays at most ${BT.cap} queued withdrawals, so its gas stays bounded. When ONE repayment frees cash for more than that, Reactive has to notice that the vault still holds payable cash and schedule the next batch by itself. Checked on the live contracts: ${BT.n} separate wallets queued ${usd(BT.each)} mUSD each (request ids ${BT.firstRequestId} to ${BT.lastRequestId}), then **one** repayment of ${usd(BT.total)} mUSD paid every one of them, in **${BT.callbacks} callbacks** (${BT.payments.join(" + ")} payments). Nobody deposited again and nobody called anything.
+
+| Measure | Result |
+|---|---|
+| Repay → first batch paid | ${BT.repayToFirstBatchMs === null ? "n/a" : s(BT.repayToFirstBatchMs)} |
+| Repay → queue empty | **${s(BT.repayToQueueEmptyMs)}** |
+| Order | strict first come, first served: ids ${BT.firstRequestId} to ${BT.lastRequestId}, no gaps (checked from the events) |
+| Largest callback | ${BT.maxGasUsed.toLocaleString("en-US")} gas of the ${BT.gasLimit.toLocaleString("en-US")} limit |
+
+How it continues: after each batch the vault emits \`StateUpdated\`. SluiceReactive sees that people are still queued, that cash is reachable, and that the last pull made progress, so it requests another pull. A pull that makes no progress never triggers another, so it cannot loop. Foundry runs the same scenarios against the real Morpho bytecode: 40 queued → 2 callbacks, 80 → 4, and cash for only 30 of 40 stops at 30. A full 25-payment callback to fresh recipients costs 927,744 gas in Foundry and ${BT.maxGasUsed.toLocaleString("en-US")} on-chain.
+
+Transactions: [the repayment](${BT.repayLink}), then ${BT.callbackLinks.map((l: string, i: number) => `[Omni request ${i + 1}](${BT.reactiveLinks[i]}) → [callback ${i + 1}](${l})`).join(", ")}. The dashboard replays the run on a payout board.
+
+` : ""}### Verify a loop yourself
 
 One real loop of each flow. Only the first transaction in each is sent by our wallet. The callbacks are sent by Reactive's signer, and nothing of ours runs in between.
 
@@ -96,7 +118,17 @@ One loop to check: [Alice queues a withdrawal](${I.example.links.queued}), [Bob 
 
 What this does **not** remove: the market, the tokens, the oracle, the vault funding and the queued withdrawal are still set up by us, which is unavoidable on a testnet. The strongest check is yours: see [Try it yourself](#try-it-yourself).
 
-Failures and discarded runs are documented in [\`results/README.md\`](results/README.md).
+${CASE ? `### The cross-chain loop that is not in the numbers
+
+${CASE.completedOnChain} of ${CASE.attempted} cross-chain loops completed on-chain, but only ${CASE.recorded} are in the latency table. Reconstructed from chain data (\`npm run casestudy\`), the missing one finished correctly: the user was paid, the relayer was reimbursed and the fill ended ${CSJ.outcome.fillStage}. What failed was the **test harness's own cleanup**: its \`${CASE.failedCall}\` call on the sibling vault ran out of gas (${CASE.gasUsed.toLocaleString("en-US")} of ${CASE.gasLimit.toLocaleString("en-US")}: the node's gas estimate was just short on Unichain Sepolia). The harness threw before it saved the loop's timings, so the loop was recorded as failed and has no latency data.
+
+| # | Step | Chain | Transaction | Result |
+|---|---|---|---|---|
+${CSJ.steps.map((st: any, i: number) => `| ${i + 1} | ${st.label} | ${chainName[st.chain]} | [\`${st.tx.slice(0, 10)}…${st.tx.slice(-4)}\`](${st.link}) | ${st.status === "ok" ? "✓" : "✗"} ${st.note ?? ""} |`).join("\n")}
+
+The fix: every harness transaction now carries a 30% gas buffer over the node's estimate ([\`harness/src/util.ts\`](harness/src/util.ts)). The rerun after the fix, **${CSJ.rerun.succeeded} of ${CSJ.rerun.loops} loops succeeded**, is published next to the original in [\`results/${CSJ.rerun.file}\`](results/${CSJ.rerun.file}). Write-up: [\`docs/CASE_STUDY_FLOW_C.md\`](docs/CASE_STUDY_FLOW_C.md).
+
+` : ""}Failures and discarded runs are documented in [\`results/README.md\`](results/README.md).
 `;
 
 const deployed = `

@@ -26,7 +26,7 @@ export function actorKeys(): { alice: Hex; bob: Hex } {
 
 export function asActor(key: Hex): Actor {
   const account = privateKeyToAccount(key);
-  const transport = http(need("BASE_SEPOLIA_RPC"), { retryCount: 6, retryDelay: 300 });
+  const transport = http(need("BASE_SEPOLIA_RPC"), { retryCount: 6, retryDelay: 300, timeout: 30_000 });
   return { ...base, wallet: createWalletClient({ chain: baseSepolia, transport, account }), address: account.address };
 }
 

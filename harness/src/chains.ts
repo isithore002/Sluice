@@ -40,7 +40,7 @@ export interface ChainClients {
 }
 
 function make(name: ChainClients["name"], chain: Chain, url: string): ChainClients {
-  const transport = http(url, { retryCount: 6, retryDelay: 300 });
+  const transport = http(url, { retryCount: 6, retryDelay: 300, timeout: 30_000 });
   return {
     name,
     chain,

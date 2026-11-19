@@ -9,6 +9,9 @@
     "flowC": "tsx src/flowC.ts",
     "race": "tsx src/race.ts",
     "independent": "tsx src/independent.ts",
+    "batch": "tsx src/batch.ts",
+    "replay": "tsx src/raceReplay.ts",
+    "casestudy": "tsx src/caseStudy.ts",
     "arm": "tsx src/arm.ts",
     "summary": "tsx src/summary.ts",
     "typecheck": "tsc --noEmit"

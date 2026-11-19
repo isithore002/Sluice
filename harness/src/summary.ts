@@ -2,7 +2,7 @@
  * Summarize every results/*.json into results/summary.json and results/SUMMARY.md.
  * Usage: npm run summary
  */
-import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { RESULTS } from "./env.js";
 import { stats } from "./util.js";
@@ -19,6 +19,15 @@ const b = load("flowB-");
 const c = load("flowC-");
 const race = load("race-");
 const ind = load("independent-");
+
+// Batch runs (flow D) and the cross-chain case study are single objects, not arrays of loops.
+const batches = readdirSync(RESULTS)
+  .filter((f) => /^batch-\d{4}-.*\.json$/.test(f))
+  .sort()
+  .map((f) => JSON.parse(readFileSync(resolve(RESULTS, f), "utf8")));
+const batchOk = batches.filter((x) => x.ok).pop() ?? null;
+const caseFile = resolve(RESULTS, "case-study-flowC.json");
+const caseStudy = existsSync(caseFile) ? JSON.parse(readFileSync(caseFile, "utf8")) : null;
 
 const bOk = b.filter((r) => r.ok);
 const cOk = c.filter((r) => r.ok);
@@ -50,6 +59,37 @@ const summary = {
     totalWallMs: stats(iOk.map((r) => r.wallMs.total)),
     example: iOk[0] ? { links: iOk[0].links, actors: iOk[0].actors } : null,
   },
+  batch: batchOk
+    ? {
+        n: batchOk.n as number,
+        cap: batchOk.cap as number,
+        callbacks: (batchOk.callbacks as any[]).length,
+        payments: (batchOk.callbacks as any[]).map((c) => c.payments as number),
+        repayToFirstBatchMs: batchOk.timing.repayToFirstBatchMs as number | null,
+        repayToQueueEmptyMs: batchOk.timing.repayToQueueEmptyMs as number,
+        fifoOk: batchOk.fifo.ok as boolean,
+        maxGasUsed: Math.max(...(batchOk.callbacks as any[]).map((c) => c.gasUsed as number)),
+        gasLimit: (batchOk.callbacks as any[])[0].gasLimitRequested as number,
+        each: batchOk.each as string,
+        total: batchOk.total as string,
+        firstRequestId: batchOk.firstRequestId as number,
+        lastRequestId: (batchOk.firstRequestId as number) + (batchOk.n as number) - 1,
+        reactiveLinks: (batchOk.reactive as any[]).map((r) => r.link as string),
+        repayLink: batchOk.links.repay as string,
+        callbackLinks: (batchOk.callbacks as any[]).map((c) => c.link as string),
+      }
+    : null,
+  crossChainCaseStudy: caseStudy
+    ? {
+        attempted: caseStudy.counts.attempted as number,
+        recorded: caseStudy.counts.recorded as number,
+        completedOnChain: caseStudy.counts.completedOnChain as number,
+        failedTx: caseStudy.failure.link as string,
+        failedCall: caseStudy.failure.call as string,
+        gasLimit: caseStudy.failure.gasLimit as number,
+        gasUsed: caseStudy.failure.gasUsed as number,
+      }
+    : null,
   race: [] as any[],
 };
 
@@ -95,6 +135,30 @@ md.push(`Succeeded ${iOk.length}/${ind.length}; every loop's repayment, withdraw
 md.push("| Measure | Median | p95 | Max |", "|---|---|---|---|");
 row("Repay (by an outsider) → queue paid (wall clock)", summary.independent.totalWallMs);
 md.push("");
+if (summary.batch) {
+  const bt = summary.batch;
+  md.push("## Batch continuation: one repayment, more queued withdrawals than one callback may pay", "");
+  md.push(
+    `${bt.n} withdrawals queued by ${bt.n} separate wallets, then ONE repayment. The vault pays at most ${bt.cap} per callback, so Reactive scheduled the next batch itself: ${bt.callbacks} callbacks (${bt.payments.join(" + ")} payments). ` +
+      `Request ids were paid in strict FIFO order: ${bt.fifoOk}.`,
+    "",
+  );
+  md.push("| Measure | Value |", "|---|---|");
+  md.push(`| Repay → first batch paid (wall clock) | ${bt.repayToFirstBatchMs === null ? "n/a" : fmt(bt.repayToFirstBatchMs)} |`);
+  md.push(`| Repay → queue empty (wall clock) | ${fmt(bt.repayToQueueEmptyMs)} |`);
+  md.push(`| Largest callback gas / limit | ${bt.maxGasUsed.toLocaleString("en-US")} / ${bt.gasLimit.toLocaleString("en-US")} |`);
+  md.push("");
+}
+if (summary.crossChainCaseStudy) {
+  const cs = summary.crossChainCaseStudy;
+  md.push("## The cross-chain loop that is not in the measured numbers", "");
+  md.push(
+    `${cs.completedOnChain} of ${cs.attempted} cross-chain loops completed on-chain (user paid, relayer reimbursed); ${cs.recorded} were measured. ` +
+      `The other one finished correctly, then the harness's own cleanup call \`${cs.failedCall}\` ran out of gas (${cs.gasUsed.toLocaleString("en-US")} of ${cs.gasLimit.toLocaleString("en-US")}) before the loop's timings were saved. ` +
+      `Full reconstruction in results/case-study-flowC.json and docs/CASE_STUDY_FLOW_C.md.`,
+    "",
+  );
+}
 md.push("## Latency race: share of contested liquidity captured by the queue", "");
 md.push("| Sluice speed | Competitor delay | Rounds | Queue capture | Sluice acted (median) |", "|---|---|---|---|---|");
 for (const r of summary.race) {
