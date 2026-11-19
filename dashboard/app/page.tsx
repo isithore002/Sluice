@@ -1,367 +1,309 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useEffect, useState, type ReactNode } from "react";
+import { Logo3D } from "../components/Logo3D";
+import { CountUp, Reveal } from "../components/Motion";
 import { RaceChart } from "../components/RaceChart";
-import { addrUrl, CHAINS, txUrl, type ChainKey } from "../lib/config";
-import { loadManifest, type Manifest, type Stats } from "../lib/manifest";
-import { useLive } from "../lib/useLive";
+import { SiteShell } from "../components/SiteShell";
+import { loadManifest, type Manifest } from "../lib/manifest";
+import "./landing.css";
 
-const usd = (v: bigint) => (Number(v) / 1e6).toLocaleString("en-US", { maximumFractionDigits: 2 });
-const secs = (ms: number) => (Number.isFinite(ms) ? `${(ms / 1000).toFixed(2)} s` : "n/a");
-const ago = (t: number | null) => {
-  if (!t) return "";
-  const s = Math.max(0, Math.round(Date.now() / 1000 - t));
-  return s < 60 ? `${s}s ago` : s < 3600 ? `${Math.round(s / 60)}m ago` : `${Math.round(s / 3600)}h ago`;
+const GITHUB = "https://github.com/isithore002/Sluice";
+
+/** The outsider test (see README, "Try it yourself"): numbers from results/outsider-tryit.json. */
+const OUTSIDER = {
+  wallet: "0xB11bAa7D2Ec33DeC6bd223B5A3cD22294dd80e65",
+  repay: "0x9131d956619a85301bb2cc8ea63597af986302a12ad5c60262003e63a0f52887",
+  settlement: "0xa78d7101e01e2417bd34428cb9b361aa38593ae1ef18d54d86e0b9685a77229e",
+  signer: "0xF7E866D726658F6C3F14B8EE537fe268a4D91DDb",
+  paidTo: "0x1e96935e093051368a3e2F4acBF6380EB5e4Db9A",
 };
+const short = (h: string, a = 6, b = 4) => `${h.slice(0, a + 2)}…${h.slice(-b)}`;
+const baseTx = (h: string) => `https://sepolia.basescan.org/tx/${h}`;
 
-/** Reactive's signer, observed sending every callback on Base Sepolia and Unichain Sepolia. */
-const REACTIVE_SIGNER = "0xf7e866d726658f6c3f14b8ee537fe268a4d91ddb";
-const whoSent = (from: string | null) =>
-  !from ? "" : from.toLowerCase() === REACTIVE_SIGNER ? "sent by Reactive's signer" : `sent by ${from.slice(0, 6)}…${from.slice(-4)}`;
+const STEPS = [
+  {
+    tag: "event",
+    title: "Something frees liquidity",
+    body: "A borrower repays in a Morpho market we don't control, a deposit lands, or another chain has spare credit.",
+  },
+  {
+    tag: "reaction",
+    title: "Reactive decides, in about a second",
+    body: "SluiceReactive sees the event on Lasna and tells the vault to pull from Morpho, or the reserve to front the shortfall.",
+  },
+  {
+    tag: "callback",
+    title: "The queue is paid in order",
+    body: "First come, first served, with partial fills at the head. Missed events heal through retries; bad debt halts cross-chain fronting.",
+  },
+];
 
-function Status({ ok, good, bad }: { ok: boolean; good: string; bad: string }) {
-  return (
-    <span className={`status ${ok ? "good" : "critical"}`}>
-      <span className="dot" aria-hidden="true" />
-      {ok ? `✓ ${good}` : `! ${bad}`}
-    </span>
-  );
-}
-
-function StatRow({ name, s }: { name: string; s: Stats }) {
-  return (
-    <tr>
-      <td>{name}</td>
-      <td className="num">{secs(s.median)}</td>
-      <td className="num">{secs(s.p95)}</td>
-      <td className="num">{secs(s.max)}</td>
-      <td className="num">{s.n}</td>
-    </tr>
-  );
-}
-
-export default function Page() {
+export default function Landing() {
   const [manifest, setManifest] = useState<Manifest | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
   useEffect(() => {
-    loadManifest().then(setManifest).catch((e) => setLoadError(String(e)));
+    loadManifest().then(setManifest).catch(() => {});
   }, []);
 
-  const addresses = useMemo(() => (manifest?.deployed ? manifest.addresses : null), [manifest]);
-  const { state, events, error, updatedAt } = useLive(addresses);
-  const summary = manifest?.summary ?? null;
-  const A = manifest?.addresses ?? {};
+  const s = manifest?.summary ?? null;
+  const batch = manifest?.batch ?? null;
+  const caseStudy = manifest?.caseStudy ?? null;
+  const race = s?.race ?? [];
+  const capture = (native: boolean, delay: number) => race.find((c) => (c.delayBlocks === 0) === native && c.competitorDelayS === delay);
+  const native4 = capture(true, 4);
+  const legacy4 = capture(false, 4);
+  const native0 = capture(true, 0);
 
-  const util = state && state.supply > 0n ? Number((state.borrow * 10000n) / state.supply) / 100 : 0;
-  const anyDebt = state ? Object.values(state.debts).some((d) => d > 0n) : false;
+  const stats: { value: ReactNode; label: string }[] = [];
+  if (s && s.flowB.succeeded > 0)
+    stats.push({ value: <CountUp to={s.flowB.totalWallMs.median / 1000} decimals={2} suffix=" s" />, label: "median, Morpho repayment to queue paid" });
+  if (s && s.flowB.attempted > 0)
+    stats.push({
+      value: (
+        <>
+          <CountUp to={s.flowB.succeeded} />/{s.flowB.attempted}
+        </>
+      ),
+      label: "live loops settled end to end",
+    });
+  if (s?.independent && s.independent.succeeded > 0)
+    stats.push({
+      value: (
+        <>
+          <CountUp to={s.independent.succeeded} />/{s.independent.attempted}
+        </>
+      ),
+      label: "settled for a user by a different wallet",
+    });
+  if (batch?.ok)
+    stats.push({
+      value: <CountUp to={batch.n} />,
+      label: `withdrawals paid from ONE repayment, in ${(batch.timing.repayToQueueEmptyMs / 1000).toFixed(1)} s, first come first served`,
+    });
+  if (native4 && legacy4)
+    stats.push({
+      value: (
+        <>
+          <CountUp to={native4.meanCapture * 100} suffix="%" /> <span className="lp-vs">vs</span> {Math.round(legacy4.meanCapture * 100)}%
+        </>
+      ),
+      label: `queue captured against a 4 s competitor: Omni vs +${legacy4.delayBlocks} blocks (~legacy)`,
+    });
+
+  const deeper = [
+    race.length > 0 && {
+      href: "/dashboard#replay",
+      tag: "interactive",
+      title: "Replay the latency race",
+      body: "Pick any recorded round and watch the repayment, Omni's reaction, the queue payout and the competitor on one timeline.",
+    },
+    batch?.ok && {
+      href: "/dashboard#batch",
+      tag: "live run",
+      title: `One repayment, ${batch.n} withdrawals`,
+      body: `A callback pays at most ${batch.cap}. Reactive scheduled the next batch by itself, and everyone was paid in order.`,
+    },
+    caseStudy && {
+      href: "/dashboard#case",
+      tag: "case study",
+      title: "The loop that didn't count",
+      body: `${caseStudy.counts.recorded} of ${caseStudy.counts.attempted} cross-chain loops were measured. Here is exactly what happened to the other one.`,
+    },
+  ].filter(Boolean) as { href: string; tag: string; title: string; body: string }[];
 
   return (
-    <main className="wrap">
-      <header>
-        <h1>Sluice</h1>
-        <p className="lede">
-          Withdrawal queues that settle themselves. When liquidity comes back anywhere (a repayment in a Morpho market
-          Sluice doesn&apos;t control, or spare credit on another chain), a Reactive contract pays the queue in order, with
-          no manager and no bot.
-        </p>
-        <div className="chips">
-          <span className="chip base">Base Sepolia · vault, Morpho, reserve</span>
-          <span className="chip lasna">Reactive Lasna · SluiceReactive</span>
-          <span className="chip uni">Unichain Sepolia · sibling vault</span>
-        </div>
-      </header>
-
-      <section>
-        <h2>How it works</h2>
-        <div className="flow">
-          <div className="col">
-            <h4>1. Something frees liquidity</h4>
-            <ol>
-              <li>A borrower repays in the Morpho market (Base)</li>
-              <li>…or Base can&apos;t cover the queue, but Unichain has spare credit</li>
-              <li>A deposit pays the queue directly, in the same transaction</li>
-            </ol>
-          </div>
-          <div className="col">
-            <h4>2. Reactive decides (Lasna, ~1 s)</h4>
-            <ol>
-              <li>SluiceReactive sees the event</li>
-              <li>Asks the vault to pull from Morpho, or the reserve to front the shortfall</li>
-              <li>Only after the front is confirmed, asks Unichain to reimburse exactly what was sent</li>
-            </ol>
-          </div>
-          <div className="col">
-            <h4>3. The queue is paid in order</h4>
-            <ol>
-              <li>First come, first served, partial fills at the head</li>
-              <li>Nobody can jump the queue while people wait</li>
-              <li>Retries heal missed events; bad debt halts cross-chain fronting</li>
-            </ol>
-          </div>
-        </div>
-      </section>
-
-      {summary && summary.race.length > 0 && (
-        <section>
-          <h2>Why Omni: the latency race</h2>
-          <p className="sub">
-            Freed liquidity is contested: a competitor bot tries to grab it a few seconds after each repayment. Share
-            captured by the queue, at Omni speed vs the same system slowed to legacy-like speed.
-          </p>
-          <div className="card">
-            <RaceChart cells={summary.race} />
-            <div className="table-scroll">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Sluice speed</th>
-                    <th className="num">Competitor delay</th>
-                    <th className="num">Rounds</th>
-                    <th className="num">Queue captured</th>
-                    <th className="num">Sluice acted (median)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {summary.race.map((c) => (
-                    <tr key={`${c.delayBlocks}-${c.competitorDelayS}`}>
-                      <td>{c.delayBlocks === 0 ? "Omni native" : `+${c.delayBlocks} Lasna blocks (~legacy)`}</td>
-                      <td className="num">{c.competitorDelayS} s</td>
-                      <td className="num">{c.rounds}</td>
-                      <td className="num">{Math.round(c.meanCapture * 100)}%</td>
-                      <td className="num">{secs(c.sluiceActedMs.median)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+    <SiteShell
+      links={[
+        { href: "#how", label: "How it works" },
+        { href: "#why", label: "Why Omni" },
+        { href: "#proof", label: "Proof" },
+        { href: GITHUB, label: "GitHub" },
+      ]}
+      cta={{ href: "/dashboard", label: "Live dashboard" }}
+    >
+      <main id="top">
+        <div className="lp-hero sl-wrap">
+          <div className="lp-copy" data-ascii-avoid="0.85">
+            <p className="lp-eyebrow sl-rise" style={{ animationDelay: "0.05s" }}>
+              <span>*</span> Every Second Counts<span className="lp-caret" aria-hidden="true" />
+            </p>
+            <h1 className="sl-title lp-title">
+              <span className="a sl-rise" style={{ animationDelay: "0.15s" }}>
+                Withdrawal queues that
+              </span>
+              <span className="b" style={{ animationDelay: "0.28s" }}>
+                settle themselves.
+              </span>
+            </h1>
+            <p className="lp-lede sl-rise" style={{ animationDelay: "0.42s" }}>
+              When liquidity comes back anywhere (a repayment in a Morpho market we don&apos;t control, or spare credit on another chain), a
+              Reactive contract pays the queue in order within a couple of seconds. No manager. No keeper bot.
+            </p>
+            <div className="sl-cta sl-rise" style={{ animationDelay: "0.54s" }}>
+              <Link href="/dashboard" className="sl-btn primary">
+                Open live dashboard <span aria-hidden="true">→</span>
+              </Link>
+              <a href={GITHUB} target="_blank" rel="noreferrer" className="sl-btn">
+                Read the source
+              </a>
             </div>
-            <p className="note">
-              The legacy-like rows add delay on Omni; they are not runs on the legacy network. A competitor in the same
-              block beats any reactive system.
-            </p>
+            <div className="sl-chips sl-rise" style={{ animationDelay: "0.66s" }}>
+              <span className="sl-chip base">Base Sepolia</span>
+              <span className="sl-chip lasna">Reactive Lasna</span>
+              <span className="sl-chip uni">Unichain Sepolia</span>
+            </div>
+          </div>
+
+          <div className="lp-stage" data-ascii-avoid="0.8" data-ascii-pad="220" data-ascii-calm>
+            <Logo3D />
+            <p className="lp-cap">Built on Reactive Omni · ~1 s blocks</p>
+          </div>
+        </div>
+
+        {stats.length > 0 && (
+          <div className="sl-wrap">
+            <Reveal>
+              <div className="lp-stats sl-card" data-ascii-avoid="0.9">
+                {stats.map((st, i) => (
+                  <div key={i} className="lp-stat">
+                    <div className="lp-num">{st.value}</div>
+                    <div className="lp-label">{st.label}</div>
+                  </div>
+                ))}
+                <p className="lp-foot">Live testnet loops, traced end to end by the origin transaction hash.</p>
+              </div>
+            </Reveal>
+          </div>
+        )}
+
+        <section id="how" className="sl-section sl-wrap">
+          <div data-ascii-avoid="0.8">
+            <Reveal>
+              <p className="sl-kicker">How it works</p>
+              <h2>Liquidity returns. The queue moves.</h2>
+            </Reveal>
+            <div className="lp-steps">
+              {STEPS.map((st, i) => (
+                <Reveal key={st.tag} delay={i * 120}>
+                  <div className="sl-card lp-step">
+                    <span className="lp-idx">0{i + 1}</span>
+                    <span className="sl-tag lp-tag">{st.tag}</span>
+                    <h3>{st.title}</h3>
+                    <p>{st.body}</p>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
           </div>
         </section>
-      )}
 
-      {summary && (summary.flowB.succeeded > 0 || summary.flowC.succeeded > 0) && (
-        <section>
-          <h2>Measured latency</h2>
-          <p className="sub">Live loops on testnet, traced end to end by the origin transaction hash.</p>
-          <div className="card table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>Loop</th>
-                  <th className="num">Median</th>
-                  <th className="num">p95</th>
-                  <th className="num">Max</th>
-                  <th className="num">Loops</th>
-                </tr>
-              </thead>
-              <tbody>
-                {summary.flowB.succeeded > 0 && <StatRow name="Morpho repay → queue paid" s={summary.flowB.totalWallMs} />}
-                {summary.flowB.succeeded > 0 && <StatRow name="  repay → Lasna react" s={summary.flowB.originToReactiveWallMs} />}
-                {summary.flowC.succeeded > 0 && <StatRow name="Shortfall → user paid by reserve" s={summary.flowC.userPaidWallMs} />}
-                {summary.flowC.succeeded > 0 && <StatRow name="Shortfall → relayer reimbursed (Unichain)" s={summary.flowC.relayerReimbursedWallMs} />}
-                {summary.independent?.succeeded > 0 && <StatRow name="Outsider repay → queue paid (separate wallets)" s={summary.independent.totalWallMs} />}
-              </tbody>
-            </table>
-            <p className="note">
-              Success: flow B {summary.flowB.succeeded}/{summary.flowB.attempted}, flow C {summary.flowC.succeeded}/
-              {summary.flowC.attempted}. Wall-clock times include up to ~150 ms of polling delay.
-            </p>
-          </div>
-        </section>
-      )}
-
-      {summary && (summary.flowB.example || summary.flowC.example) && (
-        <section>
-          <h2>Verified example loops</h2>
-          <p className="sub">One real loop of each flow. Open each transaction on its explorer and follow the chain of events yourself.</p>
-          <div className="grid">
-            {summary.flowB.example && (
-              <div className="card">
-                <h3>Flow B: Morpho repayment → queue paid</h3>
-                <ol className="hops">
-                  <li><a href={summary.flowB.example.origin} target="_blank" rel="noreferrer">Borrower repays in Morpho (Base Sepolia) ↗</a></li>
-                  <li><a href={summary.flowB.example.reactive} target="_blank" rel="noreferrer">SluiceReactive reacts (Reactive Lasna) ↗</a></li>
-                  <li><a href={summary.flowB.example.callback} target="_blank" rel="noreferrer">Callback pays the queue (Base Sepolia) ↗</a></li>
-                </ol>
-              </div>
-            )}
-            {summary.flowC.example && (
-              <div className="card">
-                <h3>Flow C: shortfall → fronted → reimbursed</h3>
-                <ol className="hops">
-                  <li><a href={summary.flowC.example.origin} target="_blank" rel="noreferrer">Withdrawal queued with a shortfall (Base Sepolia) ↗</a></li>
-                  <li><a href={summary.flowC.example.reactive} target="_blank" rel="noreferrer">SluiceReactive reacts (Reactive Lasna) ↗</a></li>
-                  <li><a href={summary.flowC.example.front} target="_blank" rel="noreferrer">Reserve fronts, user paid (Base Sepolia) ↗</a></li>
-                  <li><a href={summary.flowC.example.reimburse} target="_blank" rel="noreferrer">Relayer reimbursed (Unichain Sepolia) ↗</a></li>
-                </ol>
-              </div>
-            )}
-            {summary.independent?.example && (
-              <div className="card">
-                <h3>Independent actors: a user and an outsider</h3>
-                <ol className="hops">
-                  <li><a href={summary.independent.example.links.queued} target="_blank" rel="noreferrer">Alice (a user) queues a withdrawal ↗</a></li>
-                  <li><a href={summary.independent.example.links.origin} target="_blank" rel="noreferrer">Bob, an outsider, repays in Morpho ↗</a></li>
-                  <li><a href={summary.independent.example.links.reactive} target="_blank" rel="noreferrer">SluiceReactive reacts (Lasna) ↗</a></li>
-                  <li><a href={summary.independent.example.links.callback} target="_blank" rel="noreferrer">Callback pays Alice ↗</a></li>
-                </ol>
-                <p className="note">
-                  {summary.independent.succeeded}/{summary.independent.attempted} loops with separate wallets for the user and the repayer; the deployer sent none of these transactions.
+        {race.length > 0 && (
+          <section id="why" className="sl-section sl-wrap">
+            <div className="lp-why" data-ascii-avoid="0.8">
+              <Reveal>
+                <p className="sl-kicker">Why Omni</p>
+                <h2>Freed liquidity is contested.</h2>
+                <p className="sl-p">
+                  A competitor bot tries to grab it a few seconds after each repayment. At Omni speed the queue gets there first. The same
+                  system slowed to legacy-like speed does not.
                 </p>
-              </div>
-            )}
-          </div>
-        </section>
-      )}
-
-      <section>
-        <h2>Live state</h2>
-        {!manifest && !loadError && <p className="sub">Loading…</p>}
-        {loadError && <p className="err">{loadError}</p>}
-        {manifest && !manifest.deployed && (
-          <div className="banner">Not deployed yet. Run scripts/deploy.sh, then rebuild the dashboard.</div>
+                <ul className="lp-points">
+                  {native0 && (
+                    <li>
+                      <b>{Math.round(native0.meanCapture * 100)}%</b> captured against a same-block competitor. Nothing reactive beats a bot that acts in the same block, and we don&apos;t claim to.
+                    </li>
+                  )}
+                  <li>The legacy-like rows add delay on Omni; they are not runs on the legacy network.</li>
+                </ul>
+              </Reveal>
+              <Reveal delay={120}>
+                <div className="sl-card lp-chart">
+                  <RaceChart cells={race} />
+                </div>
+              </Reveal>
+            </div>
+          </section>
         )}
-        {manifest?.deployed && (
-          <>
-            <p className="sub">
-              Refreshes every few seconds{updatedAt ? ` · updated ${new Date(updatedAt).toLocaleTimeString()}` : ""}
-              {error ? "" : ""}
-            </p>
-            {error && <p className="err">RPC error: {error}</p>}
-            {state && (
-              <div className="grid">
-                <div className="card">
-                  <h3>Morpho market</h3>
-                  <div className="big">{util}% utilized</div>
-                  <div className="meter">
-                    <div style={{ width: `${Math.min(100, util)}%` }} />
-                  </div>
-                  <div className="kv">
-                    <span>Supplied / borrowed</span>
-                    <span>
-                      {usd(state.supply)} / {usd(state.borrow)}
+
+        {deeper.length > 0 && (
+          <section className="sl-section tight sl-wrap" data-ascii-avoid="0.8">
+            <Reveal>
+              <p className="sl-kicker">Go deeper</p>
+              <h2>Don&apos;t just read it. Replay it.</h2>
+            </Reveal>
+            <div className="lp-deeper">
+              {deeper.map((d, i) => (
+                <Reveal key={d.href} delay={i * 100}>
+                  <Link href={d.href} className="sl-card lp-step lp-link">
+                    <span className="sl-tag lp-tag">{d.tag}</span>
+                    <h3>{d.title}</h3>
+                    <p>{d.body}</p>
+                    <span className="lp-more">
+                      Open <span aria-hidden="true">→</span>
                     </span>
-                  </div>
-                </div>
-                <div className="card">
-                  <h3>Withdrawal queue</h3>
-                  <div className="big">{usd(state.pending)} mUSD</div>
-                  <div className="kv">
-                    <span>Requests waiting</span>
-                    <span>{state.queued.toString()}</span>
-                  </div>
-                  <div className="kv">
-                    <span>Shortfall beyond Morpho</span>
-                    <span>{usd(state.shortfall)}</span>
-                  </div>
-                </div>
-                <div className="card">
-                  <h3>Cross-chain</h3>
-                  <div className="kv">
-                    <span>Reserve inventory (Base)</span>
-                    <span>{usd(state.inventory)}</span>
-                  </div>
-                  <div className="kv">
-                    <span>Credit (Unichain)</span>
-                    <span>{usd(state.credit)}</span>
-                  </div>
-                  <div className="kv">
-                    <span>Fills opened / open</span>
-                    <span>
-                      {state.fillsOpened.toString()} / {state.fillsOpen}
-                    </span>
-                  </div>
-                </div>
-                <div className="card">
-                  <h3>Reactive contract</h3>
-                  <div className="kv">
-                    <span>Speed</span>
-                    <span>{state.delayBlocks === 0n ? "native" : `+${state.delayBlocks} blocks (race)`}</span>
-                  </div>
-                  <div className="kv">
-                    <span>Cross-chain fronting</span>
-                    <span>{state.halted ? "halted" : "on"}</span>
-                  </div>
-                  <div className="kv">
-                    <span>Pull in flight</span>
-                    <span>{state.pullPending ? "yes" : "no"}</span>
-                  </div>
-                  <div style={{ marginTop: 8 }}>
-                    <Status ok={!anyDebt} good="All contracts funded" bad="A contract is in debt" />
-                  </div>
+                  </Link>
+                </Reveal>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section id="proof" className="sl-section sl-wrap">
+          <Reveal>
+            <div className="sl-card lp-proof" data-ascii-avoid="0.9">
+              <div>
+                <p className="sl-kicker">Proof</p>
+                <h2>Don&apos;t take our word for it.</h2>
+                <p className="sl-p">
+                  A fresh wallet that had never touched these contracts repaid 10 mUSD in the Morpho market. The settlement that paid the queue
+                  was sent by Reactive&apos;s signer, not by us. Open it, or run the same three commands yourself.
+                </p>
+                <div className="sl-cta">
+                  <a href={baseTx(OUTSIDER.settlement)} target="_blank" rel="noreferrer" className="sl-btn primary">
+                    View the settlement <span aria-hidden="true">↗</span>
+                  </a>
+                  <a href={`${GITHUB}#try-it-yourself`} target="_blank" rel="noreferrer" className="sl-btn">
+                    Try it yourself
+                  </a>
+                  <Link href="/dashboard" className="sl-btn">
+                    Live dashboard
+                  </Link>
                 </div>
               </div>
-            )}
-          </>
-        )}
-      </section>
-
-      {manifest?.deployed && (
-        <section>
-          <h2>Live events across the three chains</h2>
-          <div className="card">
-            {events.length === 0 ? (
-              <p className="sub">No recent events.</p>
-            ) : (
-              <ul className="feed">
-                {events.map((e) => (
-                  <li key={e.id}>
-                    <span>
-                      <span className={`chip ${e.chain}`}>{CHAINS[e.chain].label.split(" ")[0]}</span>{" "}
-                      <span className="when">{ago(e.time)}</span>
+              <div className="lp-trace" aria-label="Trace of the outsider test">
+                <div className="hd">trace outsider-test</div>
+                <div className="row">
+                  <span className="k">fresh wallet</span>
+                  <span className="v">{short(OUTSIDER.wallet)}<span className="sub">3 transactions ever: mint, approve, repay</span></span>
+                </div>
+                <div className="row">
+                  <span className="k">repay</span>
+                  <span className="v">
+                    <a href={baseTx(OUTSIDER.repay)} target="_blank" rel="noreferrer">{short(OUTSIDER.repay, 8, 4)}</a>
+                    <span className="sub">10 mUSD into the Morpho market · Base Sepolia</span>
+                  </span>
+                </div>
+                <div className="row">
+                  <span className="k">settlement</span>
+                  <span className="v">
+                    <a href={baseTx(OUTSIDER.settlement)} target="_blank" rel="noreferrer">{short(OUTSIDER.settlement, 8, 4)}</a>
+                    <span className="sub">
+                      sent by <span className="ok">{short(OUTSIDER.signer, 4, 4)}</span>, Reactive&apos;s signer
                     </span>
-                    <span>
-                      {e.text}
-                      {e.from && <span className={`who${e.from.toLowerCase() === REACTIVE_SIGNER ? " reactive" : ""}`}>{whoSent(e.from)}</span>}
-                    </span>
-                    <a href={txUrl(e.chain, e.tx)} target="_blank" rel="noreferrer">
-                      tx ↗
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+                  </span>
+                </div>
+                <div className="row">
+                  <span className="k">paid</span>
+                  <span className="v">
+                    10 mUSD → {short(OUTSIDER.paidTo, 4, 4)}<span className="sub">the user waiting in the queue · nothing left owed</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Reveal>
         </section>
-      )}
-
-      {manifest?.deployed && (
-        <section>
-          <h2>Contracts</h2>
-          <div className="card table-scroll">
-            <table>
-              <tbody>
-                {(
-                  [
-                    ["SluiceReactive", "lasna", A.sluiceReactive],
-                    ["SluiceVault", "base", A.sluiceVault],
-                    ["RelayerReserve", "base", A.relayerReserve],
-                    ["Morpho Blue", "base", A.morpho],
-                    ["SiblingVault", "uni", A.siblingVault],
-                  ] as [string, ChainKey, string][]
-                ).map(([name, k, a]) => (
-                  <tr key={name}>
-                    <td>{name}</td>
-                    <td>{CHAINS[k].label}</td>
-                    <td>
-                      <a href={addrUrl(k, a)} target="_blank" rel="noreferrer" style={{ fontFamily: "var(--mono)", fontSize: 13 }}>
-                        {a}
-                      </a>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )}
-
-      <footer>
-        Built for the Reactive Omni Buildathon · <a href="https://github.com/isithore002/Sluice">source on GitHub</a>
-      </footer>
-    </main>
+      </main>
+    </SiteShell>
   );
 }

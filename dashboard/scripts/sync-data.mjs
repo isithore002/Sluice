@@ -29,6 +29,24 @@ if (existsSync(uniToken)) addresses.uniMockUSD = JSON.parse(readFileSync(uniToke
 const baseMarket = resolve(deployments, "base-market.json");
 if (existsSync(baseMarket)) addresses.mockUSD = JSON.parse(readFileSync(baseMarket, "utf8")).mockUSD;
 
-const manifest = { generatedAt: new Date().toISOString(), deployed, addresses, summary };
+// Detailed evidence for the dashboard's interactive sections (each is optional: the section simply doesn't render).
+const readJson = (p) => (existsSync(p) ? JSON.parse(readFileSync(p, "utf8")) : null);
+const raceReplay = readJson(resolve(results, "replay-race.json"));
+const caseStudy = readJson(resolve(results, "case-study-flowC.json"));
+let batch = null;
+if (existsSync(results)) {
+  const files = readdirSync(results).filter((f) => /^batch-\d{4}-.*\.json$/.test(f)).sort().reverse();
+  for (const f of files) {
+    const j = readJson(resolve(results, f));
+    if (j?.ok) {
+      batch = j; // the latest run that passed its own checks (FIFO order, every lender paid, expected callback count)
+      break;
+    }
+  }
+}
+
+const manifest = { generatedAt: new Date().toISOString(), deployed, addresses, summary, raceReplay, batch, caseStudy };
 writeFileSync(resolve(outDir, "manifest.json"), JSON.stringify(manifest, null, 2));
-console.log(`dashboard data: deployed=${deployed}, summary=${summary ? "yes" : "no"}`);
+console.log(
+  `dashboard data: deployed=${deployed}, summary=${summary ? "yes" : "no"}, replay=${raceReplay ? raceReplay.rounds.length + " rounds" : "no"}, batch=${batch ? batch.n + " withdrawals" : "no"}, caseStudy=${caseStudy ? "yes" : "no"}`,
+);
