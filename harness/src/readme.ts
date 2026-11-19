@@ -105,7 +105,7 @@ One real loop of each flow. Only the first transaction in each is sent by our wa
 
 ### Independent actors
 
-The loops above reuse one wallet for most roles. To show Sluice doesn't depend on that, ${I.succeeded} more loops use **separate wallets**: Alice (a user) deposits and queues a withdrawal, Bob (an outsider) repays on behalf of the borrower in Morpho, and Reactive pays Alice. The deployer only funds their gas, and is the borrower whose debt Bob repays. **${I.succeeded}/${I.attempted} succeeded, ${I.allIndependent ? "and in every one the withdrawal request, the repayment and the payout all involved addresses other than the deployer" : "but not every loop was independent"}** (median ${s(I.totalWallMs.median)} from repayment to queue paid).
+The loops above reuse one wallet for most roles. To show Sluice doesn't depend on that, ${I.succeeded} more loops use **separate wallets** (separate addresses that we control, not separate people): Alice (a user) deposits and queues a withdrawal, Bob (an outsider) repays on behalf of the borrower in Morpho, and Reactive pays Alice. The deployer only funds their gas, and is the borrower whose debt Bob repays. **${I.succeeded}/${I.attempted} succeeded, ${I.allIndependent ? "and in every one the withdrawal request, the repayment and the payout all involved addresses other than the deployer" : "but not every loop was independent"}** (median ${s(I.totalWallMs.median)} from repayment to queue paid).
 
 | Role | Address |
 |---|---|
@@ -183,7 +183,7 @@ cast send ${market.morpho} "repay((address,address,address,address,uint256),uint
 
 Your wallet sends only the repayment. The queued withdrawal belongs to Alice (above), and the payout goes to her.
 
-**We ran exactly these commands from a brand-new wallet** (${a(BASE, O.outsider)}, which had never touched the project and sent only these ${O.outsiderTransactionCount} transactions): [mint](${BASE}/tx/${O.txs.mint}), [approve](${BASE}/tx/${O.txs.approve}), [repay](${BASE}/tx/${O.txs.repay}). Reactive then paid ${O.paid} mUSD to Alice in [this settlement](${BASE}/tx/${O.txs.settlement}), sent by Reactive's signer. The result is in [\`results/outsider-tryit.json\`](results/outsider-tryit.json).
+**We ran exactly these commands from a brand-new wallet that we created for the test** (${a(BASE, O.outsider)}, which had never touched the project and sent only these ${O.outsiderTransactionCount} transactions): [mint](${BASE}/tx/${O.txs.mint}), [approve](${BASE}/tx/${O.txs.approve}), [repay](${BASE}/tx/${O.txs.repay}). Reactive then paid ${O.paid} mUSD to Alice in [this settlement](${BASE}/tx/${O.txs.settlement}), sent by Reactive's signer. The result is in [\`results/outsider-tryit.json\`](results/outsider-tryit.json).
 
 **Costs us, not you:** each settlement costs the reactive contract about 0.08 lREACT, so please don't loop it. If it stops responding, it ran out of funds.
 `;

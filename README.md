@@ -147,7 +147,7 @@ One real loop of each flow. Only the first transaction in each is sent by our wa
 
 ### Independent actors
 
-The loops above reuse one wallet for most roles. To show Sluice doesn't depend on that, 6 more loops use **separate wallets**: Alice (a user) deposits and queues a withdrawal, Bob (an outsider) repays on behalf of the borrower in Morpho, and Reactive pays Alice. The deployer only funds their gas, and is the borrower whose debt Bob repays. **6/6 succeeded, and in every one the withdrawal request, the repayment and the payout all involved addresses other than the deployer** (median 1.56 s from repayment to queue paid).
+The loops above reuse one wallet for most roles. To show Sluice doesn't depend on that, 6 more loops use **separate wallets** (separate addresses that we control, not separate people): Alice (a user) deposits and queues a withdrawal, Bob (an outsider) repays on behalf of the borrower in Morpho, and Reactive pays Alice. The deployer only funds their gas, and is the borrower whose debt Bob repays. **6/6 succeeded, and in every one the withdrawal request, the repayment and the payout all involved addresses other than the deployer** (median 1.56 s from repayment to queue paid).
 
 | Role | Address |
 |---|---|
@@ -238,7 +238,7 @@ cast send 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb "repay((address,address,add
 
 Your wallet sends only the repayment. The queued withdrawal belongs to Alice (above), and the payout goes to her.
 
-**We ran exactly these commands from a brand-new wallet** ([`0xB11bAa7D2Ec33DeC6bd223B5A3cD22294dd80e65`](https://sepolia.basescan.org/address/0xB11bAa7D2Ec33DeC6bd223B5A3cD22294dd80e65), which had never touched the project and sent only these 3 transactions): [mint](https://sepolia.basescan.org/tx/0x3eae2a83024f102fe6930d892940208d5b52dc1832d7a9ad47962790f1e9b0ff), [approve](https://sepolia.basescan.org/tx/0xa124b832e66fedd9ee112b25c633a5c384cab5ce541e955a1271ec25c51f95b8), [repay](https://sepolia.basescan.org/tx/0x9131d956619a85301bb2cc8ea63597af986302a12ad5c60262003e63a0f52887). Reactive then paid 10.0 mUSD to Alice in [this settlement](https://sepolia.basescan.org/tx/0xa78d7101e01e2417bd34428cb9b361aa38593ae1ef18d54d86e0b9685a77229e), sent by Reactive's signer. The result is in [`results/outsider-tryit.json`](results/outsider-tryit.json).
+**We ran exactly these commands from a brand-new wallet that we created for the test** ([`0xB11bAa7D2Ec33DeC6bd223B5A3cD22294dd80e65`](https://sepolia.basescan.org/address/0xB11bAa7D2Ec33DeC6bd223B5A3cD22294dd80e65), which had never touched the project and sent only these 3 transactions): [mint](https://sepolia.basescan.org/tx/0x3eae2a83024f102fe6930d892940208d5b52dc1832d7a9ad47962790f1e9b0ff), [approve](https://sepolia.basescan.org/tx/0xa124b832e66fedd9ee112b25c633a5c384cab5ce541e955a1271ec25c51f95b8), [repay](https://sepolia.basescan.org/tx/0x9131d956619a85301bb2cc8ea63597af986302a12ad5c60262003e63a0f52887). Reactive then paid 10.0 mUSD to Alice in [this settlement](https://sepolia.basescan.org/tx/0xa78d7101e01e2417bd34428cb9b361aa38593ae1ef18d54d86e0b9685a77229e), sent by Reactive's signer. The result is in [`results/outsider-tryit.json`](results/outsider-tryit.json).
 
 **Costs us, not you:** each settlement costs the reactive contract about 0.08 lREACT, so please don't loop it. If it stops responding, it ran out of funds.
 <!-- TRYIT:END -->

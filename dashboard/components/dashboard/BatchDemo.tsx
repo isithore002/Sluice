@@ -24,7 +24,7 @@ export function BatchDemo({ batch }: { batch: BatchResult }) {
   const landed = (k: number) => (batch.callbacks.length <= 1 ? last : first + ((last - first) * (k - 1)) / (batch.callbacks.length - 1));
   const lightAt = (id: number) => {
     const c = cbOf(id);
-    return c ? landed(c.batch) + (id - c.firstRequestId) * 14 : Infinity;
+    return c ? landed(c.batch) : Infinity; // every request in a callback is paid by ONE transaction, so they light up together
   };
   const end = Math.max(...ids.map(lightAt)) + 500;
   const lit = (id: number) => t === null || t >= lightAt(id);
@@ -118,6 +118,10 @@ export function BatchDemo({ batch }: { batch: BatchResult }) {
           ) : (
             "Order check failed."
           )}
+        </p>
+        <p className="sl-note">
+          The replay shows when each callback landed (measured). The requests inside one callback are all paid by a single transaction, so they light up together.
+          The {batch.n} lenders are wallets we control.
         </p>
       </div>
 

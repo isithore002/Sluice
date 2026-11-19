@@ -256,8 +256,8 @@ export default function Landing() {
                 <p className="sl-kicker">Proof</p>
                 <h2>Don&apos;t take our word for it.</h2>
                 <p className="sl-p">
-                  A fresh wallet that had never touched these contracts repaid 10 mUSD in the Morpho market. The settlement that paid the queue
-                  was sent by Reactive&apos;s signer, not by us. Open it, or run the same three commands yourself.
+                  A fresh wallet we created for this test, which had never touched these contracts, repaid 10 mUSD in the Morpho market. The settlement that paid the queue
+                  was sent by Reactive&apos;s signer, not by us. Open it, or run the same three commands yourself, which is the stronger check.
                 </p>
                 <div className="sl-cta">
                   <a href={baseTx(OUTSIDER.settlement)} target="_blank" rel="noreferrer" className="sl-btn primary">

@@ -48,7 +48,7 @@ export function ExampleLoops({ summary }: { summary: Summary }) {
             <Hop href={independent.example.links.callback}>Callback pays Alice</Hop>
           </ol>
           <p className="sl-note">
-            {independent.succeeded}/{independent.attempted} loops with separate wallets for the user and the repayer; the deployer sent none of these
+            {independent.succeeded}/{independent.attempted} loops with separate wallets (all controlled by us) for the user and the repayer; the deployer sent none of these
             transactions.
           </p>
         </div>

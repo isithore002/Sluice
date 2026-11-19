@@ -106,7 +106,7 @@ export default function Dashboard() {
               <p className="sl-kicker">Why Omni</p>
               <h2>The latency race</h2>
               <p className="dash-intro">
-                Freed liquidity is contested: a competitor bot tries to grab it a few seconds after each repayment. Share captured by the queue, at Omni speed vs the
+                Freed liquidity is contested: a competitor bot tries to grab it a few seconds after each repayment (a bot we run ourselves, from a lender wallet in the same market). Share captured by the queue, at Omni speed vs the
                 same system slowed to legacy-like speed.
               </p>
               <div className="sl-card">
@@ -214,7 +214,10 @@ export default function Dashboard() {
             <Reveal>
               <p className="sl-kicker">Deployed</p>
               <h2>Contracts</h2>
-              <p className="dash-intro">Source-verified on each explorer.</p>
+              <p className="dash-intro">
+                Our contracts are source-verified on Sourcify with an exact match (links in the README). Morpho Blue is a third-party deployment; the demo&apos;s token,
+                collateral and oracle are mocks we deployed.
+              </p>
               <ContractsTable addresses={manifest.addresses} />
             </Reveal>
           </section>
