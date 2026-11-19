@@ -222,6 +222,17 @@ npm run arm -- --x 10                   # leaves one withdrawal queued, so an ou
 
 Each settlement costs the reactive contract about 0.08 lREACT, so keep it funded while judges may try it.
 
+### 15c. Batch continuation, the replay data and the case study
+
+```bash
+npm run batch -- --n 40 --each 1   # 40 wallets queue, then ONE repayment pays them all across 2 callbacks
+npm run replay                     # results/replay-race.json: each race round plus the Lasna transaction that reacted to it
+npm run casestudy                  # results/case-study-flowC.json: rebuilds the explanation of a failed cross-chain loop from chain data
+npm run arm -- --x 10              # the batch run pays the armed withdrawal: re-arm afterwards
+```
+
+**Check:** `batch` ends with `OK: 40 withdrawals, 2 callbacks, FIFO verified, all lenders paid in full`. It is resumable: a public RPC can time out on a transaction that was in fact mined, so every staging step checks on-chain state first and after any error, and a queue that already holds a prefix of its lenders is continued rather than paid out. A run costs the reactive contract about 1.6 lREACT (it reacts to every deposit and request). `replay` and `casestudy` only read chains (Lasna keeps recent history, so run them soon after the race and the failed run, then commit the output).
+
 ### 16. Summarize
 
 ```bash
@@ -241,7 +252,7 @@ cd dashboard && npm install && npm run build     # static site in dashboard/out
 
 Host `dashboard/out` anywhere static (Vercel, GitHub Pages). On Vercel, set the project's root directory to `dashboard`.
 
-**Check:** open it in a private window: the race chart, latency tables, example loops and live state all show real data. Run a loop and watch events appear.
+**Check:** open it in a private window. The site root is the landing page (3D logo, measured numbers, race chart); the live dashboard is at `/dashboard/`. There the race chart, latency tables, example loops and live state all show real data. Run a loop and watch events appear.
 
 ---
 

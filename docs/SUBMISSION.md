@@ -15,7 +15,7 @@ Everything needed for the DoraHacks submission and the demo video. Numbers and h
 | One-liner | When liquidity comes back anywhere (a Morpho repayment or spare credit on another chain), a Reactive contract pays the withdrawal queue in order within seconds. No manager, no bot. |
 | Repository | https://github.com/isithore002/Sluice (public, MIT) |
 | Demo video | *record it (section 3), then paste the link* |
-| Live dashboard | *host `dashboard/out` (see BUILD_GUIDE phase E), then paste the link* |
+| Live dashboard | *host `dashboard/out` (see BUILD_GUIDE phase E), then paste the link. The site root is the landing page; the live state is at `<your-host>/dashboard/`* |
 | Suggested tags | Crypto / Web3, DeFi, Infra / API, Cross-chain, Base, Unichain, Reactive Network |
 
 ### Short description (for the build page)
@@ -57,6 +57,11 @@ Independent actors (separate wallets, 6/6 loops, the deployer sent none of the t
 - Reactive transaction (Lasna): `0x64a55873a609c8f145a660902427a9665cb28de579b08a930c3ceff1c7b76da2`
 - Callback pays Alice (Base Sepolia): `0xc23b0a8a33df6083edaaaf241723d92612a7d00119c1de73054b11527960326b`
 
+Batch continuation (a callback pays at most 25 requests; 40 withdrawals from 40 separate wallets, paid by ONE repayment across 2 callbacks, no deposit or manual call in between):
+- Repayment in Morpho (Base Sepolia): `0x27f7da1287439112f2f41740437fb01804c045635b893aebba03af029a4b3ba9`
+- Omni request 1 (Lasna) `0x7bf06febfcfa9767a578f8f369f70f01732b2e4b14875ce9d4d774c202e4add4` → callback 1, 25 payments (Base Sepolia): `0x13907a69b2f84aa12fd832ddcbd947f4193b67ec0bec97b22e0b6959148ea31d`
+- Omni request 2 (Lasna) `0x6f88ea2d86173972ad030bc737dd408f316731064b5cc64d109e1c6d1c1d14b8` → callback 2, 15 payments (Base Sepolia): `0xc884be68fd90e294adbfc4f789539955aefdf61a0eb9bbc246951311dbcf3746`
+
 Outsider test of the README's "Try it yourself" steps, from a brand-new wallet `0xB11bAa7D2Ec33DeC6bd223B5A3cD22294dd80e65` that sent only 3 transactions:
 - mint `0x3eae2a83024f102fe6930d892940208d5b52dc1832d7a9ad47962790f1e9b0ff`, approve `0xa124b832e66fedd9ee112b25c633a5c384cab5ce541e955a1271ec25c51f95b8`, repay `0x9131d956619a85301bb2cc8ea63597af986302a12ad5c60262003e63a0f52887`
 - Reactive then settled the queue in `0xa78d7101e01e2417bd34428cb9b361aa38593ae1ef18d54d86e0b9685a77229e` (sent by Reactive's signer)
@@ -68,7 +73,8 @@ Only the origin transaction in each loop is sent by our wallet. The callbacks ar
 Each loop is traced end to end by the origin transaction's hash, which every callback carries and every event emits. A TypeScript harness (viem) records wall-clock milliseconds, polling every ~150 ms, and block timestamps, which only resolve to 1 s.
 
 - **Flow B** (repayment → queue paid), 33/33 loops: median **1.58 s**, p95 2.10 s, max 2.20 s. Of that, repayment → Lasna react is 1.17 s.
-- **Flow C** (shortfall → user paid by the reserve), 31/32 loops: median **1.36 s**, p95 2.16 s. The relayer is reimbursed on Unichain at a median 4.60 s.
+- **Flow C** (shortfall → user paid by the reserve), 31/32 loops recorded: median **1.36 s**, p95 2.16 s. The relayer is reimbursed on Unichain at a median 4.60 s. All 32 loops completed on-chain; the one not counted lost its timings when the test harness's own cleanup call ran out of gas after the user was paid and the relayer reimbursed ([`docs/CASE_STUDY_FLOW_C.md`](CASE_STUDY_FLOW_C.md)).
+- **Batch continuation** (one repayment, more queued withdrawals than a callback may pay): 40 withdrawals from 40 wallets were paid in strict first-come-first-served order by 2 callbacks (25 + 15), **2.97 s** after the single repayment, with the largest callback using 933,746 of its 1,500,000 gas limit.
 - **The latency race** (60 rounds, every round accounted for exactly): when freed liquidity is contested by a competitor bot that fires a withdrawal after a delay, Sluice at Omni speed (acts in ~1.4 s) captures 100% of it against a 1 s competitor, 100% against 4 s, and 17% against an instant one. The same system slowed to legacy-like speed (acts in ~7.6 s, by adding 6 Lasna blocks of delay) captures 0% against 1 s, 0% against 4 s, and only wins against the 8 s competitor (100%). The legacy-like rows add delay on Omni; they are not runs on the legacy network. An instant competitor beats Sluice at either speed.
 
 **Was this your first time building with Reactive? Your first smart contract?**

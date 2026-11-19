@@ -55,7 +55,7 @@ Three liquidity sources, three flows:
 
 ### Rules the contracts enforce
 
-- **FIFO with partial fills.** The head of the queue is paid as much as possible before anyone behind it, with at most 25 payments per call to bound gas.
+- **FIFO with partial fills.** The head of the queue is paid as much as possible before anyone behind it, with at most 25 payments per call to bound gas. When one repayment frees cash for more than 25, Reactive schedules the next batch itself ([measured live](#one-repayment-many-withdrawals): 40 withdrawals paid from one repayment in 2 callbacks).
 - **Reservation rule.** While anyone is queued, new withdrawals queue behind them and idle assets only leave the vault to pay the queue. Nobody can jump the line.
 - **Reimburse only what was sent.** The relayer is reimbursed only after its front is confirmed on Base, and only for the amount actually sent. A failed front is never reimbursed.
 - **Safety buffer.** The Unichain vault only commits surplus above a buffer as credit, so local liquidity is never fully exported.
@@ -94,6 +94,8 @@ Measured on live testnets and generated from [`results/summary.json`](results/su
 
 The user is paid after **one** reactive hop; the relayer is reimbursed one hop later, only after `Fronted` is confirmed.
 
+Flow C shows 31/32 because one loop's timings were never saved, not because a payout failed: that loop completed on-chain too ([details below](#the-cross-chain-loop-that-is-not-in-the-numbers)).
+
 ### The latency race
 
 When freed liquidity is contested, how much does the queue capture? A competitor bot (a lender in the same Morpho market) fires a withdrawal `C` seconds after seeing each repayment, with no market read and a fixed gas limit. Capture = the share of the repaid amount that reaches the queue. 6 rounds per cell, 60 rounds in total, every round accounted for exactly (queue payout + competitor payout = amount).
@@ -112,6 +114,21 @@ When freed liquidity is contested, how much does the queue capture? A competitor
 - At legacy-like speed the queue loses to every competitor except the slowest. That gap is the case for Omni here.
 - The "+6 blocks" rows add delay on Omni (`delayBlocks = 6`). They approximate legacy speed; they are not runs on the legacy network.
 - The competitor runs on one machine through a public RPC, so its own transaction takes ~1.2 to 1.4 s to land. An in-region bot would be faster, so the 0 s row is not the speed limit.
+
+### One repayment, many withdrawals
+
+A callback pays at most 25 queued withdrawals, so its gas stays bounded. When ONE repayment frees cash for more than that, Reactive has to notice that the vault still holds payable cash and schedule the next batch by itself. Checked on the live contracts: 40 separate wallets queued 1 mUSD each (request ids 216 to 255), then **one** repayment of 40 mUSD paid every one of them, in **2 callbacks** (25 + 15 payments). Nobody deposited again and nobody called anything.
+
+| Measure | Result |
+|---|---|
+| Repay → first batch paid | 1.93 s |
+| Repay → queue empty | **2.97 s** |
+| Order | strict first come, first served: ids 216 to 255, no gaps (checked from the events) |
+| Largest callback | 933,746 gas of the 1,500,000 limit |
+
+How it continues: after each batch the vault emits `StateUpdated`. SluiceReactive sees that people are still queued, that cash is reachable, and that the last pull made progress, so it requests another pull. A pull that makes no progress never triggers another, so it cannot loop. Foundry runs the same scenarios against the real Morpho bytecode: 40 queued → 2 callbacks, 80 → 4, and cash for only 30 of 40 stops at 30. A full 25-payment callback to fresh recipients costs 927,744 gas in Foundry and 933,746 on-chain.
+
+Transactions: [the repayment](https://sepolia.basescan.org/tx/0x27f7da1287439112f2f41740437fb01804c045635b893aebba03af029a4b3ba9), then [Omni request 1](https://lasna.reactscan.net/tx/0x7bf06febfcfa9767a578f8f369f70f01732b2e4b14875ce9d4d774c202e4add4) → [callback 1](https://sepolia.basescan.org/tx/0x13907a69b2f84aa12fd832ddcbd947f4193b67ec0bec97b22e0b6959148ea31d), [Omni request 2](https://lasna.reactscan.net/tx/0x6f88ea2d86173972ad030bc737dd408f316731064b5cc64d109e1c6d1c1d14b8) → [callback 2](https://sepolia.basescan.org/tx/0xc884be68fd90e294adbfc4f789539955aefdf61a0eb9bbc246951311dbcf3746). The dashboard replays the run on a payout board.
 
 ### Verify a loop yourself
 
@@ -142,6 +159,23 @@ The loops above reuse one wallet for most roles. To show Sluice doesn't depend o
 One loop to check: [Alice queues a withdrawal](https://sepolia.basescan.org/tx/0xb24f813dd8d4a02ac2c3568381dc5c1e8f14d78fbd440883a07c9012e23f3d29), [Bob repays](https://sepolia.basescan.org/tx/0x20a27120464dcb3fe6ba1350f9a38eacad20481b07e91bfd736755ed4ed43041), [SluiceReactive reacts](https://lasna.reactscan.net/tx/0x64a55873a609c8f145a660902427a9665cb28de579b08a930c3ceff1c7b76da2), [the callback pays Alice](https://sepolia.basescan.org/tx/0xc23b0a8a33df6083edaaaf241723d92612a7d00119c1de73054b11527960326b).
 
 What this does **not** remove: the market, the tokens, the oracle, the vault funding and the queued withdrawal are still set up by us, which is unavoidable on a testnet. The strongest check is yours: see [Try it yourself](#try-it-yourself).
+
+### The cross-chain loop that is not in the numbers
+
+32 of 32 cross-chain loops completed on-chain, but only 31 are in the latency table. Reconstructed from chain data (`npm run casestudy`), the missing one finished correctly: the user was paid, the relayer was reimbursed and the fill ended DONE. What failed was the **test harness's own cleanup**: its `commitCredit()` call on the sibling vault ran out of gas (34,915 of 34,915: the node's gas estimate was just short on Unichain Sepolia). The harness threw before it saved the loop's timings, so the loop was recorded as failed and has no latency data.
+
+| # | Step | Chain | Transaction | Result |
+|---|---|---|---|---|
+| 1 | User asks to withdraw | Base Sepolia | [`0xccb5e6b1…f0ec`](https://sepolia.basescan.org/tx/0xccb5e6b1ef3d8e35160bc8dbe572b3330b00a19da549cb76775a24fc3bfef0ec) | ✓ requestWithdraw(10 mUSD): request #136, queued with a shortfall because Morpho had no free cash |
+| 2 | Omni reacts to the queue | Reactive Lasna | [`0x7ecb28d6…4eca`](https://lasna.reactscan.net/tx/0x7ecb28d629f49c0a65fc1783ba819c581c105633bb7ad5de2f3fb1f621be4eca) | ✓ SluiceReactive sees the shortfall and asks the relayer reserve to front it |
+| 3 | User is paid on Base | Base Sepolia | [`0xc12c73b2…92a8`](https://sepolia.basescan.org/tx/0xc12c73b249b662f2260021e452693bdf8c0576bcebf820f844e3516b90f692a8) | ✓ the reserve fronts 10 mUSD and the vault pays request #136 in full (0 left owed) |
+| 4 | Omni sees the payout | Reactive Lasna | [`0x03846575…7119`](https://lasna.reactscan.net/tx/0x03846575b22c3657c78d07266d783018613be7640fdf0041f82ddd4959ca7119) | ✓ SluiceReactive sees Fronted and asks Unichain to reimburse exactly what was sent |
+| 5 | Relayer is reimbursed on Unichain | Unichain Sepolia | [`0x7cfa0c31…0725`](https://sepolia.uniscan.xyz/tx/0x7cfa0c31ee4721579b72de494de81e10a7df69daf166f8d1c226b8f6f4310725) | ✓ SiblingVault reimburses 10 mUSD; 1,990 credit left |
+| 6 | Omni closes the fill | Reactive Lasna | [`0x48d4d2a5…1ff9`](https://lasna.reactscan.net/tx/0x48d4d2a53ad52ab573d9168870dffd853e1f51416c17373f190534c6e1c51ff9) | ✓ fill #1 ends in stage DONE |
+| 7 | Harness cleanup, step 1 | Unichain Sepolia | [`0xe3b8e975…559f`](https://sepolia.uniscan.xyz/tx/0xe3b8e975f8c52d1bd893f32b0a5177a8bff94294e06118a2db4c1d9f1e38559f) | ✓ puts the reimbursed amount back into the sibling vault |
+| 8 | Harness cleanup, step 2 | Unichain Sepolia | [`0x4ed65cfd…4591`](https://sepolia.uniscan.xyz/tx/0x4ed65cfdd281f70c8487594eef28b84395d5146ab997a443016f6b1cfc694591) | ✗ commitCredit() ran out of gas |
+
+The fix: every harness transaction now carries a 30% gas buffer over the node's estimate ([`harness/src/util.ts`](harness/src/util.ts)). The rerun after the fix, **2 of 2 loops succeeded**, is published next to the original in [`results/flowC-2026-11-19T09-14-20-131Z.json`](results/flowC-2026-11-19T09-14-20-131Z.json). Write-up: [`docs/CASE_STUDY_FLOW_C.md`](docs/CASE_STUDY_FLOW_C.md).
 
 Failures and discarded runs are documented in [`results/README.md`](results/README.md).
 <!-- RESULTS:END -->
@@ -219,7 +253,7 @@ Your wallet sends only the repayment. The queued withdrawal belongs to Alice (ab
 | [`test/`](test/) | 62 tests: vault, reserve, sibling, reactive (through the Omni pipeline), end to end |
 | [`script/`](script/), [`scripts/deploy.sh`](scripts/deploy.sh) | 8-step deployment across the three chains |
 | [`harness/`](harness/) | `status`, `flowB`, `flowC`, `race`, `summary` (TypeScript + viem) |
-| [`dashboard/`](dashboard/) | Live read-only dashboard (Next.js static export) |
+| [`dashboard/`](dashboard/) | Landing page (three.js) at `/` and live read-only dashboard at `/dashboard/` (Next.js static export) |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Full spec: verified addresses, every function and event, flows, failure modes |
 | [`docs/BUILD_GUIDE.md`](docs/BUILD_GUIDE.md) | Step-by-step guide from an empty machine to a running deployment |
 
@@ -266,7 +300,9 @@ Every loop is traced by its origin transaction hash, which every callback carrie
 - **Wall-clock milliseconds**, polling every ~150ms.
 - **Block timestamps**, which on Base Sepolia only resolve to 1 second (about 5 blocks share each timestamp).
 
-### Dashboard
+### Landing page and dashboard
+
+One static site with two pages: a landing page at `/` (a three.js logo over an animated glyph background; its numbers are read from `results/summary.json`) and the live, read-only dashboard at `/dashboard/`.
 
 ```shell
 cd dashboard && npm install && npm run build    # static site in dashboard/out
