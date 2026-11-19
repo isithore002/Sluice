@@ -51,6 +51,16 @@ Flow C, a shortfall is fronted and the relayer reimbursed across chains:
 - Callback, reserve fronts and the user is paid (Base Sepolia): `0x6d643b9485732145190ce578ad7d52302bab406a6304bf29e50d50c79684066a`
 - Callback, relayer reimbursed (Unichain Sepolia): `0x1db0937b563d71a8eff8efddaf469f8033d3747364af65ae9739931f7d2f7c93`
 
+Independent actors (separate wallets, 6/6 loops, the deployer sent none of the transactions):
+- Alice, a user, queues a withdrawal (Base Sepolia): `0xb24f813dd8d4a02ac2c3568381dc5c1e8f14d78fbd440883a07c9012e23f3d29`
+- Bob, an outsider, repays on behalf of the borrower in Morpho (Base Sepolia): `0x20a27120464dcb3fe6ba1350f9a38eacad20481b07e91bfd736755ed4ed43041`
+- Reactive transaction (Lasna): `0x64a55873a609c8f145a660902427a9665cb28de579b08a930c3ceff1c7b76da2`
+- Callback pays Alice (Base Sepolia): `0xc23b0a8a33df6083edaaaf241723d92612a7d00119c1de73054b11527960326b`
+
+Outsider test of the README's "Try it yourself" steps, from a brand-new wallet `0xB11bAa7D2Ec33DeC6bd223B5A3cD22294dd80e65` that sent only 3 transactions:
+- mint `0x3eae2a83024f102fe6930d892940208d5b52dc1832d7a9ad47962790f1e9b0ff`, approve `0xa124b832e66fedd9ee112b25c633a5c384cab5ce541e955a1271ec25c51f95b8`, repay `0x9131d956619a85301bb2cc8ea63597af986302a12ad5c60262003e63a0f52887`
+- Reactive then settled the queue in `0xa78d7101e01e2417bd34428cb9b361aa38593ae1ef18d54d86e0b9685a77229e` (sent by Reactive's signer)
+
 Only the origin transaction in each loop is sent by our wallet. The callbacks are sent by Reactive's signer (`0xF7E866D726658F6C3F14B8EE537fe268a4D91DDb`). Explorer links for these are in the README, and every loop's hashes are in `results/`.
 
 **For Every Second Counts: what full-loop latency did you measure, and how?**
@@ -87,14 +97,15 @@ First time with Reactive, yes. Not my first smart contract.
 - [ ] Run `npm run status` in `harness/`: no debt, lREACT balance healthy. A live loop costs about 0.1 lREACT, so keep at least 1.5 for retakes (top up with `depositTo`, see BUILD_GUIDE step 14).
 - [ ] Dashboard open in one window (hosted URL or `dashboard/out`), explorer tabs ready.
 - [ ] Terminal in `harness/`, big font.
-- [ ] Do a dry run with `npx tsx src/flowB.ts --n 2 --x 10`.
+- [ ] Re-arm the demo with `npm run arm` in `harness/` (it leaves one withdrawal queued; the dashboard's Withdrawal queue card must show 10 mUSD pending). Each settlement costs about 0.08 lREACT.
+- [ ] Have the second wallet ready: a throwaway key with a little Base Sepolia ETH, and the README's three commands in a terminal.
 - [ ] Don't show your `.env` file or any key.
 
 | Time | On screen | Say |
 |---|---|---|
 | 0:00 to 0:20 | The README problem section | "When a lending market runs out of cash, depositors can't withdraw. They join a queue, and someone has to notice when cash comes back and pay them. In a crunch the fastest bot grabs it first. Sluice replaces that operator with a Reactive contract." |
 | 0:20 to 0:45 | The "How it works" diagram | "A repayment in Morpho, a market we don't control, or spare credit on another chain frees liquidity. A reactive contract on Lasna sees the event within about a second and tells the vault to pay the queue, first come, first served." |
-| 0:45 to 1:30 | Terminal: `npx tsx src/flowB.ts --n 3 --x 10`, then the dashboard's live events | "Live on testnet: a withdrawal is queued, a borrower repays in Morpho, and the queue is paid in about a second and a half. The reactive transaction and the callback are on the explorers: the callback is sent by Reactive's signer, not by us. Nothing of ours is in the middle." |
+| 0:45 to 1:30 | **Re-arm first** (`npm run arm`), then have a second wallet or a friend run the README's three "Try it yourself" commands live while the dashboard's live events are on screen (fallback: `npx tsx src/flowB.ts --n 3 --x 10`) | "Live on testnet: a withdrawal is queued, and someone else, a wallet we don't control, repays in Morpho. The queue is paid in about a second and a half. The reactive transaction and the callback are on the explorers: the callback is sent by Reactive's signer, not by us. Nothing of ours is in the middle." |
 | 1:30 to 2:15 | The race chart and table | "Why Omni? We raced it. A competitor bot tries to grab freed liquidity a few seconds after each repayment. At Omni speed the queue wins against anyone who waits a second or more. Slow the same system to legacy-like speed and it loses to every competitor under eight seconds. An instant bot beats us at either speed, and we show that too." |
 | 2:15 to 2:40 | The flow C example links on the dashboard | "Cross-chain: Base can't cover the queue, so a relayer reserve fronts the payout in one hop. Only after seeing that confirmation does Reactive reimburse the relayer on Unichain, for exactly what was sent." |
 | 2:40 to 3:00 | The README limitations, then the repo | "It can't create liquidity, and a same-block bot still wins. The code is open source, contracts are verified, and every number comes from live loops you can check on-chain." |

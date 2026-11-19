@@ -18,9 +18,11 @@ const fmt = (ms: number) => (Number.isFinite(ms) ? `${(ms / 1000).toFixed(2)} s`
 const b = load("flowB-");
 const c = load("flowC-");
 const race = load("race-");
+const ind = load("independent-");
 
 const bOk = b.filter((r) => r.ok);
 const cOk = c.filter((r) => r.ok);
+const iOk = ind.filter((r) => r.ok);
 
 const summary = {
   generatedAt: new Date().toISOString(),
@@ -40,6 +42,13 @@ const summary = {
     relayerReimbursedWallMs: stats(cOk.map((r) => r.wallMs.relayerReimbursed)),
     userPaidChainSeconds: stats(cOk.map((r) => r.chainSeconds.userPaid)),
     example: cOk[0]?.links ?? null,
+  },
+  independent: {
+    attempted: ind.length,
+    succeeded: iOk.length,
+    allIndependent: iOk.length > 0 && iOk.every((r) => r.independent),
+    totalWallMs: stats(iOk.map((r) => r.wallMs.total)),
+    example: iOk[0] ? { links: iOk[0].links, actors: iOk[0].actors } : null,
   },
   race: [] as any[],
 };
@@ -80,6 +89,11 @@ md.push(`Succeeded ${cOk.length}/${c.length}.`, "");
 md.push("| Measure | Median | p95 | Max |", "|---|---|---|---|");
 row("Request → user paid (wall clock)", summary.flowC.userPaidWallMs);
 row("Request → relayer reimbursed (wall clock)", summary.flowC.relayerReimbursedWallMs);
+md.push("");
+md.push("## Independent actors: separate wallets for the user and the repayer", "");
+md.push(`Succeeded ${iOk.length}/${ind.length}; every loop's repayment, withdrawal request and payout involved addresses other than the deployer: ${summary.independent.allIndependent}.`, "");
+md.push("| Measure | Median | p95 | Max |", "|---|---|---|---|");
+row("Repay (by an outsider) → queue paid (wall clock)", summary.independent.totalWallMs);
 md.push("");
 md.push("## Latency race: share of contested liquidity captured by the queue", "");
 md.push("| Sluice speed | Competitor delay | Rounds | Queue capture | Sluice acted (median) |", "|---|---|---|---|---|");

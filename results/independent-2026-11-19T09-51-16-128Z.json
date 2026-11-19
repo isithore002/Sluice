@@ -1,0 +1,40 @@
+[
+  {
+    "flow": "B-independent",
+    "i": 0,
+    "ok": true,
+    "independent": true,
+    "x": "10000000",
+    "paid": "10000000",
+    "actors": {
+      "deployerAndBorrower": "0xed0081BB40b7Bf64D407Ec25a99475d0BB8ed903",
+      "aliceUser": "0x1e96935e093051368a3e2F4acBF6380EB5e4Db9A",
+      "bobRepayer": "0xA430dF5bfa07cBA95A6B8C83fF4faf97D853cF29",
+      "withdrawalQueuedBy": "0x1e96935e093051368a3e2f4acbf6380eb5e4db9a",
+      "repaymentSentBy": "0xa430df5bfa07cba95a6b8c83ff4faf97d853cf29",
+      "payoutReceivedBy": "0x1e96935e093051368a3e2F4acBF6380EB5e4Db9A",
+      "callbackSentBy": "0xf7e866d726658f6c3f14b8ee537fe268a4d91ddb"
+    },
+    "txs": {
+      "queued": "0xb24f813dd8d4a02ac2c3568381dc5c1e8f14d78fbd440883a07c9012e23f3d29",
+      "origin": "0x20a27120464dcb3fe6ba1350f9a38eacad20481b07e91bfd736755ed4ed43041",
+      "reactive": "0x64a55873a609c8f145a660902427a9665cb28de579b08a930c3ceff1c7b76da2",
+      "callback": "0xc23b0a8a33df6083edaaaf241723d92612a7d00119c1de73054b11527960326b"
+    },
+    "links": {
+      "queued": "https://sepolia.basescan.org/tx/0xb24f813dd8d4a02ac2c3568381dc5c1e8f14d78fbd440883a07c9012e23f3d29",
+      "origin": "https://sepolia.basescan.org/tx/0x20a27120464dcb3fe6ba1350f9a38eacad20481b07e91bfd736755ed4ed43041",
+      "reactive": "https://lasna.reactscan.net/tx/0x64a55873a609c8f145a660902427a9665cb28de579b08a930c3ceff1c7b76da2",
+      "callback": "https://sepolia.basescan.org/tx/0xc23b0a8a33df6083edaaaf241723d92612a7d00119c1de73054b11527960326b"
+    },
+    "chainSeconds": {
+      "origin": 1795081899,
+      "callback": 1795081900,
+      "total": 1
+    },
+    "wallMs": {
+      "total": 1209,
+      "originToReactive": 1019
+    }
+  }
+]

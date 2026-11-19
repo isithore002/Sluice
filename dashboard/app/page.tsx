@@ -14,6 +14,11 @@ const ago = (t: number | null) => {
   return s < 60 ? `${s}s ago` : s < 3600 ? `${Math.round(s / 60)}m ago` : `${Math.round(s / 3600)}h ago`;
 };
 
+/** Reactive's signer, observed sending every callback on Base Sepolia and Unichain Sepolia. */
+const REACTIVE_SIGNER = "0xf7e866d726658f6c3f14b8ee537fe268a4d91ddb";
+const whoSent = (from: string | null) =>
+  !from ? "" : from.toLowerCase() === REACTIVE_SIGNER ? "sent by Reactive's signer" : `sent by ${from.slice(0, 6)}…${from.slice(-4)}`;
+
 function Status({ ok, good, bad }: { ok: boolean; good: string; bad: string }) {
   return (
     <span className={`status ${ok ? "good" : "critical"}`}>
@@ -157,6 +162,7 @@ export default function Page() {
                 {summary.flowB.succeeded > 0 && <StatRow name="  repay → Lasna react" s={summary.flowB.originToReactiveWallMs} />}
                 {summary.flowC.succeeded > 0 && <StatRow name="Shortfall → user paid by reserve" s={summary.flowC.userPaidWallMs} />}
                 {summary.flowC.succeeded > 0 && <StatRow name="Shortfall → relayer reimbursed (Unichain)" s={summary.flowC.relayerReimbursedWallMs} />}
+                {summary.independent?.succeeded > 0 && <StatRow name="Outsider repay → queue paid (separate wallets)" s={summary.independent.totalWallMs} />}
               </tbody>
             </table>
             <p className="note">
@@ -191,6 +197,20 @@ export default function Page() {
                   <li><a href={summary.flowC.example.front} target="_blank" rel="noreferrer">Reserve fronts, user paid (Base Sepolia) ↗</a></li>
                   <li><a href={summary.flowC.example.reimburse} target="_blank" rel="noreferrer">Relayer reimbursed (Unichain Sepolia) ↗</a></li>
                 </ol>
+              </div>
+            )}
+            {summary.independent?.example && (
+              <div className="card">
+                <h3>Independent actors: a user and an outsider</h3>
+                <ol className="hops">
+                  <li><a href={summary.independent.example.links.queued} target="_blank" rel="noreferrer">Alice (a user) queues a withdrawal ↗</a></li>
+                  <li><a href={summary.independent.example.links.origin} target="_blank" rel="noreferrer">Bob, an outsider, repays in Morpho ↗</a></li>
+                  <li><a href={summary.independent.example.links.reactive} target="_blank" rel="noreferrer">SluiceReactive reacts (Lasna) ↗</a></li>
+                  <li><a href={summary.independent.example.links.callback} target="_blank" rel="noreferrer">Callback pays Alice ↗</a></li>
+                </ol>
+                <p className="note">
+                  {summary.independent.succeeded}/{summary.independent.attempted} loops with separate wallets for the user and the repayer; the deployer sent none of these transactions.
+                </p>
               </div>
             )}
           </div>
@@ -293,7 +313,10 @@ export default function Page() {
                       <span className={`chip ${e.chain}`}>{CHAINS[e.chain].label.split(" ")[0]}</span>{" "}
                       <span className="when">{ago(e.time)}</span>
                     </span>
-                    <span>{e.text}</span>
+                    <span>
+                      {e.text}
+                      {e.from && <span className={`who${e.from.toLowerCase() === REACTIVE_SIGNER ? " reactive" : ""}`}>{whoSent(e.from)}</span>}
+                    </span>
                     <a href={txUrl(e.chain, e.tx)} target="_blank" rel="noreferrer">
                       tx ↗
                     </a>

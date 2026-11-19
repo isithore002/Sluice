@@ -26,6 +26,8 @@ const LASNA = "https://lasna.reactscan.net";
 
 const B = summary.flowB;
 const C = summary.flowC;
+const I = summary.independent;
+const O = JSON.parse(readFileSync(resolve(RESULTS, "outsider-tryit.json"), "utf8"));
 const date = String(summary.generatedAt).slice(0, 10);
 
 const results = `
@@ -79,6 +81,21 @@ One real loop of each flow. Only the first transaction in each is sent by our wa
 3. [Reserve fronts and the user is paid, Base Sepolia](${C.example.front})
 4. [Relayer reimbursed, Unichain Sepolia](${C.example.reimburse})
 
+### Independent actors
+
+The loops above reuse one wallet for most roles. To show Sluice doesn't depend on that, ${I.succeeded} more loops use **separate wallets**: Alice (a user) deposits and queues a withdrawal, Bob (an outsider) repays on behalf of the borrower in Morpho, and Reactive pays Alice. The deployer only funds their gas, and is the borrower whose debt Bob repays. **${I.succeeded}/${I.attempted} succeeded, ${I.allIndependent ? "and in every one the withdrawal request, the repayment and the payout all involved addresses other than the deployer" : "but not every loop was independent"}** (median ${s(I.totalWallMs.median)} from repayment to queue paid).
+
+| Role | Address |
+|---|---|
+| Alice, the user whose withdrawal is queued and paid | ${a(BASE, I.example.actors.aliceUser)} |
+| Bob, the outsider who repays | ${a(BASE, I.example.actors.bobRepayer)} |
+| Deployer, the borrower whose debt is repaid | ${a(BASE, I.example.actors.deployerAndBorrower)} |
+| Reactive's signer, which sends the payout callback | ${a(BASE, I.example.actors.callbackSentBy)} |
+
+One loop to check: [Alice queues a withdrawal](${I.example.links.queued}), [Bob repays](${I.example.links.origin}), [SluiceReactive reacts](${I.example.links.reactive}), [the callback pays Alice](${I.example.links.callback}).
+
+What this does **not** remove: the market, the tokens, the oracle, the vault funding and the queued withdrawal are still set up by us, which is unavoidable on a testnet. The strongest check is yours: see [Try it yourself](#try-it-yourself).
+
 Failures and discarded runs are documented in [\`results/README.md\`](results/README.md).
 `;
 
@@ -102,6 +119,43 @@ All Sluice contracts are source-verified on [Sourcify](https://sourcify.dev) wit
 Our Morpho market id: \`${market.marketId}\` (loan token MockUSD, zero-rate IRM, 86% LLTV).
 `;
 
+const tryit = `
+Anyone can trigger a real Sluice settlement from their own wallet, with nothing of ours involved. In Morpho Blue, **anyone can repay on behalf of a borrower**, and our demo token is open-mint.
+
+**You need:** a throwaway testnet key with a little Base Sepolia ETH for gas (a fraction of a cent), and [Foundry](https://book.getfoundry.sh/)'s \`cast\`.
+
+**First, check the demo is armed.** The dashboard's *Withdrawal queue* card should show a pending amount above 0 (a withdrawal waiting to be paid). If it shows 0, the last settlement already happened, and the demo needs re-arming (\`npm run arm\` in \`harness/\`).
+
+\`\`\`bash
+export RPC=https://sepolia.base.org
+export KEY=0xYOUR_THROWAWAY_TESTNET_KEY
+ME=$(cast wallet address --private-key $KEY)
+
+# 1. Mint yourself 10 MockUSD (anyone can)
+cast send ${market.mockUSD} "mint(address,uint256)" $ME 10000000 --rpc-url $RPC --private-key $KEY
+
+# 2. Let Morpho take it
+cast send ${market.mockUSD} "approve(address,uint256)" ${market.morpho} 10000000 --rpc-url $RPC --private-key $KEY
+
+# 3. Repay 10 mUSD on behalf of the borrower. This is the event Sluice reacts to.
+cast send ${market.morpho} "repay((address,address,address,address,uint256),uint256,uint256,address,bytes)" \\
+  "(${market.mockUSD},${market.mockCollateral},${market.oracle},0x0000000000000000000000000000000000000000,${market.lltv})" \\
+  10000000 0 ${I.example.actors.deployerAndBorrower} 0x --rpc-url $RPC --private-key $KEY
+\`\`\`
+
+**What you should see**, within about two seconds:
+
+1. Your repayment shows in Morpho.
+2. SluiceReactive reacts on Lasna ([see its transactions](${LASNA}/address/${lasna.sluiceReactive})).
+3. A \`WithdrawSettled\` event appears on the [SluiceVault](${BASE}/address/${baseSluice.sluiceVault}): the queued withdrawal is paid, by a transaction sent by Reactive's signer, not by you or us.
+
+Your wallet sends only the repayment. The queued withdrawal belongs to Alice (above), and the payout goes to her.
+
+**We ran exactly these commands from a brand-new wallet** (${a(BASE, O.outsider)}, which had never touched the project and sent only these ${O.outsiderTransactionCount} transactions): [mint](${BASE}/tx/${O.txs.mint}), [approve](${BASE}/tx/${O.txs.approve}), [repay](${BASE}/tx/${O.txs.repay}). Reactive then paid ${O.paid} mUSD to Alice in [this settlement](${BASE}/tx/${O.txs.settlement}), sent by Reactive's signer. The result is in [\`results/outsider-tryit.json\`](results/outsider-tryit.json).
+
+**Costs us, not you:** each settlement costs the reactive contract about 0.08 lREACT, so please don't loop it. If it stops responding, it ran out of funds.
+`;
+
 function replace(text: string, name: string, body: string): string {
   const start = `<!-- ${name}:START -->`;
   const end = `<!-- ${name}:END -->`;
@@ -114,5 +168,6 @@ function replace(text: string, name: string, body: string): string {
 let text = readFileSync(readme, "utf8");
 text = replace(text, "RESULTS", results);
 text = replace(text, "DEPLOYED", deployed);
+text = replace(text, "TRYIT", tryit);
 writeFileSync(readme, text);
 console.log("README.md results and deployed sections regenerated");

@@ -34,6 +34,13 @@ export interface Summary {
     userPaidChainSeconds: Stats;
     example: Record<string, string> | null;
   };
+  independent: {
+    attempted: number;
+    succeeded: number;
+    allIndependent: boolean;
+    totalWallMs: Stats;
+    example: { links: Record<string, string>; actors: Record<string, string> } | null;
+  };
   race: RaceCell[];
 }
 

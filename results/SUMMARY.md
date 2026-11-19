@@ -1,6 +1,6 @@
 # Sluice measurement summary
 
-Generated 2026-11-19T09:15:22.351Z.
+Generated 2026-11-19T09:54:25.041Z.
 
 ## Flow B: Morpho repayment → queue paid (one reactive hop)
 
@@ -21,6 +21,14 @@ Succeeded 31/32.
 |---|---|---|---|
 | Request → user paid (wall clock) | 1.36 s | 2.16 s | 2.19 s |
 | Request → relayer reimbursed (wall clock) | 4.60 s | 5.08 s | 5.31 s |
+
+## Independent actors: separate wallets for the user and the repayer
+
+Succeeded 6/6; every loop's repayment, withdrawal request and payout involved addresses other than the deployer: true.
+
+| Measure | Median | p95 | Max |
+|---|---|---|---|
+| Repay (by an outsider) → queue paid (wall clock) | 1.56 s | 1.75 s | 1.75 s |
 
 ## Latency race: share of contested liquidity captured by the queue
 

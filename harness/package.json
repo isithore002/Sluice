@@ -8,6 +8,8 @@
     "flowB": "tsx src/flowB.ts",
     "flowC": "tsx src/flowC.ts",
     "race": "tsx src/race.ts",
+    "independent": "tsx src/independent.ts",
+    "arm": "tsx src/arm.ts",
     "summary": "tsx src/summary.ts",
     "typecheck": "tsc --noEmit"
   },

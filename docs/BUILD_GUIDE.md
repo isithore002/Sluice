@@ -209,6 +209,19 @@ npx tsx src/flowC.ts --n 30 --x 10
 
 **Check:** about 30/30 succeed. Median payout to the user around 1.4 s; the relayer is reimbursed on Unichain a few seconds later.
 
+### 15b. Independent actors and the outsider demo
+
+The loops above reuse one wallet for several roles. To show Sluice doesn't depend on that:
+
+```bash
+npm run independent -- --n 5 --x 10     # separate fresh wallets: Alice queues, Bob repays on behalf of the borrower
+npm run arm -- --x 10                   # leaves one withdrawal queued, so an outsider can settle it
+```
+
+`npm run arm` is also what you run before recording the demo or leaving the project for judges. Then run the README's three "Try it yourself" commands from a **fresh wallet** to confirm they work: that is how the outsider test in `results/outsider-tryit.json` was made. **Check:** the settlement transaction is sent by Reactive's signer, and your fresh wallet sent exactly three transactions.
+
+Each settlement costs the reactive contract about 0.08 lREACT, so keep it funded while judges may try it.
+
 ### 16. Summarize
 
 ```bash

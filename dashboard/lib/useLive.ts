@@ -29,6 +29,8 @@ export interface FeedEvent {
   tx: Hex;
   block: bigint;
   time: number | null;
+  /** Who sent the transaction that emitted this event (so callbacks show as sent by Reactive's signer). */
+  from: string | null;
 }
 
 const POLL_MS = 4000;
@@ -87,6 +89,7 @@ export function useLive(addresses: Record<string, string> | null) {
   const [updatedAt, setUpdatedAt] = useState<number | null>(null);
   const cursors = useRef<Partial<Record<ChainKey, bigint>>>({});
   const blockTimes = useRef(new Map<string, number>());
+  const senders = useRef(new Map<string, string>());
 
   useEffect(() => {
     if (!addresses) return;
@@ -161,6 +164,15 @@ export function useLive(addresses: Record<string, string> | null) {
             /* time stays unknown */
           }
         }
+        const sk = `${k}:${l.transactionHash}`;
+        if (!senders.current.has(sk)) {
+          try {
+            const tx = await c.getTransaction({ hash: l.transactionHash });
+            senders.current.set(sk, tx.from);
+          } catch {
+            /* sender stays unknown */
+          }
+        }
         out.push({
           id: `${k}:${l.transactionHash}:${l.logIndex}`,
           chain: k,
@@ -169,6 +181,7 @@ export function useLive(addresses: Record<string, string> | null) {
           tx: l.transactionHash,
           block: l.blockNumber,
           time: blockTimes.current.get(key) ?? null,
+          from: senders.current.get(sk) ?? null,
         });
       }
       return out;

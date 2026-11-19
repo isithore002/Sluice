@@ -128,6 +128,21 @@ One real loop of each flow. Only the first transaction in each is sent by our wa
 3. [Reserve fronts and the user is paid, Base Sepolia](https://sepolia.basescan.org/tx/0x6d643b9485732145190ce578ad7d52302bab406a6304bf29e50d50c79684066a)
 4. [Relayer reimbursed, Unichain Sepolia](https://sepolia.uniscan.xyz/tx/0x1db0937b563d71a8eff8efddaf469f8033d3747364af65ae9739931f7d2f7c93)
 
+### Independent actors
+
+The loops above reuse one wallet for most roles. To show Sluice doesn't depend on that, 6 more loops use **separate wallets**: Alice (a user) deposits and queues a withdrawal, Bob (an outsider) repays on behalf of the borrower in Morpho, and Reactive pays Alice. The deployer only funds their gas, and is the borrower whose debt Bob repays. **6/6 succeeded, and in every one the withdrawal request, the repayment and the payout all involved addresses other than the deployer** (median 1.56 s from repayment to queue paid).
+
+| Role | Address |
+|---|---|
+| Alice, the user whose withdrawal is queued and paid | [`0x1e96935e093051368a3e2F4acBF6380EB5e4Db9A`](https://sepolia.basescan.org/address/0x1e96935e093051368a3e2F4acBF6380EB5e4Db9A) |
+| Bob, the outsider who repays | [`0xA430dF5bfa07cBA95A6B8C83fF4faf97D853cF29`](https://sepolia.basescan.org/address/0xA430dF5bfa07cBA95A6B8C83fF4faf97D853cF29) |
+| Deployer, the borrower whose debt is repaid | [`0xed0081BB40b7Bf64D407Ec25a99475d0BB8ed903`](https://sepolia.basescan.org/address/0xed0081BB40b7Bf64D407Ec25a99475d0BB8ed903) |
+| Reactive's signer, which sends the payout callback | [`0xf7e866d726658f6c3f14b8ee537fe268a4d91ddb`](https://sepolia.basescan.org/address/0xf7e866d726658f6c3f14b8ee537fe268a4d91ddb) |
+
+One loop to check: [Alice queues a withdrawal](https://sepolia.basescan.org/tx/0xb24f813dd8d4a02ac2c3568381dc5c1e8f14d78fbd440883a07c9012e23f3d29), [Bob repays](https://sepolia.basescan.org/tx/0x20a27120464dcb3fe6ba1350f9a38eacad20481b07e91bfd736755ed4ed43041), [SluiceReactive reacts](https://lasna.reactscan.net/tx/0x64a55873a609c8f145a660902427a9665cb28de579b08a930c3ceff1c7b76da2), [the callback pays Alice](https://sepolia.basescan.org/tx/0xc23b0a8a33df6083edaaaf241723d92612a7d00119c1de73054b11527960326b).
+
+What this does **not** remove: the market, the tokens, the oracle, the vault funding and the queued withdrawal are still set up by us, which is unavoidable on a testnet. The strongest check is yours: see [Try it yourself](#try-it-yourself).
+
 Failures and discarded runs are documented in [`results/README.md`](results/README.md).
 <!-- RESULTS:END -->
 
@@ -152,6 +167,47 @@ All Sluice contracts are source-verified on [Sourcify](https://sourcify.dev) wit
 
 Our Morpho market id: `0xfa6e6efff85e0699003a9a81cb4b3a8113b520799e8bcb81a68a2d5e85ea4980` (loan token MockUSD, zero-rate IRM, 86% LLTV).
 <!-- DEPLOYED:END -->
+
+---
+
+## Try it yourself
+
+<!-- TRYIT:START -->
+Anyone can trigger a real Sluice settlement from their own wallet, with nothing of ours involved. In Morpho Blue, **anyone can repay on behalf of a borrower**, and our demo token is open-mint.
+
+**You need:** a throwaway testnet key with a little Base Sepolia ETH for gas (a fraction of a cent), and [Foundry](https://book.getfoundry.sh/)'s `cast`.
+
+**First, check the demo is armed.** The dashboard's *Withdrawal queue* card should show a pending amount above 0 (a withdrawal waiting to be paid). If it shows 0, the last settlement already happened, and the demo needs re-arming (`npm run arm` in `harness/`).
+
+```bash
+export RPC=https://sepolia.base.org
+export KEY=0xYOUR_THROWAWAY_TESTNET_KEY
+ME=$(cast wallet address --private-key $KEY)
+
+# 1. Mint yourself 10 MockUSD (anyone can)
+cast send 0x586c3d4bee371Df96063F045Aee49081Bc2e7cf7 "mint(address,uint256)" $ME 10000000 --rpc-url $RPC --private-key $KEY
+
+# 2. Let Morpho take it
+cast send 0x586c3d4bee371Df96063F045Aee49081Bc2e7cf7 "approve(address,uint256)" 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb 10000000 --rpc-url $RPC --private-key $KEY
+
+# 3. Repay 10 mUSD on behalf of the borrower. This is the event Sluice reacts to.
+cast send 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb "repay((address,address,address,address,uint256),uint256,uint256,address,bytes)" \
+  "(0x586c3d4bee371Df96063F045Aee49081Bc2e7cf7,0xB5b2E077521E43647cc75BF10e5285F036C22DBb,0x26f814373D575bDC074175A686c3Ff197D4e3b07,0x0000000000000000000000000000000000000000,860000000000000000)" \
+  10000000 0 0xed0081BB40b7Bf64D407Ec25a99475d0BB8ed903 0x --rpc-url $RPC --private-key $KEY
+```
+
+**What you should see**, within about two seconds:
+
+1. Your repayment shows in Morpho.
+2. SluiceReactive reacts on Lasna ([see its transactions](https://lasna.reactscan.net/address/0xD49236Bb296e8935dC302De0cccFDf5EC5413157)).
+3. A `WithdrawSettled` event appears on the [SluiceVault](https://sepolia.basescan.org/address/0x3d65a5E73d43B5D20Afe7484eecC5D1364e3dEd6): the queued withdrawal is paid, by a transaction sent by Reactive's signer, not by you or us.
+
+Your wallet sends only the repayment. The queued withdrawal belongs to Alice (above), and the payout goes to her.
+
+**We ran exactly these commands from a brand-new wallet** ([`0xB11bAa7D2Ec33DeC6bd223B5A3cD22294dd80e65`](https://sepolia.basescan.org/address/0xB11bAa7D2Ec33DeC6bd223B5A3cD22294dd80e65), which had never touched the project and sent only these 3 transactions): [mint](https://sepolia.basescan.org/tx/0x3eae2a83024f102fe6930d892940208d5b52dc1832d7a9ad47962790f1e9b0ff), [approve](https://sepolia.basescan.org/tx/0xa124b832e66fedd9ee112b25c633a5c384cab5ce541e955a1271ec25c51f95b8), [repay](https://sepolia.basescan.org/tx/0x9131d956619a85301bb2cc8ea63597af986302a12ad5c60262003e63a0f52887). Reactive then paid 10.0 mUSD to Alice in [this settlement](https://sepolia.basescan.org/tx/0xa78d7101e01e2417bd34428cb9b361aa38593ae1ef18d54d86e0b9685a77229e), sent by Reactive's signer. The result is in [`results/outsider-tryit.json`](results/outsider-tryit.json).
+
+**Costs us, not you:** each settlement costs the reactive contract about 0.08 lREACT, so please don't loop it. If it stops responding, it ran out of funds.
+<!-- TRYIT:END -->
 
 ---
 
@@ -223,7 +279,7 @@ cd dashboard && npm install && npm run build    # static site in dashboard/out
 - **Cross-chain uses a pre-funded relayer reserve and pre-committed credit,** not a bridge. Both are capital set aside in advance. **We don't claim Sluice reduces idle capital.**
 - **The ~legacy comparison is simulated** by adding delay on Omni. It's not a run on the legacy network.
 - **The demo market uses `irm = address(0)`,** so there's no interest. Vault shares are 1:1, and the vault is ERC-7540-*style*, not a full ERC-7540 implementation.
-- **The demo actors** (borrower, competitor, relayer) are our scripts, acting against a real Morpho deployment.
+- **The demo is staged by us.** The market, tokens, oracle, vault funding and the queued withdrawal are ours (unavoidable on a testnet). Most loops reuse one wallet for several roles; the independent-actor loops and the try-it-yourself steps above exist so you can check Sluice doesn't depend on that.
 
 ## License
 

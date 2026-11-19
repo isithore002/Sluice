@@ -1,0 +1,192 @@
+[
+  {
+    "flow": "B-independent",
+    "i": 0,
+    "ok": true,
+    "independent": true,
+    "x": "10000000",
+    "paid": "10000000",
+    "actors": {
+      "deployerAndBorrower": "0xed0081BB40b7Bf64D407Ec25a99475d0BB8ed903",
+      "aliceUser": "0x1e96935e093051368a3e2F4acBF6380EB5e4Db9A",
+      "bobRepayer": "0xA430dF5bfa07cBA95A6B8C83fF4faf97D853cF29",
+      "withdrawalQueuedBy": "0x1e96935e093051368a3e2f4acbf6380eb5e4db9a",
+      "repaymentSentBy": "0xa430df5bfa07cba95a6b8c83ff4faf97d853cf29",
+      "payoutReceivedBy": "0x1e96935e093051368a3e2F4acBF6380EB5e4Db9A",
+      "callbackSentBy": "0xf7e866d726658f6c3f14b8ee537fe268a4d91ddb"
+    },
+    "txs": {
+      "queued": "0x7c0a33daf912572f9adcfeb1145e3e7448dc25cc6ae0e1c5056c0604fd1e95c7",
+      "origin": "0x6c976aa26252d2f2953517a37d4d3993289456839e97daa96f20152257a6727c",
+      "reactive": "0xf9a22a9962c619de15be8ad9ef911f6353331cd1342a0d1c7c06250233dc9c6e",
+      "callback": "0x3dda76552e696c8bfcb43cef73e4ddb75b6a906cb7a9d2c3b2bfb128067c335e"
+    },
+    "links": {
+      "queued": "https://sepolia.basescan.org/tx/0x7c0a33daf912572f9adcfeb1145e3e7448dc25cc6ae0e1c5056c0604fd1e95c7",
+      "origin": "https://sepolia.basescan.org/tx/0x6c976aa26252d2f2953517a37d4d3993289456839e97daa96f20152257a6727c",
+      "reactive": "https://lasna.reactscan.net/tx/0xf9a22a9962c619de15be8ad9ef911f6353331cd1342a0d1c7c06250233dc9c6e",
+      "callback": "https://sepolia.basescan.org/tx/0x3dda76552e696c8bfcb43cef73e4ddb75b6a906cb7a9d2c3b2bfb128067c335e"
+    },
+    "chainSeconds": {
+      "origin": 1795081932,
+      "callback": 1795081934,
+      "total": 2
+    },
+    "wallMs": {
+      "total": 1559,
+      "originToReactive": 1232
+    }
+  },
+  {
+    "flow": "B-independent",
+    "i": 1,
+    "ok": true,
+    "independent": true,
+    "x": "10000000",
+    "paid": "10000000",
+    "actors": {
+      "deployerAndBorrower": "0xed0081BB40b7Bf64D407Ec25a99475d0BB8ed903",
+      "aliceUser": "0x1e96935e093051368a3e2F4acBF6380EB5e4Db9A",
+      "bobRepayer": "0xA430dF5bfa07cBA95A6B8C83fF4faf97D853cF29",
+      "withdrawalQueuedBy": "0x1e96935e093051368a3e2f4acbf6380eb5e4db9a",
+      "repaymentSentBy": "0xa430df5bfa07cba95a6b8c83ff4faf97d853cf29",
+      "payoutReceivedBy": "0x1e96935e093051368a3e2F4acBF6380EB5e4Db9A",
+      "callbackSentBy": "0xf7e866d726658f6c3f14b8ee537fe268a4d91ddb"
+    },
+    "txs": {
+      "queued": "0x9557c718c0987f6608e1581225252c1364536bf848fdb47339e0ac7ffd174383",
+      "origin": "0x8e3455bbb860b4ffde3d1a1f9b6dd1de098ab4df9bc1fb63b2a65dfe76e841db",
+      "reactive": "0xa345debd333884ee8dcf569b08961d5b2f5f4f13c9c6abe34d476c5e9791bb79",
+      "callback": "0x64aff15fb038f82bbe56b04cffdc223cbefde5a544d7468248f9a7b923066a30"
+    },
+    "links": {
+      "queued": "https://sepolia.basescan.org/tx/0x9557c718c0987f6608e1581225252c1364536bf848fdb47339e0ac7ffd174383",
+      "origin": "https://sepolia.basescan.org/tx/0x8e3455bbb860b4ffde3d1a1f9b6dd1de098ab4df9bc1fb63b2a65dfe76e841db",
+      "reactive": "https://lasna.reactscan.net/tx/0xa345debd333884ee8dcf569b08961d5b2f5f4f13c9c6abe34d476c5e9791bb79",
+      "callback": "https://sepolia.basescan.org/tx/0x64aff15fb038f82bbe56b04cffdc223cbefde5a544d7468248f9a7b923066a30"
+    },
+    "chainSeconds": {
+      "origin": 1795081949,
+      "callback": 1795081951,
+      "total": 2
+    },
+    "wallMs": {
+      "total": 1692,
+      "originToReactive": 1975
+    }
+  },
+  {
+    "flow": "B-independent",
+    "i": 2,
+    "ok": true,
+    "independent": true,
+    "x": "10000000",
+    "paid": "10000000",
+    "actors": {
+      "deployerAndBorrower": "0xed0081BB40b7Bf64D407Ec25a99475d0BB8ed903",
+      "aliceUser": "0x1e96935e093051368a3e2F4acBF6380EB5e4Db9A",
+      "bobRepayer": "0xA430dF5bfa07cBA95A6B8C83fF4faf97D853cF29",
+      "withdrawalQueuedBy": "0x1e96935e093051368a3e2f4acbf6380eb5e4db9a",
+      "repaymentSentBy": "0xa430df5bfa07cba95a6b8c83ff4faf97d853cf29",
+      "payoutReceivedBy": "0x1e96935e093051368a3e2F4acBF6380EB5e4Db9A",
+      "callbackSentBy": "0xf7e866d726658f6c3f14b8ee537fe268a4d91ddb"
+    },
+    "txs": {
+      "queued": "0xa5b447c6e3120bf9d83dfe34f9b4205e6811fdf809321d3132eec34b603bb6e4",
+      "origin": "0x37853fda15425b07a6b4f40312d0c416edf13e471d41d0f1d9a7383faea9a319",
+      "reactive": "0x6e9a7e78efe85222282bba4129270b1c9c6d84ec6a14e8167ca78dba16bdcc58",
+      "callback": "0xebcaa6b09e58cbcd2d7bea215b16aa5242481b91f649f80416985c17dcba9530"
+    },
+    "links": {
+      "queued": "https://sepolia.basescan.org/tx/0xa5b447c6e3120bf9d83dfe34f9b4205e6811fdf809321d3132eec34b603bb6e4",
+      "origin": "https://sepolia.basescan.org/tx/0x37853fda15425b07a6b4f40312d0c416edf13e471d41d0f1d9a7383faea9a319",
+      "reactive": "https://lasna.reactscan.net/tx/0x6e9a7e78efe85222282bba4129270b1c9c6d84ec6a14e8167ca78dba16bdcc58",
+      "callback": "https://sepolia.basescan.org/tx/0xebcaa6b09e58cbcd2d7bea215b16aa5242481b91f649f80416985c17dcba9530"
+    },
+    "chainSeconds": {
+      "origin": 1795081966,
+      "callback": 1795081967,
+      "total": 1
+    },
+    "wallMs": {
+      "total": 1350,
+      "originToReactive": 992
+    }
+  },
+  {
+    "flow": "B-independent",
+    "i": 3,
+    "ok": true,
+    "independent": true,
+    "x": "10000000",
+    "paid": "10000000",
+    "actors": {
+      "deployerAndBorrower": "0xed0081BB40b7Bf64D407Ec25a99475d0BB8ed903",
+      "aliceUser": "0x1e96935e093051368a3e2F4acBF6380EB5e4Db9A",
+      "bobRepayer": "0xA430dF5bfa07cBA95A6B8C83fF4faf97D853cF29",
+      "withdrawalQueuedBy": "0x1e96935e093051368a3e2f4acbf6380eb5e4db9a",
+      "repaymentSentBy": "0xa430df5bfa07cba95a6b8c83ff4faf97d853cf29",
+      "payoutReceivedBy": "0x1e96935e093051368a3e2F4acBF6380EB5e4Db9A",
+      "callbackSentBy": "0xf7e866d726658f6c3f14b8ee537fe268a4d91ddb"
+    },
+    "txs": {
+      "queued": "0x4057793b8f7cdeb62faeac2ff986b0b4ec25eb2a419d8cc3251640d501aaa64c",
+      "origin": "0x467f588d4e345c318d62b2b661c4bb7d9729ef1eec2f2c8fbe512696d9ab4433",
+      "reactive": "0x710fb577a6599c86f1c936a956eda16432efe3b04892333a7e0bde801a08c73d",
+      "callback": "0x6ce9b5014779f2d9cca17f90fc306b58bb392ffb57e07cc32edef0bd8b6f4f15"
+    },
+    "links": {
+      "queued": "https://sepolia.basescan.org/tx/0x4057793b8f7cdeb62faeac2ff986b0b4ec25eb2a419d8cc3251640d501aaa64c",
+      "origin": "https://sepolia.basescan.org/tx/0x467f588d4e345c318d62b2b661c4bb7d9729ef1eec2f2c8fbe512696d9ab4433",
+      "reactive": "https://lasna.reactscan.net/tx/0x710fb577a6599c86f1c936a956eda16432efe3b04892333a7e0bde801a08c73d",
+      "callback": "https://sepolia.basescan.org/tx/0x6ce9b5014779f2d9cca17f90fc306b58bb392ffb57e07cc32edef0bd8b6f4f15"
+    },
+    "chainSeconds": {
+      "origin": 1795081984,
+      "callback": 1795081985,
+      "total": 1
+    },
+    "wallMs": {
+      "total": 1648,
+      "originToReactive": 1012
+    }
+  },
+  {
+    "flow": "B-independent",
+    "i": 4,
+    "ok": true,
+    "independent": true,
+    "x": "10000000",
+    "paid": "10000000",
+    "actors": {
+      "deployerAndBorrower": "0xed0081BB40b7Bf64D407Ec25a99475d0BB8ed903",
+      "aliceUser": "0x1e96935e093051368a3e2F4acBF6380EB5e4Db9A",
+      "bobRepayer": "0xA430dF5bfa07cBA95A6B8C83fF4faf97D853cF29",
+      "withdrawalQueuedBy": "0x1e96935e093051368a3e2f4acbf6380eb5e4db9a",
+      "repaymentSentBy": "0xa430df5bfa07cba95a6b8c83ff4faf97d853cf29",
+      "payoutReceivedBy": "0x1e96935e093051368a3e2F4acBF6380EB5e4Db9A",
+      "callbackSentBy": "0xf7e866d726658f6c3f14b8ee537fe268a4d91ddb"
+    },
+    "txs": {
+      "queued": "0xd7f44a3a9afa12f079cd9c4f00237cf7475818be31c22f7cc02f1df7f9b290b3",
+      "origin": "0x407ebe0a3e4e98a9287a4fd742ebcf3e504384d116d4a29056b494f08bdbc851",
+      "reactive": "0xa165aede49d9adce3646e72edd1d832b3c398ef730cac1352504b9cfa7490cca",
+      "callback": "0xf2f32f51ee17cc972125c33db82f1d59f0b32a8682ebc31b281fb6be07b113a4"
+    },
+    "links": {
+      "queued": "https://sepolia.basescan.org/tx/0xd7f44a3a9afa12f079cd9c4f00237cf7475818be31c22f7cc02f1df7f9b290b3",
+      "origin": "https://sepolia.basescan.org/tx/0x407ebe0a3e4e98a9287a4fd742ebcf3e504384d116d4a29056b494f08bdbc851",
+      "reactive": "https://lasna.reactscan.net/tx/0xa165aede49d9adce3646e72edd1d832b3c398ef730cac1352504b9cfa7490cca",
+      "callback": "https://sepolia.basescan.org/tx/0xf2f32f51ee17cc972125c33db82f1d59f0b32a8682ebc31b281fb6be07b113a4"
+    },
+    "chainSeconds": {
+      "origin": 1795082001,
+      "callback": 1795082003,
+      "total": 2
+    },
+    "wallMs": {
+      "total": 1754,
+      "originToReactive": 1231
+    }
+  }
+]
