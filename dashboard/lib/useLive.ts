@@ -34,7 +34,24 @@ export interface FeedEvent {
 }
 
 const POLL_MS = 4000;
+/**
+ * Public RPCs time out or return an odd error now and then. Each chain is read on its own, a chain that fails keeps
+ * its last values, and it is reported only after failing this many polls in a row (about 12 s).
+ */
+const FAILS_BEFORE_ERROR = 3;
 const FEED_MAX = 40;
+
+type BasePart = Pick<LiveState, "supply" | "borrow" | "pending" | "shortfall" | "queued" | "inventory"> & {
+  debtVault: bigint;
+  debtReserve: bigint;
+};
+type UniPart = { credit: bigint; debtSibling: bigint };
+type LasnaPart = Pick<LiveState, "halted" | "delayBlocks" | "pullPending" | "fillsOpened" | "fillsOpen"> & { debtReactive: bigint };
+
+function reasonText(e: unknown): string {
+  const err = e as { shortMessage?: string; message?: string };
+  return (err?.shortMessage || err?.message || String(e)).split("\n")[0];
+}
 /** Base Sepolia's public RPC rejects eth_getLogs over more than 200 blocks, so logs are fetched in chunks. */
 const MAX_RANGE = 150n;
 const MAX_CHUNKS = 6;
@@ -90,50 +107,50 @@ export function useLive(addresses: Record<string, string> | null) {
   const cursors = useRef<Partial<Record<ChainKey, bigint>>>({});
   const blockTimes = useRef(new Map<string, number>());
   const senders = useRef(new Map<string, string>());
+  const parts = useRef<{ base?: BasePart; uni?: UniPart; lasna?: LasnaPart }>({});
+  const fails = useRef<Record<ChainKey, number>>({ base: 0, uni: 0, lasna: 0 });
 
   useEffect(() => {
     if (!addresses) return;
     const A = addresses as Record<string, Address>;
     let stopped = false;
+    let busy = false;
 
-    async function readState(): Promise<LiveState> {
+    async function readBase(): Promise<BasePart> {
       const b = clients.base;
-      const [m, pending, shortfall, len, head, inventory, credit, halted, delayBlocks, pullPending, fillsOpened, open] =
-        await Promise.all([
-          b.readContract({ address: A.morpho, abi: morphoAbi, functionName: "market", args: [A.marketId as Hex] }),
-          b.readContract({ address: A.sluiceVault, abi: vaultAbi, functionName: "pendingTotal" }),
-          b.readContract({ address: A.sluiceVault, abi: vaultAbi, functionName: "shortfall" }),
-          b.readContract({ address: A.sluiceVault, abi: vaultAbi, functionName: "queueLength" }),
-          b.readContract({ address: A.sluiceVault, abi: vaultAbi, functionName: "head" }),
-          b.readContract({ address: A.mockUSD, abi: erc20Abi, functionName: "balanceOf", args: [A.relayerReserve] }),
-          clients.uni.readContract({ address: A.siblingVault, abi: siblingAbi, functionName: "creditAvailable" }),
-          clients.lasna.readContract({ address: A.sluiceReactive, abi: reactiveAbi, functionName: "halted" }),
-          clients.lasna.readContract({ address: A.sluiceReactive, abi: reactiveAbi, functionName: "delayBlocks" }),
-          clients.lasna.readContract({ address: A.sluiceReactive, abi: reactiveAbi, functionName: "pullPending" }),
-          clients.lasna.readContract({ address: A.sluiceReactive, abi: reactiveAbi, functionName: "fillNonce" }),
-          clients.lasna.readContract({ address: A.sluiceReactive, abi: reactiveAbi, functionName: "openFills" }),
-        ]);
-      const [dv, dr, ds, drc] = await Promise.all([
+      const [m, pending, shortfall, len, head, inventory, debtVault, debtReserve] = await Promise.all([
+        b.readContract({ address: A.morpho, abi: morphoAbi, functionName: "market", args: [A.marketId as Hex] }),
+        b.readContract({ address: A.sluiceVault, abi: vaultAbi, functionName: "pendingTotal" }),
+        b.readContract({ address: A.sluiceVault, abi: vaultAbi, functionName: "shortfall" }),
+        b.readContract({ address: A.sluiceVault, abi: vaultAbi, functionName: "queueLength" }),
+        b.readContract({ address: A.sluiceVault, abi: vaultAbi, functionName: "head" }),
+        b.readContract({ address: A.mockUSD, abi: erc20Abi, functionName: "balanceOf", args: [A.relayerReserve] }),
         b.readContract({ address: PROXIES.base, abi: payerAbi, functionName: "debt", args: [A.sluiceVault] }),
         b.readContract({ address: PROXIES.base, abi: payerAbi, functionName: "debt", args: [A.relayerReserve] }),
-        clients.uni.readContract({ address: PROXIES.uni, abi: payerAbi, functionName: "debt", args: [A.siblingVault] }),
-        clients.lasna.readContract({ address: PROXIES.system, abi: payerAbi, functionName: "debt", args: [A.sluiceReactive] }),
       ]);
-      return {
-        supply: m[0],
-        borrow: m[2],
-        pending,
-        shortfall,
-        queued: len - head,
-        inventory,
-        credit,
-        halted,
-        delayBlocks,
-        pullPending,
-        fillsOpened,
-        fillsOpen: open.length,
-        debts: { vault: dv, reserve: dr, sibling: ds, reactive: drc },
-      };
+      return { supply: m[0], borrow: m[2], pending, shortfall, queued: len - head, inventory, debtVault, debtReserve };
+    }
+
+    async function readUni(): Promise<UniPart> {
+      const u = clients.uni;
+      const [credit, debtSibling] = await Promise.all([
+        u.readContract({ address: A.siblingVault, abi: siblingAbi, functionName: "creditAvailable" }),
+        u.readContract({ address: PROXIES.uni, abi: payerAbi, functionName: "debt", args: [A.siblingVault] }),
+      ]);
+      return { credit, debtSibling };
+    }
+
+    async function readLasna(): Promise<LasnaPart> {
+      const l = clients.lasna;
+      const [halted, delayBlocks, pullPending, fillsOpened, open, debtReactive] = await Promise.all([
+        l.readContract({ address: A.sluiceReactive, abi: reactiveAbi, functionName: "halted" }),
+        l.readContract({ address: A.sluiceReactive, abi: reactiveAbi, functionName: "delayBlocks" }),
+        l.readContract({ address: A.sluiceReactive, abi: reactiveAbi, functionName: "pullPending" }),
+        l.readContract({ address: A.sluiceReactive, abi: reactiveAbi, functionName: "fillNonce" }),
+        l.readContract({ address: A.sluiceReactive, abi: reactiveAbi, functionName: "openFills" }),
+        l.readContract({ address: PROXIES.system, abi: payerAbi, functionName: "debt", args: [A.sluiceReactive] }),
+      ]);
+      return { halted, delayBlocks, pullPending, fillsOpened, fillsOpen: open.length, debtReactive };
     }
 
     async function fetchChain(k: ChainKey): Promise<FeedEvent[]> {
@@ -188,11 +205,55 @@ export function useLive(addresses: Record<string, string> | null) {
     }
 
     async function tick() {
+      if (busy) return; // a slow RPC must not pile up overlapping polls
+      busy = true;
       try {
-        const [s, ...feeds] = await Promise.all([readState(), fetchChain("base"), fetchChain("uni"), fetchChain("lasna")]);
+        const [rb, ru, rl, fb, fu, fl] = await Promise.allSettled([
+          readBase(),
+          readUni(),
+          readLasna(),
+          fetchChain("base"),
+          fetchChain("uni"),
+          fetchChain("lasna"),
+        ]);
         if (stopped) return;
-        setState(s);
-        const fresh = feeds.flat();
+        if (rb.status === "fulfilled") parts.current.base = rb.value;
+        if (ru.status === "fulfilled") parts.current.uni = ru.value;
+        if (rl.status === "fulfilled") parts.current.lasna = rl.value;
+
+        const problems: string[] = [];
+        const settled: [ChainKey, PromiseSettledResult<unknown>, PromiseSettledResult<unknown>][] = [
+          ["base", rb, fb],
+          ["uni", ru, fu],
+          ["lasna", rl, fl],
+        ];
+        for (const [k, read, feed] of settled) {
+          const failed = read.status === "rejected" ? read : feed.status === "rejected" ? feed : null;
+          fails.current[k] = failed ? fails.current[k] + 1 : 0;
+          if (failed && fails.current[k] >= FAILS_BEFORE_ERROR) problems.push(`${CHAINS[k].label} (${reasonText(failed.reason)})`);
+        }
+
+        const { base, uni, lasna } = parts.current;
+        if (base && uni && lasna) {
+          setState({
+            supply: base.supply,
+            borrow: base.borrow,
+            pending: base.pending,
+            shortfall: base.shortfall,
+            queued: base.queued,
+            inventory: base.inventory,
+            credit: uni.credit,
+            halted: lasna.halted,
+            delayBlocks: lasna.delayBlocks,
+            pullPending: lasna.pullPending,
+            fillsOpened: lasna.fillsOpened,
+            fillsOpen: lasna.fillsOpen,
+            debts: { vault: base.debtVault, reserve: base.debtReserve, sibling: uni.debtSibling, reactive: lasna.debtReactive },
+          });
+        }
+        if (rb.status === "fulfilled" && ru.status === "fulfilled" && rl.status === "fulfilled") setUpdatedAt(Date.now());
+
+        const fresh = [fb, fu, fl].flatMap((f) => (f.status === "fulfilled" ? f.value : []));
         if (fresh.length) {
           setEvents((prev) => {
             const seen = new Set(prev.map((e) => e.id));
@@ -201,10 +262,13 @@ export function useLive(addresses: Record<string, string> | null) {
             return merged.slice(0, FEED_MAX);
           });
         }
-        setError(null);
-        setUpdatedAt(Date.now());
-      } catch (e) {
-        if (!stopped) setError(e instanceof Error ? e.message.split("\n")[0] : String(e));
+        setError(
+          problems.length
+            ? `Public RPC not answering: ${problems.join(", ")}. Showing the last values read; retrying every ${POLL_MS / 1000} s.`
+            : null,
+        );
+      } finally {
+        busy = false;
       }
     }
 
