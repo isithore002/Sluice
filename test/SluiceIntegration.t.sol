@@ -10,6 +10,7 @@ import {RelayerReserve} from "../src/RelayerReserve.sol";
 import {SiblingVault} from "../src/SiblingVault.sol";
 import {SluiceReactive} from "../src/SluiceReactive.sol";
 import {MockUSD} from "../src/mocks/MockUSD.sol";
+import {OneClickRepay} from "../src/demo/OneClickRepay.sol";
 import {SluiceTestBase} from "./helpers/SluiceTestBase.sol";
 
 /// @notice End to end: real Morpho Blue bytecode, every Sluice contract, three logical chains, and the real Omni
@@ -336,5 +337,29 @@ contract SluiceIntegrationTest is SluiceTestBase {
         assertEq(vault.head(), 25, "all twenty-five paid in one call");
         // PULL_GAS is 1.5M and the proxy keeps some back, so require a comfortable 25% margin below it.
         assertLt(used, (uint256(rc.PULL_GAS()) * 75) / 100, "fits the gas limit with margin");
+    }
+
+    // ----- One-click repay: a visitor's single transaction triggers a real settlement --------------------------
+
+    function test_oneClickRepay_anyVisitor_triggersTheSettlement() public {
+        _switchToChain(BASE);
+        _borrowAll();
+        _request(alice, 10e6);
+        _request(bob, 10e6);
+        _settle();
+        assertEq(vault.pendingTotal(), 20e6, "two demo withdrawals queued");
+
+        _switchToChain(BASE);
+        OneClickRepay one = new OneClickRepay(morpho, params, borrower, 10e6);
+        address visitor = makeAddr("visitor"); // holds nothing: the helper mints what it repays
+        vm.prank(visitor);
+        one.settle();
+        CallbackResult[] memory r = _settle();
+
+        assertEq(_pullCallbacks(r), 1, "Reactive pulled once");
+        assertEq(usd.balanceOf(alice), 10e6, "the head of the queue is paid");
+        assertEq(usd.balanceOf(bob), 0, "the next one keeps waiting for the next click");
+        assertEq(vault.pendingTotal(), 10e6);
+        assertEq(usd.balanceOf(visitor), 0, "the visitor spends only gas");
     }
 }

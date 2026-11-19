@@ -20,7 +20,7 @@ step() {
   local n="$1" desc="$2" target="$3" rpc="$4" extra="${5:-}"
   if [ "$n" -lt "$FIRST" ]; then return; fi
   echo
-  echo "=== Step $n/8: $desc"
+  echo "=== Step $n/9: $desc"
   # shellcheck disable=SC2086
   forge script "$target" --rpc-url "$rpc" --broadcast --slow $extra
 }
@@ -33,6 +33,7 @@ step 5 "Unichain Sepolia: SiblingVault" script/05_DeployUni.s.sol:DeployUni "$UN
 step 6 "Lasna: configure subscriptions" script/06_Configure.s.sol:Configure "$LASNA_RPC" "$LASNA_FLAGS"
 step 7 "Base Sepolia: seed (vault deposit, competitor supply, reserve, borrow to 100%)" script/07_SeedBase.s.sol:SeedBase "$BASE_SEPOLIA_RPC"
 step 8 "Unichain Sepolia: seed sibling + commit credit" script/08_SeedUni.s.sol:SeedUni "$UNICHAIN_SEPOLIA_RPC"
+step 9 "Base Sepolia: one-click repay helper for the dashboard" script/09_DeployOneClick.s.sol:DeployOneClick "$BASE_SEPOLIA_RPC"
 
 echo
 echo "Done. Addresses are in deployments/*.json"
