@@ -113,8 +113,8 @@ export function RaceReplay({ rounds, cells }: { rounds: ReplayRound[]; cells: Ra
       </div>
 
       <p className="sl-note">
-        Times are measured from the repayment by the harness (polling every ~150 ms). The +{legacyBlocks}-block panel is the same contract with an added delay on Omni, not
-        a run on the legacy network.
+        Times are measured from the repayment by the harness (polling every ~150 ms). The +{legacyBlocks}-block panel is the same contract delayed on Omni to reproduce the legacy
+        network&apos;s ~7 s blocks; the legacy network itself no longer exists.
       </p>
     </div>
   );

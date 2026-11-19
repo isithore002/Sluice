@@ -9,6 +9,7 @@ import { ExampleLoops } from "../../components/dashboard/ExampleLoops";
 import { LatencyTable } from "../../components/dashboard/LatencySection";
 import { FundingStatus, LiveCards } from "../../components/dashboard/LiveCards";
 import { RaceReplay } from "../../components/dashboard/RaceReplay";
+import { TryIt } from "../../components/dashboard/TryIt";
 import { secs } from "../../components/dashboard/format";
 import { Reveal } from "../../components/Motion";
 import { RaceChart } from "../../components/RaceChart";
@@ -41,6 +42,7 @@ export default function Dashboard() {
       badge="live"
       links={[
         { href: "#live", label: "Live state" },
+        { href: "#tryit", label: "Try it" },
         { href: "#race", label: "Race" },
         { href: "#replay", label: "Replay" },
         { href: "#batch", label: "Batch" },
@@ -84,8 +86,22 @@ export default function Dashboard() {
           {loadError && <p className="sl-err">{loadError}</p>}
           {manifest && !manifest.deployed && <div className="sl-banner">Not deployed yet. Run scripts/deploy.sh, then rebuild the dashboard.</div>}
           {error && <p className="sl-err">RPC error: {error}</p>}
-          {state && <LiveCards state={state} />}
+          {state && <LiveCards state={state} canTry={Boolean(manifest?.deployed && manifest.addresses.oneClickRepay)} />}
         </section>
+
+        {manifest?.deployed && manifest.addresses.oneClickRepay && (
+          <section id="tryit" className="sl-section tight sl-wrap" data-ascii-avoid="0.8">
+            <Reveal>
+              <p className="sl-kicker">Try it</p>
+              <h2>Trigger a real settlement from your own wallet</h2>
+              <p className="dash-intro">
+                Don&apos;t take our wallets&apos; word for it. One transaction from yours frees liquidity in the Morpho market, and you can watch Reactive pay
+                the queue, usually within two seconds. Nothing here is simulated: it runs on the live contracts.
+              </p>
+              <TryIt addresses={manifest.addresses} queued={state?.queued ?? null} />
+            </Reveal>
+          </section>
+        )}
 
         {manifest?.deployed && (
           <section id="events" className="sl-section tight sl-wrap" data-ascii-avoid="0.8">
@@ -136,7 +152,7 @@ export default function Dashboard() {
                   </table>
                 </div>
                 <p className="sl-note">
-                  The legacy-like rows add delay on Omni; they are not runs on the legacy network. A competitor in the same block beats any reactive system.
+                  The legacy network no longer exists (Lasna and Reactive Mainnet both moved to Omni in October 2026), so the ~legacy rows reproduce its ~7 s blocks on Omni, using Reactive&apos;s own figure. A competitor in the same block beats any reactive system.
                 </p>
               </div>
             </Reveal>

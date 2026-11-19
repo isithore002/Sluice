@@ -214,7 +214,7 @@ export default function Landing() {
                       <b>{Math.round(native0.meanCapture * 100)}%</b> captured against a same-block competitor. Nothing reactive beats a bot that acts in the same block, and we don&apos;t claim to.
                     </li>
                   )}
-                  <li>The legacy-like rows add delay on Omni; they are not runs on the legacy network.</li>
+                  <li>The legacy network no longer exists (Lasna and Reactive Mainnet moved to Omni in October 2026), so the ~legacy rows reproduce its ~7 s blocks on Omni, using Reactive&apos;s own figure.</li>
                 </ul>
               </Reveal>
               <Reveal delay={120}>
@@ -257,18 +257,18 @@ export default function Landing() {
                 <h2>Don&apos;t take our word for it.</h2>
                 <p className="sl-p">
                   A fresh wallet we created for this test, which had never touched these contracts, repaid 10 mUSD in the Morpho market. The settlement that paid the queue
-                  was sent by Reactive&apos;s signer, not by us. Open it, or run the same three commands yourself, which is the stronger check.
+                  was sent by Reactive&apos;s signer, not by us. Open it, or better, trigger one yourself: one transaction from your own wallet, and Reactive pays the queue in about two seconds.
                 </p>
                 <div className="sl-cta">
-                  <a href={baseTx(OUTSIDER.settlement)} target="_blank" rel="noreferrer" className="sl-btn primary">
-                    View the settlement <span aria-hidden="true">↗</span>
+                  <Link href="/dashboard#tryit" className="sl-btn primary">
+                    Settle one yourself <span aria-hidden="true">→</span>
+                  </Link>
+                  <a href={baseTx(OUTSIDER.settlement)} target="_blank" rel="noreferrer" className="sl-btn">
+                    View our test settlement ↗
                   </a>
                   <a href={`${GITHUB}#try-it-yourself`} target="_blank" rel="noreferrer" className="sl-btn">
-                    Try it yourself
+                    Command-line steps ↗
                   </a>
-                  <Link href="/dashboard" className="sl-btn">
-                    Live dashboard
-                  </Link>
                 </div>
               </div>
               <div className="lp-trace" aria-label="Trace of the outsider test">
