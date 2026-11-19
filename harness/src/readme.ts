@@ -18,6 +18,8 @@ const lasna = dep("lasna-reactive.json");
 
 const s = (ms: number) => `${(ms / 1000).toFixed(2)} s`;
 const a = (host: string, addr: string) => `[\`${addr}\`](${host}/address/${addr})`;
+/** Source verified on Sourcify (exact match): readable at the deployed address. */
+const src = (chainId: number, addr: string) => `[verified ✓](https://repo.sourcify.dev/${chainId}/${addr})`;
 const BASE = "https://sepolia.basescan.org";
 const UNI = "https://sepolia.uniscan.xyz";
 const LASNA = "https://lasna.reactscan.net";
@@ -83,17 +85,19 @@ Failures and discarded runs are documented in [\`results/README.md\`](results/RE
 const deployed = `
 Deployed with [\`scripts/deploy.sh\`](scripts/deploy.sh). Addresses are in [\`deployments/\`](deployments/), and every deployment transaction is in [\`broadcast/\`](broadcast/).
 
-| Contract | Network | Address |
-|---|---|---|
-| SluiceReactive | Reactive Lasna (5318007) | ${a(LASNA, lasna.sluiceReactive)} |
-| SluiceVault | Base Sepolia (84532) | ${a(BASE, baseSluice.sluiceVault)} |
-| RelayerReserve | Base Sepolia | ${a(BASE, baseSluice.relayerReserve)} |
-| Morpho Blue (third party, pre-existing) | Base Sepolia | ${a(BASE, market.morpho)} |
-| Demo market loan token (MockUSD) | Base Sepolia | ${a(BASE, market.mockUSD)} |
-| Demo market collateral token | Base Sepolia | ${a(BASE, market.mockCollateral)} |
-| Demo market oracle (fixed price) | Base Sepolia | ${a(BASE, market.oracle)} |
-| SiblingVault | Unichain Sepolia (1301) | ${a(UNI, uniSluice.siblingVault)} |
-| MockUSD | Unichain Sepolia | ${a(UNI, uniToken.mockUSD)} |
+| Contract | Network | Address | Source |
+|---|---|---|---|
+| SluiceReactive | Reactive Lasna (5318007) | ${a(LASNA, lasna.sluiceReactive)} | ${src(5318007, lasna.sluiceReactive)} |
+| SluiceVault | Base Sepolia (84532) | ${a(BASE, baseSluice.sluiceVault)} | ${src(84532, baseSluice.sluiceVault)} |
+| RelayerReserve | Base Sepolia | ${a(BASE, baseSluice.relayerReserve)} | ${src(84532, baseSluice.relayerReserve)} |
+| Morpho Blue (third party, pre-existing) | Base Sepolia | ${a(BASE, market.morpho)} | not ours |
+| Demo market loan token (MockUSD) | Base Sepolia | ${a(BASE, market.mockUSD)} | ${src(84532, market.mockUSD)} |
+| Demo market collateral token | Base Sepolia | ${a(BASE, market.mockCollateral)} | ${src(84532, market.mockCollateral)} |
+| Demo market oracle (fixed price) | Base Sepolia | ${a(BASE, market.oracle)} | ${src(84532, market.oracle)} |
+| SiblingVault | Unichain Sepolia (1301) | ${a(UNI, uniSluice.siblingVault)} | ${src(1301, uniSluice.siblingVault)} |
+| MockUSD | Unichain Sepolia | ${a(UNI, uniToken.mockUSD)} | ${src(1301, uniToken.mockUSD)} |
+
+All Sluice contracts are source-verified on [Sourcify](https://sourcify.dev) with an **exact match** (creation and runtime bytecode), so the code at each address is exactly this repository's code.
 
 Our Morpho market id: \`${market.marketId}\` (loan token MockUSD, zero-rate IRM, 86% LLTV).
 `;

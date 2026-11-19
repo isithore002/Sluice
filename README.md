@@ -136,17 +136,19 @@ Failures and discarded runs are documented in [`results/README.md`](results/READ
 <!-- DEPLOYED:START -->
 Deployed with [`scripts/deploy.sh`](scripts/deploy.sh). Addresses are in [`deployments/`](deployments/), and every deployment transaction is in [`broadcast/`](broadcast/).
 
-| Contract | Network | Address |
-|---|---|---|
-| SluiceReactive | Reactive Lasna (5318007) | [`0xD49236Bb296e8935dC302De0cccFDf5EC5413157`](https://lasna.reactscan.net/address/0xD49236Bb296e8935dC302De0cccFDf5EC5413157) |
-| SluiceVault | Base Sepolia (84532) | [`0x3d65a5E73d43B5D20Afe7484eecC5D1364e3dEd6`](https://sepolia.basescan.org/address/0x3d65a5E73d43B5D20Afe7484eecC5D1364e3dEd6) |
-| RelayerReserve | Base Sepolia | [`0x48cbca9BAad89fACBEc9AcC083782B6fE10C04de`](https://sepolia.basescan.org/address/0x48cbca9BAad89fACBEc9AcC083782B6fE10C04de) |
-| Morpho Blue (third party, pre-existing) | Base Sepolia | [`0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb`](https://sepolia.basescan.org/address/0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb) |
-| Demo market loan token (MockUSD) | Base Sepolia | [`0x586c3d4bee371Df96063F045Aee49081Bc2e7cf7`](https://sepolia.basescan.org/address/0x586c3d4bee371Df96063F045Aee49081Bc2e7cf7) |
-| Demo market collateral token | Base Sepolia | [`0xB5b2E077521E43647cc75BF10e5285F036C22DBb`](https://sepolia.basescan.org/address/0xB5b2E077521E43647cc75BF10e5285F036C22DBb) |
-| Demo market oracle (fixed price) | Base Sepolia | [`0x26f814373D575bDC074175A686c3Ff197D4e3b07`](https://sepolia.basescan.org/address/0x26f814373D575bDC074175A686c3Ff197D4e3b07) |
-| SiblingVault | Unichain Sepolia (1301) | [`0x2CD91D217610083aBfF78b6609c79193E619b5d7`](https://sepolia.uniscan.xyz/address/0x2CD91D217610083aBfF78b6609c79193E619b5d7) |
-| MockUSD | Unichain Sepolia | [`0xdAFaC2C362d3D811124be77B0ABF84e677091750`](https://sepolia.uniscan.xyz/address/0xdAFaC2C362d3D811124be77B0ABF84e677091750) |
+| Contract | Network | Address | Source |
+|---|---|---|---|
+| SluiceReactive | Reactive Lasna (5318007) | [`0xD49236Bb296e8935dC302De0cccFDf5EC5413157`](https://lasna.reactscan.net/address/0xD49236Bb296e8935dC302De0cccFDf5EC5413157) | [verified ✓](https://repo.sourcify.dev/5318007/0xD49236Bb296e8935dC302De0cccFDf5EC5413157) |
+| SluiceVault | Base Sepolia (84532) | [`0x3d65a5E73d43B5D20Afe7484eecC5D1364e3dEd6`](https://sepolia.basescan.org/address/0x3d65a5E73d43B5D20Afe7484eecC5D1364e3dEd6) | [verified ✓](https://repo.sourcify.dev/84532/0x3d65a5E73d43B5D20Afe7484eecC5D1364e3dEd6) |
+| RelayerReserve | Base Sepolia | [`0x48cbca9BAad89fACBEc9AcC083782B6fE10C04de`](https://sepolia.basescan.org/address/0x48cbca9BAad89fACBEc9AcC083782B6fE10C04de) | [verified ✓](https://repo.sourcify.dev/84532/0x48cbca9BAad89fACBEc9AcC083782B6fE10C04de) |
+| Morpho Blue (third party, pre-existing) | Base Sepolia | [`0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb`](https://sepolia.basescan.org/address/0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb) | not ours |
+| Demo market loan token (MockUSD) | Base Sepolia | [`0x586c3d4bee371Df96063F045Aee49081Bc2e7cf7`](https://sepolia.basescan.org/address/0x586c3d4bee371Df96063F045Aee49081Bc2e7cf7) | [verified ✓](https://repo.sourcify.dev/84532/0x586c3d4bee371Df96063F045Aee49081Bc2e7cf7) |
+| Demo market collateral token | Base Sepolia | [`0xB5b2E077521E43647cc75BF10e5285F036C22DBb`](https://sepolia.basescan.org/address/0xB5b2E077521E43647cc75BF10e5285F036C22DBb) | [verified ✓](https://repo.sourcify.dev/84532/0xB5b2E077521E43647cc75BF10e5285F036C22DBb) |
+| Demo market oracle (fixed price) | Base Sepolia | [`0x26f814373D575bDC074175A686c3Ff197D4e3b07`](https://sepolia.basescan.org/address/0x26f814373D575bDC074175A686c3Ff197D4e3b07) | [verified ✓](https://repo.sourcify.dev/84532/0x26f814373D575bDC074175A686c3Ff197D4e3b07) |
+| SiblingVault | Unichain Sepolia (1301) | [`0x2CD91D217610083aBfF78b6609c79193E619b5d7`](https://sepolia.uniscan.xyz/address/0x2CD91D217610083aBfF78b6609c79193E619b5d7) | [verified ✓](https://repo.sourcify.dev/1301/0x2CD91D217610083aBfF78b6609c79193E619b5d7) |
+| MockUSD | Unichain Sepolia | [`0xdAFaC2C362d3D811124be77B0ABF84e677091750`](https://sepolia.uniscan.xyz/address/0xdAFaC2C362d3D811124be77B0ABF84e677091750) | [verified ✓](https://repo.sourcify.dev/1301/0xdAFaC2C362d3D811124be77B0ABF84e677091750) |
+
+All Sluice contracts are source-verified on [Sourcify](https://sourcify.dev) with an **exact match** (creation and runtime bytecode), so the code at each address is exactly this repository's code.
 
 Our Morpho market id: `0xfa6e6efff85e0699003a9a81cb4b3a8113b520799e8bcb81a68a2d5e85ea4980` (loan token MockUSD, zero-rate IRM, 86% LLTV).
 <!-- DEPLOYED:END -->
