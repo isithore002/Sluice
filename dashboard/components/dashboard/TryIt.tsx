@@ -1,26 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { createWalletClient, custom, parseAbi, type Address, type Hex } from "viem";
-import { baseSepolia } from "viem/chains";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useEffect, useState } from "react";
+import { parseAbi, type Address, type Hex } from "viem";
+import { useAccount, useBalance, useDisconnect, useSwitchChain, useWriteContract } from "wagmi";
+import { baseSepolia } from "wagmi/chains";
 import { vaultAbi } from "../../lib/abis";
 import { addrUrl, clients, txUrl } from "../../lib/config";
 import { isReactiveSigner, secs, short, usdStr } from "./format";
 
 const oneClickAbi = parseAbi(["function settle()", "function AMOUNT() view returns (uint256)"]);
-const BASE_SEPOLIA = "0x14a34"; // 84532
 const FAUCETS = [
   { name: "Coinbase Developer Platform faucet", url: "https://portal.cdp.coinbase.com/products/faucet" },
   { name: "Alchemy faucet", url: "https://www.alchemy.com/faucets/base-sepolia" },
 ];
+const CLI_STEPS = "https://github.com/isithore002/Sluice#try-it-yourself";
 
-interface Eip1193 {
-  request: (a: { method: string; params?: unknown[] }) => Promise<unknown>;
-  on?: (event: string, fn: (...a: unknown[]) => void) => void;
-  removeListener?: (event: string, fn: (...a: unknown[]) => void) => void;
-}
-
-type Step = "idle" | "connecting" | "ready" | "signing" | "mining" | "waiting" | "done" | "error";
+type Step = "idle" | "switching" | "signing" | "mining" | "waiting" | "done" | "error";
 
 interface Outcome {
   tx: Hex;
@@ -31,46 +27,50 @@ interface Outcome {
   afterMinedMs: number;
 }
 
+export interface TryItProps {
+  addresses: Record<string, string>;
+  queued: bigint | null;
+}
+
+/** True when the error, or any error it wraps, is the user saying no in their wallet. */
+function rejected(e: unknown): boolean {
+  let x = e as { code?: number; name?: string; cause?: unknown } | undefined;
+  for (let i = 0; x && i < 8; i++) {
+    if (x.code === 4001 || x.name === "UserRejectedRequestError") return true;
+    x = x.cause as typeof x;
+  }
+  return false;
+}
+
 function errText(e: unknown): string {
-  const err = e as { code?: number; shortMessage?: string; message?: string };
-  if (err?.code === 4001) return "You rejected the request in your wallet.";
+  if (rejected(e)) return "You rejected the request in your wallet.";
+  const err = e as { shortMessage?: string; message?: string };
   return (err?.shortMessage || err?.message || String(e)).split("\n")[0];
 }
 
-async function ensureBaseSepolia(p: Eip1193) {
-  const id = String(await p.request({ method: "eth_chainId" })).toLowerCase();
-  if (id === BASE_SEPOLIA) return;
-  try {
-    await p.request({ method: "wallet_switchEthereumChain", params: [{ chainId: BASE_SEPOLIA }] });
-  } catch (e) {
-    if ((e as { code?: number }).code !== 4902) throw e;
-    await p.request({
-      method: "wallet_addEthereumChain",
-      params: [
-        {
-          chainId: BASE_SEPOLIA,
-          chainName: "Base Sepolia",
-          nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-          rpcUrls: ["https://sepolia.base.org"],
-          blockExplorerUrls: ["https://sepolia.basescan.org"],
-        },
-      ],
-    });
-  }
+function switchHelp(walletName: string | undefined): string {
+  const name = walletName || "Your wallet";
+  return /phantom/i.test(name)
+    ? "Phantom can't switch to Base Sepolia while its Testnet Mode is off. Turn it on in Phantom (Settings → Developer Settings → Testnet Mode) and try again, or use a different wallet."
+    : `${name} couldn't switch to Base Sepolia (chain ID 84532). Add or select Base Sepolia in the wallet and try again, or use a different wallet.`;
 }
 
 /**
  * The "Try it" panel: a visitor's own wallet sends ONE transaction (OneClickRepay.settle), which repays part of the
  * demo borrower's Morpho debt. Nothing here calls Sluice: Reactive sees the repayment and pays the head of the queue.
  * The panel then finds that payout on-chain by its trace id, which is the visitor's own transaction hash.
+ * Wallets connect through wagmi; "Connect wallet" opens RainbowKit's modal (see components/web3/wagmi.ts).
  */
-export function TryIt({ addresses, queued }: { addresses: Record<string, string>; queued: bigint | null }) {
+export function TryIt({ addresses, queued }: TryItProps) {
   const oneClick = addresses.oneClickRepay as Address | undefined;
   const vault = addresses.sluiceVault as Address;
-  const [provider, setProvider] = useState<Eip1193 | null>(null);
-  const [checked, setChecked] = useState(false);
-  const [account, setAccount] = useState<Address | null>(null);
-  const [eth, setEth] = useState<bigint | null>(null);
+  const { address, chainId, connector, isConnected } = useAccount();
+  const onBase = chainId === baseSepolia.id;
+  const balance = useBalance({ address, chainId: baseSepolia.id, query: { enabled: Boolean(address) } });
+  const eth = balance.data?.value ?? null;
+  const { switchChainAsync } = useSwitchChain();
+  const { writeContractAsync } = useWriteContract();
+  const { disconnect } = useDisconnect();
   const [amount, setAmount] = useState<bigint>(10_000_000n);
   const [step, setStep] = useState<Step>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -78,65 +78,47 @@ export function TryIt({ addresses, queued }: { addresses: Record<string, string>
   const [outcome, setOutcome] = useState<Outcome | null>(null);
 
   useEffect(() => {
-    const injected = (window as unknown as { ethereum?: Eip1193 }).ethereum;
-    if (injected) setProvider(injected);
-    setChecked(true);
-    if (oneClick) {
-      clients.base
-        .readContract({ address: oneClick, abi: oneClickAbi, functionName: "AMOUNT" })
-        .then(setAmount)
-        .catch(() => {});
-    }
+    if (!oneClick) return;
+    clients.base
+      .readContract({ address: oneClick, abi: oneClickAbi, functionName: "AMOUNT" })
+      .then(setAmount)
+      .catch(() => {});
   }, [oneClick]);
 
-  // A wallet switch resets the panel.
+  // Another account (or none) starts the panel over.
   useEffect(() => {
-    if (!provider?.on) return;
-    const reset = () => {
-      setAccount(null);
-      setStep("idle");
-      setOutcome(null);
-      setTx(null);
-    };
-    provider.on("accountsChanged", reset);
-    return () => provider.removeListener?.("accountsChanged", reset);
-  }, [provider]);
-
-  const refreshBalance = useCallback(async (a: Address) => {
-    try {
-      setEth(await clients.base.getBalance({ address: a }));
-    } catch {
-      /* balance stays unknown */
-    }
-  }, []);
-
-  async function connect() {
-    if (!provider) return;
+    setStep("idle");
     setError(null);
-    setStep("connecting");
+    setTx(null);
+    setOutcome(null);
+  }, [address]);
+
+  // A network change in the wallet clears a stale "couldn't switch" message.
+  useEffect(() => {
+    setError(null);
+    setStep((s) => (s === "error" ? "idle" : s));
+  }, [chainId]);
+
+  async function switchToBase() {
+    setError(null);
+    setStep("switching");
     try {
-      const accounts = (await provider.request({ method: "eth_requestAccounts" })) as string[];
-      await ensureBaseSepolia(provider);
-      const a = accounts[0] as Address;
-      setAccount(a);
-      await refreshBalance(a);
-      setStep("ready");
+      await switchChainAsync({ chainId: baseSepolia.id });
+      setStep("idle");
     } catch (e) {
-      setError(errText(e));
+      setError(rejected(e) ? "You rejected the request in your wallet." : switchHelp(connector?.name));
       setStep("error");
     }
   }
 
   async function settle() {
-    if (!provider || !account || !oneClick) return;
+    if (!address || !oneClick) return;
     setError(null);
     setOutcome(null);
     setTx(null);
     setStep("signing");
     try {
-      await ensureBaseSepolia(provider);
-      const wallet = createWalletClient({ chain: baseSepolia, transport: custom(provider), account });
-      const hash = await wallet.writeContract({ address: oneClick, abi: oneClickAbi, functionName: "settle", account, chain: baseSepolia });
+      const hash = await writeContractAsync({ address: oneClick, abi: oneClickAbi, functionName: "settle", chainId: baseSepolia.id });
       setTx(hash);
       setStep("mining");
       const rc = await clients.base.waitForTransactionReceipt({ hash, pollingInterval: 300, timeout: 120_000 });
@@ -164,7 +146,7 @@ export function TryIt({ addresses, queued }: { addresses: Record<string, string>
             afterMinedMs: Date.now() - minedAt,
           });
           setStep("done");
-          void refreshBalance(account);
+          void balance.refetch();
           return;
         }
         await new Promise((r) => setTimeout(r, 400));
@@ -177,7 +159,7 @@ export function TryIt({ addresses, queued }: { addresses: Record<string, string>
   }
 
   const empty = queued !== null && queued === 0n;
-  const busy = step === "connecting" || step === "signing" || step === "mining" || step === "waiting";
+  const busy = step === "switching" || step === "signing" || step === "mining" || step === "waiting";
 
   return (
     <div className="ti">
@@ -215,56 +197,78 @@ export function TryIt({ addresses, queued }: { addresses: Record<string, string>
           <span>{queued === null ? "…" : `${queued.toString()} (each repayment pays one)`}</span>
         </div>
 
-        {!checked ? null : !provider ? (
-          <div className="ti-msg">
-            <p>No browser wallet found. Open this page in a browser with MetaMask (or another injected wallet), or run the same steps from a terminal:</p>
-            <a className="sl-btn small" href="https://github.com/isithore002/Sluice#try-it-yourself" target="_blank" rel="noreferrer">
-              Command-line steps ↗
-            </a>
-          </div>
-        ) : empty ? (
+        {empty ? (
           <div className="ti-msg">
             <p>The queue is empty right now, so there is nothing to settle. The team re-arms it with a few queued withdrawals.</p>
           </div>
-        ) : !account ? (
-          <button className="sl-btn primary ti-go" onClick={connect} disabled={busy}>
-            {step === "connecting" ? "Connecting…" : "Connect wallet"} <span aria-hidden="true">→</span>
-          </button>
+        ) : !isConnected || !address ? (
+          <ConnectButton.Custom>
+            {({ mounted, openConnectModal, connectModalOpen }) => (
+              <>
+                <button className="sl-btn primary ti-go" onClick={openConnectModal} disabled={!mounted || connectModalOpen}>
+                  Connect wallet <span aria-hidden="true">→</span>
+                </button>
+                <p className="sl-note">
+                  MetaMask, Phantom, Coinbase Wallet, Rabby or any other browser wallet. No wallet?{" "}
+                  <a className="sl-link" href={CLI_STEPS} target="_blank" rel="noreferrer">
+                    Run the same steps from a terminal ↗
+                  </a>
+                </p>
+              </>
+            )}
+          </ConnectButton.Custom>
         ) : (
           <>
             <div className="sl-kv">
               <span>Connected</span>
-              <span className="sl-mono">{short(account, 4, 4)}</span>
+              <span>
+                <span className="sl-mono">{short(address, 4, 4)}</span>
+                {connector ? ` · ${connector.name}` : ""}
+              </span>
             </div>
-            <div className="sl-kv">
-              <span>Base Sepolia ETH</span>
-              <span>{eth === null ? "…" : (Number(eth) / 1e18).toFixed(6)}</span>
-            </div>
-            {eth === 0n && (
-              <p className="sl-note">
-                You need a little Base Sepolia ETH for gas:{" "}
-                {FAUCETS.map((f, i) => (
-                  <span key={f.url}>
-                    {i > 0 && " or "}
-                    <a className="sl-link" href={f.url} target="_blank" rel="noreferrer">
-                      {f.name}
-                    </a>
-                  </span>
-                ))}
-                .
-              </p>
+            {!onBase ? (
+              <>
+                <p className="sl-note">Your wallet is on another network. The demo runs on Base Sepolia.</p>
+                <button className="sl-btn primary ti-go" onClick={switchToBase} disabled={busy}>
+                  {step === "switching" ? "Confirm in your wallet…" : "Switch to Base Sepolia"}
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="sl-kv">
+                  <span>Base Sepolia ETH</span>
+                  <span>{eth === null ? "…" : (Number(eth) / 1e18).toFixed(6)}</span>
+                </div>
+                {eth === 0n && (
+                  <p className="sl-note">
+                    You need a little Base Sepolia ETH for gas:{" "}
+                    {FAUCETS.map((f, i) => (
+                      <span key={f.url}>
+                        {i > 0 && " or "}
+                        <a className="sl-link" href={f.url} target="_blank" rel="noreferrer">
+                          {f.name}
+                        </a>
+                      </span>
+                    ))}
+                    .
+                  </p>
+                )}
+                <button className="sl-btn primary ti-go" onClick={settle} disabled={busy || eth === 0n}>
+                  {step === "signing"
+                    ? "Confirm in your wallet…"
+                    : step === "mining"
+                      ? "Mining your transaction…"
+                      : step === "waiting"
+                        ? "Waiting for Reactive…"
+                        : `Repay ${usdStr(amount.toString())} mUSD for the borrower`}
+                </button>
+              </>
             )}
-            <button className="sl-btn primary ti-go" onClick={settle} disabled={busy || eth === 0n}>
-              {step === "connecting"
-                ? "Checking your balance…"
-                : step === "signing"
-                ? "Confirm in your wallet…"
-                : step === "mining"
-                  ? "Mining your transaction…"
-                  : step === "waiting"
-                    ? "Waiting for Reactive…"
-                    : `Repay ${usdStr(amount.toString())} mUSD for the borrower`}
-            </button>
+            {!busy && (
+              <button className="ti-switch" onClick={() => disconnect()}>
+                Use a different wallet
+              </button>
+            )}
           </>
         )}
 

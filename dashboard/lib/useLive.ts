@@ -108,13 +108,16 @@ export function useLive(addresses: Record<string, string> | null) {
   const blockTimes = useRef(new Map<string, number>());
   const senders = useRef(new Map<string, string>());
   const parts = useRef<{ base?: BasePart; uni?: UniPart; lasna?: LasnaPart }>({});
-  const fails = useRef<Record<ChainKey, number>>({ base: 0, uni: 0, lasna: 0 });
+  // Consecutive failures per chain, counted separately for the state reads and the event feed.
+  const fails = useRef({ read: { base: 0, uni: 0, lasna: 0 }, feed: { base: 0, uni: 0, lasna: 0 } } as Record<"read" | "feed", Record<ChainKey, number>>);
+  const lastReason = useRef<Partial<Record<ChainKey, string>>>({});
 
   useEffect(() => {
     if (!addresses) return;
     const A = addresses as Record<string, Address>;
     let stopped = false;
-    let busy = false;
+    let readBusy = false;
+    let feedBusy = false;
 
     async function readBase(): Promise<BasePart> {
       const b = clients.base;
@@ -204,34 +207,40 @@ export function useLive(addresses: Record<string, string> | null) {
       return out;
     }
 
-    async function tick() {
-      if (busy) return; // a slow RPC must not pile up overlapping polls
-      busy = true;
+    function record(kind: "read" | "feed", k: ChainKey, r: PromiseSettledResult<unknown>) {
+      if (r.status === "fulfilled") {
+        fails.current[kind][k] = 0;
+      } else {
+        fails.current[kind][k]++;
+        lastReason.current[k] = reasonText(r.reason);
+      }
+    }
+
+    function report() {
+      const problems = (Object.keys(CHAINS) as ChainKey[])
+        .filter((k) => Math.max(fails.current.read[k], fails.current.feed[k]) >= FAILS_BEFORE_ERROR)
+        .map((k) => `${CHAINS[k].label} (${lastReason.current[k] ?? "no answer"})`);
+      setError(
+        problems.length
+          ? `Public RPC not answering: ${problems.join(", ")}. Showing the last values read; retrying every ${POLL_MS / 1000} s.`
+          : null,
+      );
+    }
+
+    // The state reads and the event feed poll separately, so the cards never wait for the feed's history on first
+    // load, and a slow RPC never piles up overlapping polls of either kind.
+    async function pollState() {
+      if (readBusy) return;
+      readBusy = true;
       try {
-        const [rb, ru, rl, fb, fu, fl] = await Promise.allSettled([
-          readBase(),
-          readUni(),
-          readLasna(),
-          fetchChain("base"),
-          fetchChain("uni"),
-          fetchChain("lasna"),
-        ]);
+        const [rb, ru, rl] = await Promise.allSettled([readBase(), readUni(), readLasna()]);
         if (stopped) return;
+        record("read", "base", rb);
+        record("read", "uni", ru);
+        record("read", "lasna", rl);
         if (rb.status === "fulfilled") parts.current.base = rb.value;
         if (ru.status === "fulfilled") parts.current.uni = ru.value;
         if (rl.status === "fulfilled") parts.current.lasna = rl.value;
-
-        const problems: string[] = [];
-        const settled: [ChainKey, PromiseSettledResult<unknown>, PromiseSettledResult<unknown>][] = [
-          ["base", rb, fb],
-          ["uni", ru, fu],
-          ["lasna", rl, fl],
-        ];
-        for (const [k, read, feed] of settled) {
-          const failed = read.status === "rejected" ? read : feed.status === "rejected" ? feed : null;
-          fails.current[k] = failed ? fails.current[k] + 1 : 0;
-          if (failed && fails.current[k] >= FAILS_BEFORE_ERROR) problems.push(`${CHAINS[k].label} (${reasonText(failed.reason)})`);
-        }
 
         const { base, uni, lasna } = parts.current;
         if (base && uni && lasna) {
@@ -252,7 +261,21 @@ export function useLive(addresses: Record<string, string> | null) {
           });
         }
         if (rb.status === "fulfilled" && ru.status === "fulfilled" && rl.status === "fulfilled") setUpdatedAt(Date.now());
+        report();
+      } finally {
+        readBusy = false;
+      }
+    }
 
+    async function pollFeed() {
+      if (feedBusy) return;
+      feedBusy = true;
+      try {
+        const [fb, fu, fl] = await Promise.allSettled([fetchChain("base"), fetchChain("uni"), fetchChain("lasna")]);
+        if (stopped) return;
+        record("feed", "base", fb);
+        record("feed", "uni", fu);
+        record("feed", "lasna", fl);
         const fresh = [fb, fu, fl].flatMap((f) => (f.status === "fulfilled" ? f.value : []));
         if (fresh.length) {
           setEvents((prev) => {
@@ -262,14 +285,15 @@ export function useLive(addresses: Record<string, string> | null) {
             return merged.slice(0, FEED_MAX);
           });
         }
-        setError(
-          problems.length
-            ? `Public RPC not answering: ${problems.join(", ")}. Showing the last values read; retrying every ${POLL_MS / 1000} s.`
-            : null,
-        );
+        report();
       } finally {
-        busy = false;
+        feedBusy = false;
       }
+    }
+
+    function tick() {
+      void pollState();
+      void pollFeed();
     }
 
     tick();

@@ -9,11 +9,14 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@rainbow-me/rainbowkit": "2.2.11",
+    "@tanstack/react-query": "5.106.1",
     "next": "^15.5.29",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "three": "^0.187.0",
-    "viem": "^2.58.1"
+    "viem": "^2.58.1",
+    "wagmi": "2.19.5"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",
