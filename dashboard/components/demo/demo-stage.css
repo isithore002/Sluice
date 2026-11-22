@@ -1,0 +1,27 @@
+/* Shared pieces of the live demo: the role switch and the numbered transaction steps. Each component adds its own file. */
+.dm { display: grid; gap: 18px; }
+.dm-roles { display: grid; gap: 10px; }
+.dm-who { margin: 0; color: var(--ink-2); font-size: 14px; max-width: 760px; }
+.dm-who b { color: var(--ink); }
+
+.dm-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.dm-step { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 14px; align-items: start; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: rgba(10, 12, 20, 0.6); }
+.dm-step.active { border-color: rgba(120, 150, 255, 0.45); box-shadow: 0 0 0 1px rgba(120, 150, 255, 0.12), 0 10px 40px rgba(88, 130, 255, 0.12); }
+.dm-step.todo { opacity: 0.55; }
+.dm-step.done { border-color: rgba(70, 200, 130, 0.35); }
+.dm-num { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); font: 600 13px var(--mono); color: var(--ink-2); }
+.dm-step.active .dm-num { border-color: var(--blue); color: var(--ink); }
+.dm-step.done .dm-num { background: rgba(70, 200, 130, 0.18); border-color: transparent; color: var(--good); }
+.dm-title { margin: 0; font-weight: 600; }
+.dm-hint { margin: 4px 0 0; color: var(--ink-2); font-size: 14px; }
+.dm-act { align-self: center; text-align: right; }
+.dm-ok { color: var(--good); font-size: 13px; }
+@media (max-width: 640px) { .dm-step { grid-template-columns: 28px minmax(0, 1fr); } .dm-act { grid-column: 2; text-align: left; } }
+
+.dm-gate { display: grid; gap: 12px; justify-items: start; }
+.dm-gate > * { max-width: 100%; }
+.dm-gate-head { display: flex; flex-wrap: wrap; gap: 6px 16px; justify-content: space-between; width: 100%; color: var(--ink-2); font-size: 14px; }
+.dm-gate-head b { color: var(--ink); }
+.dm-link { padding: 0; border: 0; background: none; color: var(--muted); font: 13px/1.4 var(--sans); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.dm-link:hover { color: var(--ink-2); }
+.dm-gate .dm-steps { width: 100%; }

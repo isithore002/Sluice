@@ -1,0 +1,28 @@
+/* Borrower tab. Shared step and gate styles live in demo-stage.css. */
+.dm-b { display: grid; gap: 14px; }
+.dm-b-lead { margin: 0; color: var(--ink-2); font-size: 15px; max-width: 760px; }
+.dm-b-steps { display: grid; gap: 14px; width: 100%; }
+.dm-b-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.dm-b-stat { display: grid; gap: 4px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: rgba(10, 12, 20, 0.6); }
+.dm-b-stat span { color: var(--muted); font: 12px/1.2 var(--mono); text-transform: uppercase; letter-spacing: 0.04em; }
+.dm-b-stat b { font-size: 18px; font-variant-numeric: tabular-nums; }
+.dm-b-amount { display: grid; gap: 6px; margin-top: 10px; max-width: 240px; color: var(--ink-2); font-size: 13px; }
+.dm-b-amount input { padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.04); color: var(--ink); font: 15px var(--sans); }
+.dm-b-amount input:disabled { opacity: 0.5; }
+
+.dm-b-tl { padding: 16px 18px; border: 1px solid rgba(120, 150, 255, 0.3); border-radius: 14px; background: rgba(10, 12, 20, 0.7); }
+.dm-b-tl h4 { margin: 0 0 12px; font-size: 15px; }
+.dm-b-tl ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.dm-b-tl li { position: relative; display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 12px; padding-bottom: 14px; color: var(--muted); }
+.dm-b-tl li:last-child { padding-bottom: 0; }
+.dm-b-tl li::before { content: ""; position: absolute; left: 8px; top: 18px; bottom: 0; width: 2px; background: var(--line); }
+.dm-b-tl li:last-child::before { display: none; }
+.dm-b-tl li.on { color: var(--ink); }
+.dm-b-tl li.on::before { background: rgba(70, 200, 130, 0.5); }
+.dm-b-dot { width: 14px; height: 14px; margin: 3px 2px; border-radius: 50%; border: 2px solid var(--line); background: var(--bg, #05060a); }
+.dm-b-tl li.on .dm-b-dot { border-color: var(--good); background: var(--good); }
+.dm-b-tl li > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; font-size: 14px; }
+.dm-b-t { color: var(--ink-2); font: 13px var(--mono); }
+.dm-b-ok { color: var(--good); font-size: 13px; }
+.dm-b-wait { color: var(--muted); font-size: 13px; }
+.dm-b-sum { margin: 12px 0 0; color: var(--ink-2); font-size: 13px; }

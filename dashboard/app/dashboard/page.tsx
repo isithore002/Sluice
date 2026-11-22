@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { BatchDemo } from "../../components/dashboard/BatchDemo";
 import { CaseStudyView } from "../../components/dashboard/CaseStudy";
@@ -9,7 +10,6 @@ import { ExampleLoops } from "../../components/dashboard/ExampleLoops";
 import { LatencyTable } from "../../components/dashboard/LatencySection";
 import { FundingStatus, LiveCards } from "../../components/dashboard/LiveCards";
 import { RaceReplay } from "../../components/dashboard/RaceReplay";
-import { TryIt } from "../../components/dashboard/TryIt";
 import { secs } from "../../components/dashboard/format";
 import { Reveal } from "../../components/Motion";
 import { RaceChart } from "../../components/RaceChart";
@@ -17,6 +17,17 @@ import { SiteShell } from "../../components/SiteShell";
 import { loadManifest, type Manifest } from "../../lib/manifest";
 import { useLive } from "../../lib/useLive";
 import "./dashboard.css";
+
+// wagmi and RainbowKit load only with this panel, after the page is up, so they stay out of the first-load JavaScript.
+const TryItPanel = dynamic(() => import("../../components/web3/TryItPanel"), {
+  ssr: false,
+  loading: () => <p className="sl-note">Loading wallet options…</p>,
+});
+
+const DemoStagePanel = dynamic(() => import("../../components/web3/DemoStagePanel"), {
+  ssr: false,
+  loading: () => <p className="sl-note">Loading the live demo…</p>,
+});
 
 const GITHUB = "https://github.com/isithore002/Sluice";
 
@@ -42,7 +53,8 @@ export default function Dashboard() {
       badge="live"
       links={[
         { href: "#live", label: "Live state" },
-        { href: "#tryit", label: "Try it" },
+        { href: "#demo", label: "Live demo" },
+        { href: "#tryit", label: "Quick repay" },
         { href: "#race", label: "Race" },
         { href: "#replay", label: "Replay" },
         { href: "#batch", label: "Batch" },
@@ -91,17 +103,31 @@ export default function Dashboard() {
           )}
         </section>
 
+        {manifest?.deployed && (
+          <section id="demo" className="sl-section tight sl-wrap" data-ascii-avoid="0.8">
+            <Reveal>
+              <p className="sl-kicker">Live demo</p>
+              <h2>A lender, a borrower, and a queue that settles itself</h2>
+              <p className="dash-intro">
+                Two wallets, two roles. The lender deposits and asks for money back; the borrower borrows from the Morpho market and repays it. Nobody calls
+                Sluice to settle: Reactive sees the repayment and pays the queue. Every button is a real transaction, and the pool below is read from the chain.
+              </p>
+              <DemoStagePanel addresses={manifest.addresses} state={state} events={events} />
+            </Reveal>
+          </section>
+        )}
+
         {manifest?.deployed && manifest.addresses.oneClickRepay && (
           <section id="tryit" className="sl-section tight sl-wrap" data-ascii-avoid="0.8">
             <Reveal>
-              <p className="sl-kicker">Try it</p>
-              <h2>Repay a loan, and watch the queue settle itself</h2>
+              <p className="sl-kicker">Quick repay</p>
+              <h2>Shortcut: one click repays the demo loan</h2>
               <p className="dash-intro">
                 Don&apos;t take our wallets&apos; word for it. Repay part of the demo borrower&apos;s loan from your own wallet. You never call Sluice: Reactive
                 sees the cash come back and pays the next withdrawal in the queue on its own, usually within two seconds. Nothing here is simulated: it
                 runs on the live contracts.
               </p>
-              <TryIt addresses={manifest.addresses} queued={state?.queued ?? null} />
+              <TryItPanel addresses={manifest.addresses} queued={state?.queued ?? null} />
             </Reveal>
           </section>
         )}

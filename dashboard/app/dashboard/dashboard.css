@@ -128,3 +128,5 @@
 .ti-done { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); }
 .ti-head { color: var(--good); margin-bottom: 8px; }
 .ti-ok { color: var(--good); font-weight: 600; }
+.ti-switch { margin-top: 10px; padding: 0; border: 0; background: none; color: var(--muted); font: 13px/1.4 var(--sans); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.ti-switch:hover { color: var(--ink-2); }
