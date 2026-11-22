@@ -94,7 +94,7 @@ forge build
 forge test
 ```
 
-**Check:** `62 tests passed, 0 failed`. The tests run Morpho Blue's real bytecode and the real Omni system contracts, so they need no network.
+**Check:** `67 tests passed, 0 failed`. The tests run Morpho Blue's real bytecode and the real Omni system contracts, so they need no network.
 
 If you rebuild the project from scratch instead of cloning, note: on Windows, `forge install Reactive-Network/reactive-test-lib@omni` finishes the install but errors on registering the branch (`no submodule mapping found`). Fix with `git config -f .gitmodules submodule.lib/reactive-test-lib.branch omni`. The pinned versions are in [`foundry.lock`](../foundry.lock) and the required compiler settings (solc 0.8.29, `cancun`, `via_ir`) in [`foundry.toml`](../foundry.toml).
 
@@ -220,9 +220,22 @@ npm run arm -- --x 10 --slots 10        # queues ten withdrawals, so ten outside
 
 `npm run arm` is also what you run before recording the demo or leaving the project for judges. Then run the README's three "Try it yourself" commands from a **fresh wallet** to confirm they work: that is how the outsider test in `results/outsider-tryit.json` was made. **Check:** the settlement transaction is sent by Reactive's signer, and your fresh wallet sent exactly three transactions.
 
-The dashboard's *Try it* panel lets a visitor do the same from their own wallet in one transaction. It calls the `OneClickRepay` helper, deployed once with `scripts/deploy.sh 9` (it writes `deployments/base-tryit.json`; rebuild the dashboard afterwards).
+The dashboard's *Quick repay* panel lets a visitor do the same from their own wallet in one transaction. It is a shortcut: it calls the `OneClickRepay` helper (demo scaffolding, not part of Sluice), deployed once with `scripts/deploy.sh 9` (it writes `deployments/base-tryit.json`; rebuild the dashboard afterwards). Its *Connect wallet* button opens RainbowKit's wallet list (MetaMask, Phantom, Coinbase Wallet, Rabby and any other installed wallet) and switches the wallet to Base Sepolia, adding the network to MetaMask if needed. Phantom offers Base Sepolia only with Testnet Mode on (Settings → Developer Settings → Testnet Mode); the panel says so if the switch fails.
 
 Each settlement costs the reactive contract about 0.08 lREACT, so keep it funded while judges may try it.
+
+### 15b-2. The live Lender/Borrower demo
+
+The dashboard's **Live demo** section (`#demo`) runs the whole product with two separate wallets. **Lender:** mint demo mUSD (open mint) → approve → deposit into the Sluice vault → request a withdrawal. **Borrower:** mint demo collateral → approve → supply collateral → borrow the pool's free cash straight on Morpho → repay on Morpho. Nobody calls Sluice to settle: Reactive sees the Morpho `Repay` and Reactive's signer pays the lender's ticket. Every button is a real transaction; tokens are open-mint mocks and the market and its price feed are ours.
+
+The start state matters: the queue must be empty (a lender's deposit pays earlier tickets first), cross-chain fronting paused, and the Morpho market fully borrowed by our demo borrower. `npm run stage` (in `harness/`) sets that up and is safe to rerun. The two modes are opposites, so pick one per session:
+
+```shell
+npm run stage                          # live Lender/Borrower demo: empty queue, market 100% borrowed
+npm run arm -- --x 10 --slots 10       # Quick repay shortcut: ten queued withdrawals, one per click
+```
+
+**Check:** after `npm run stage`, the dashboard shows 0 pending and 100% utilized. Running the lender's deposit and withdrawal request, then the borrower's borrow and repay with two wallets, ends with the lender's ticket paid by a callback sent by Reactive's signer.
 
 ### 15c. Batch continuation, the replay data and the case study
 
@@ -254,7 +267,9 @@ cd dashboard && npm install && npm run build     # static site in dashboard/out
 
 Host `dashboard/out` anywhere static (Vercel, GitHub Pages). On Vercel, set the project's root directory to `dashboard`.
 
-**Check:** open it in a private window. The site root is the landing page (3D logo, measured numbers, race chart); the live dashboard is at `/dashboard/`. There the race chart, latency tables, example loops and live state all show real data. Run a loop and watch events appear.
+Optional: set `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` before building (a free project id from [Reown Cloud](https://cloud.reown.com); on Vercel, add it to the project's environment variables). It adds WalletConnect, for mobile wallets and QR codes, to the wallet list of the *Live demo* and *Quick repay* panels. Without it, browser-extension wallets (MetaMask, Phantom, Coinbase Wallet, Rabby) still work.
+
+**Check:** open it in a private window. The site root is the landing page (3D logo, measured numbers, race chart); the live dashboard is at `/dashboard/`. There the race chart, latency tables, example loops and live state all show real data. Run a loop and watch events appear. In the *Live demo* and *Quick repay* panels, *Connect wallet* opens a list of the wallets installed in your browser.
 
 ---
 
@@ -276,6 +291,7 @@ See [SUBMISSION.md](SUBMISSION.md): the form answers, the demo script, and a fin
 | Callback first argument is wrong | Payload must start with an `address` placeholder (`address(0)`), which the network overwrites with the reactive contract's address | Reserve the first argument |
 | Next.js build: "TypeScript 7.0.2 is not supported" | npm installed TypeScript 7 | `npm install -D typescript@^6` |
 | `EBUSY: resource busy` on `next build` | A preview server is holding `dashboard/out` | Stop it, or serve a copy of `out` |
+| Phantom in a dashboard wallet panel: "The Provider is not connected to the requested chain." | Phantom's testnets are off, so it can't switch to Base Sepolia | In Phantom: Settings → Developer Settings → Testnet Mode, then try again; or connect MetaMask |
 | Race results look too good for Sluice | The competitor bot was slow (read the market, estimated gas) | The competitor must fire immediately with a fixed gas limit and no pre-read |
 | A timing run shows the reactive tx earlier than its origin | Block timestamps resolve to 1 s and chain clocks differ slightly | Use wall-clock timing for precision |
 | Python on Windows adds `\r` to piped output, so `cast` says `invalid tx hash` | CRLF line endings | Strip with `tr -d '\r'` |

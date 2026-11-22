@@ -13,6 +13,7 @@
     "replay": "tsx src/raceReplay.ts",
     "casestudy": "tsx src/caseStudy.ts",
     "arm": "tsx src/arm.ts",
+    "stage": "tsx src/stage.ts",
     "summary": "tsx src/summary.ts",
     "typecheck": "tsc --noEmit"
   },
