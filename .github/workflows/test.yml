@@ -56,10 +56,29 @@ jobs:
         with:
           version: v1.5.1
 
-      # Reports findings in the log without failing the build.
-      - name: Run Slither
-        uses: crytic/slither-action@v0.4.1
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          target: src/
-          fail-on: none
-          slither-args: --filter-paths "lib|test|script|mocks|demo"
+          python-version: "3.12"
+
+      # Slither is installed on the runner, not run through crytic/slither-action: that action runs Slither inside a Docker
+      # container where the Foundry installed above is not visible, so Slither cannot compile a Foundry project ("No such file
+      # or directory: 'forge'"). Pinned to the version the findings in docs/SLITHER_TRIAGE.md were produced with.
+      - name: Install Slither
+        run: pip install slither-analyzer==0.11.6
+
+      - name: Build
+        run: forge build
+
+      # Reports findings in the log and as a downloadable report, without failing the build on them (a crash still fails it).
+      # Mocks, the demo helper, tests, scripts and libraries are filtered out.
+      - name: Run Slither
+        run: slither . --filter-paths "lib|test|script|mocks|demo" --no-fail-pedantic --json slither-report.json
+
+      - name: Upload the Slither report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: slither-report
+          path: slither-report.json
+          if-no-files-found: ignore
