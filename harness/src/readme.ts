@@ -116,7 +116,8 @@ The loops above reuse one wallet for most roles. To show Sluice doesn't depend o
 | Alice, the user whose withdrawal is queued and paid | ${a(BASE, I.example.actors.aliceUser)} |
 | Bob, the outsider who repays | ${a(BASE, I.example.actors.bobRepayer)} |
 | Deployer, the borrower whose debt is repaid | ${a(BASE, I.example.actors.deployerAndBorrower)} |
-| Reactive's signer, which sends the payout callback | ${a(BASE, I.example.actors.callbackSentBy)} |
+| Reactive's signer when these loops ran (2026-11-19), which sent the payout callback | ${a(BASE, I.example.actors.callbackSentBy)} |
+| Reactive's signer now (it rotated: see [limitations](#limitations-and-claims-we-dont-make)) | ${a(BASE, "0xF9F61C1D3325e2d4aBb55dd9e0Db84F7A0D914B0")} |
 
 One loop to check: [Alice queues a withdrawal](${I.example.links.queued}), [Bob repays](${I.example.links.origin}), [SluiceReactive reacts](${I.example.links.reactive}), [the callback pays Alice](${I.example.links.callback}).
 
