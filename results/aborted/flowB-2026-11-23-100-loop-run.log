@@ -1,0 +1,119 @@
+
+> flowB
+> tsx src/flowB.ts --n 100 --x 10
+
+Flow B: 100 loops of 10 mUSD
+  #0 ok  total 1184 ms (chain 1s)  origin->react 1255 ms
+  #1 ok  total 1200 ms (chain 1s)  origin->react 1022 ms
+  #2 ok  total 736 ms (chain 1s)  origin->react 1027 ms
+  #3 ok  total 1589 ms (chain 2s)  origin->react 1480 ms
+  #4 ok  total 696 ms (chain 1s)  origin->react 952 ms
+  #5 ok  total 1796 ms (chain 2s)  origin->react 1735 ms
+  #6 ok  total 1686 ms (chain 2s)  origin->react 1688 ms
+  #7 ok  total 752 ms (chain 1s)  origin->react 1039 ms
+  #8 ok  total 750 ms (chain 1s)  origin->react 942 ms
+  #9 ok  total 1162 ms (chain 1s)  origin->react 1422 ms
+  #10 ok  total 297 ms (chain 0s)  origin->react 1032 ms
+  #11 ok  total 818 ms (chain 1s)  origin->react 1214 ms
+  #12 ok  total 1138 ms (chain 1s)  origin->react 1126 ms
+  #13 ok  total 1637 ms (chain 1s)  origin->react 1354 ms
+  #14 ok  total 1621 ms (chain 1s)  origin->react 1626 ms
+  #15 ok  total 1144 ms (chain 1s)  origin->react 835 ms
+  #16 ok  total 1073 ms (chain 0s)  origin->react 1080 ms
+  #17 ok  total 1571 ms (chain 1s)  origin->react 1571 ms
+  #18 ok  total 1488 ms (chain 2s)  origin->react 1807 ms
+  #19 ok  total 1611 ms (chain 2s)  origin->react 1807 ms
+  #20 ok  total 1508 ms (chain 1s)  origin->react 1695 ms
+  #21 ok  total 1231 ms (chain 1s)  origin->react 884 ms
+  #22 ok  total 705 ms (chain 1s)  origin->react 925 ms
+  #23 ok  total 1002 ms (chain 1s)  origin->react 1239 ms
+  #24 ok  total 1674 ms (chain 1s)  origin->react 1678 ms
+  #25 ok  total 1213 ms (chain 1s)  origin->react 816 ms
+  #26 ok  total 1513 ms (chain 1s)  origin->react 1668 ms
+  #27 ok  total 1323 ms (chain 1s)  origin->react 1064 ms
+  #28 ok  total 669 ms (chain 1s)  origin->react 825 ms
+  #29 ok  total 1998 ms (chain 2s)  origin->react 1707 ms
+  #30 ok  total 1525 ms (chain 1s)  origin->react 1488 ms
+  #31 ok  total 1201 ms (chain 1s)  origin->react 1818 ms
+  #32 ok  total 1181 ms (chain 1s)  origin->react 1158 ms
+  #33 ok  total 1132 ms (chain 1s)  origin->react 1849 ms
+  #34 ok  total 2034 ms (chain 2s)  origin->react 1701 ms
+  #35 ok  total 1550 ms (chain 1s)  origin->react 1709 ms
+  #36 ok  total 876 ms (chain 1s)  origin->react 1378 ms
+  #37 ok  total 1645 ms (chain 1s)  origin->react 1375 ms
+  #38 ok  total 1026 ms (chain 1s)  origin->react 1031 ms
+  #39 ok  total 1197 ms (chain 2s)  origin->react 914 ms
+  #40 ok  total 747 ms (chain 1s)  origin->react 1010 ms
+  #41 ok  total 1180 ms (chain 1s)  origin->react 859 ms
+  #42 ok  total 1228 ms (chain 1s)  origin->react 914 ms
+  #43 ok  total 1228 ms (chain 1s)  origin->react 1198 ms
+  #44 ok  total 1640 ms (chain 2s)  origin->react 1660 ms
+  #45 ok  total 1409 ms (chain 2s)  origin->react 1164 ms
+  #46 ok  total 806 ms (chain 1s)  origin->react 1063 ms
+  #47 ok  total 1544 ms (chain 1s)  origin->react 1385 ms
+  #48 ok  total 1507 ms (chain 1s)  origin->react 1031 ms
+  #49 ok  total 1061 ms (chain 1s)  origin->react 1272 ms
+  #50 ok  total 1929 ms (chain 1s)  origin->react 1840 ms
+  #51 ok  total 1068 ms (chain 1s)  origin->react 926 ms
+  #52 ok  total 1262 ms (chain 1s)  origin->react 1265 ms
+  #53 ok  total 1196 ms (chain 1s)  origin->react 936 ms
+  #54 ok  total 1241 ms (chain 1s)  origin->react 1377 ms
+  #55 ok  total 1493 ms (chain 2s)  origin->react 1814 ms
+  #56 ok  total 1129 ms (chain 2s)  origin->react 974 ms
+  #57 ok  total 1173 ms (chain 1s)  origin->react 2274 ms
+  #58 ok  total 1625 ms (chain 2s)  origin->react 1640 ms
+  #59 ok  total 2074 ms (chain 2s)  origin->react 1596 ms
+  #60 ok  total 1448 ms (chain 1s)  origin->react 1652 ms
+  #61 ok  total 716 ms (chain 0s)  origin->react 963 ms
+  #62 ok  total 1597 ms (chain 1s)  origin->react 1308 ms
+  #63 ok  total 1628 ms (chain 1s)  origin->react 1828 ms
+  #64 ok  total 1201 ms (chain 1s)  origin->react 1169 ms
+  #65 ok  total 1092 ms (chain 2s)  origin->react 1688 ms
+  #66 ok  total 1512 ms (chain 1s)  origin->react 1708 ms
+  #67 ok  total 800 ms (chain 1s)  origin->react 1088 ms
+  #68 ok  total 686 ms (chain 1s)  origin->react 977 ms
+  #69 ok  total 1542 ms (chain 1s)  origin->react 1947 ms
+  #70 FAILED: Error: loop 70: timeout (handled=false, settled=false)
+  normalize: 10000000 still queued, depositing to clear it
+  normalize: borrowing 10000000 free liquidity
+  #71 FAILED: Error: loop 71: timeout (handled=false, settled=false)
+  normalize: 10000000 still queued, depositing to clear it
+  normalize: borrowing 10000000 free liquidity
+  #72 FAILED: Error: loop 72: timeout (handled=false, settled=false)
+  normalize: 10000000 still queued, depositing to clear it
+  normalize: borrowing 10000000 free liquidity
+  #73 FAILED: Error: loop 73: timeout (handled=false, settled=false)
+  #74 ok  total 724 ms (chain 1s)  origin->react 930 ms
+  #75 ok  total 1147 ms (chain 1s)  origin->react 843 ms
+  #76 ok  total 1486 ms (chain 1s)  origin->react 1601 ms
+  #77 ok  total 1575 ms (chain 1s)  origin->react 1811 ms
+  #78 FAILED: Error: loop 78: timeout (handled=false, settled=false)
+  normalize: 10000000 still queued, depositing to clear it
+  normalize: borrowing 10000000 free liquidity
+  #79 FAILED: Error: loop 79: timeout (handled=false, settled=false)
+  normalize: 10000000 still queued, depositing to clear it
+  normalize: borrowing 10000000 free liquidity
+  #80 FAILED: Error: loop 80: timeout (handled=false, settled=false)
+  normalize: 10000000 still queued, depositing to clear it
+  normalize: borrowing 10000000 free liquidity
+  #81 FAILED: Error: loop 81: timeout (handled=false, settled=false)
+  normalize: 10000000 still queued, depositing to clear it
+  normalize: borrowing 10000000 free liquidity
+  #82 FAILED: Error: loop 82: timeout (handled=false, settled=false)
+  normalize: 10000000 still queued, depositing to clear it
+  normalize: borrowing 10000000 free liquidity
+  #83 FAILED: Error: loop 83: timeout (handled=false, settled=false)
+  normalize: 10000000 still queued, depositing to clear it
+  normalize: borrowing 10000000 free liquidity
+  #84 FAILED: Error: loop 84: timeout (handled=false, settled=false)
+  normalize: 10000000 still queued, depositing to clear it
+  normalize: borrowing 10000000 free liquidity
+  #85 FAILED: Error: loop 85: timeout (handled=false, settled=false)
+  normalize: 10000000 still queued, depositing to clear it
+  normalize: borrowing 10000000 free liquidity
+  #86 FAILED: Error: loop 86: timeout (handled=false, settled=false)
+  normalize: 10000000 still queued, depositing to clear it
+  normalize: borrowing 10000000 free liquidity
+  #87 FAILED: Error: loop 87: timeout (handled=false, settled=false)
+  normalize: 10000000 still queued, depositing to clear it
+  normalize: borrowing 10000000 free liquidity
