@@ -220,7 +220,7 @@ npm run arm -- --x 10 --slots 10        # queues ten withdrawals, so ten outside
 
 `npm run arm` is also what you run before recording the demo or leaving the project for judges. Then run the README's three "Try it yourself" commands from a **fresh wallet** to confirm they work: that is how the outsider test in `results/outsider-tryit.json` was made. **Check:** the settlement transaction is sent by Reactive's signer, and your fresh wallet sent exactly three transactions.
 
-The dashboard's *Quick repay* panel lets a visitor do the same from their own wallet in one transaction. It is a shortcut: it calls the `OneClickRepay` helper (demo scaffolding, not part of Sluice), deployed once with `scripts/deploy.sh 9` (it writes `deployments/base-tryit.json`; rebuild the dashboard afterwards). Its *Connect wallet* button opens RainbowKit's wallet list (MetaMask, Phantom, Coinbase Wallet, Rabby and any other installed wallet) and switches the wallet to Base Sepolia, adding the network to MetaMask if needed. Phantom offers Base Sepolia only with Testnet Mode on (Settings → Developer Settings → Testnet Mode); the panel says so if the switch fails.
+The dashboard's *One-click repay* shortcut (under *Deep dive*) lets a visitor do the same from their own wallet in one transaction. It is a shortcut: it calls the `OneClickRepay` helper (demo scaffolding, not part of Sluice), deployed once with `scripts/deploy.sh 9` (it writes `deployments/base-tryit.json`; rebuild the dashboard afterwards). Its *Connect wallet* button opens RainbowKit's wallet list (MetaMask, Phantom, Coinbase Wallet, Rabby and any other installed wallet) and switches the wallet to Base Sepolia, adding the network to MetaMask if needed. Phantom offers Base Sepolia only with Testnet Mode on (Settings → Developer Settings → Testnet Mode); the panel says so if the switch fails.
 
 Each settlement costs the reactive contract about 0.08 lREACT, so keep it funded while judges may try it.
 
@@ -232,7 +232,7 @@ The start state matters: the queue must be empty (a lender's deposit pays earlie
 
 ```shell
 npm run stage                          # live Lender/Borrower demo: empty queue, market 100% borrowed
-npm run arm -- --x 10 --slots 10       # Quick repay shortcut: ten queued withdrawals, one per click
+npm run arm -- --x 10 --slots 10       # one-click repay shortcut: ten queued withdrawals, one per click
 ```
 
 **Check:** after `npm run stage`, the dashboard shows 0 pending and 100% utilized. Running the lender's deposit and withdrawal request, then the borrower's borrow and repay with two wallets, ends with the lender's ticket paid by a callback sent by Reactive's signer.
@@ -267,9 +267,9 @@ cd dashboard && npm install && npm run build     # static site in dashboard/out
 
 Host `dashboard/out` anywhere static (Vercel, GitHub Pages). On Vercel, set the project's root directory to `dashboard`.
 
-Optional: set `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` before building (a free project id from [Reown Cloud](https://cloud.reown.com); on Vercel, add it to the project's environment variables). It adds WalletConnect, for mobile wallets and QR codes, to the wallet list of the *Live demo* and *Quick repay* panels. Without it, browser-extension wallets (MetaMask, Phantom, Coinbase Wallet, Rabby) still work.
+Optional: set `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` before building (a free project id from [Reown Cloud](https://cloud.reown.com); on Vercel, add it to the project's environment variables). It adds WalletConnect, for mobile wallets and QR codes, to the wallet list of the *Live demo* and *One-click repay* shortcut (under *Deep dive*)s. Without it, browser-extension wallets (MetaMask, Phantom, Coinbase Wallet, Rabby) still work.
 
-**Check:** open it in a private window. The site root is the landing page (3D logo, measured numbers, race chart); the live dashboard is at `/dashboard/`. There the race chart, latency tables, example loops and live state all show real data. Run a loop and watch events appear. In the *Live demo* and *Quick repay* panels, *Connect wallet* opens a list of the wallets installed in your browser.
+**Check:** open it in a private window. The site root is the landing page (3D logo, measured numbers, race chart); the live dashboard is at `/dashboard/`. There the live demo, the recorded 40-ticket run and race, the latency table and the cross-chain loops all show real data; the replay, live event feed and case study are under *Deep dive*. In the *Live demo* (and the optional *One-click repay* shortcut), *Connect wallet* opens a list of the wallets installed in your browser.
 
 ---
 

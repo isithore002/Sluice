@@ -149,7 +149,7 @@ Deployed with [\`scripts/deploy.sh\`](scripts/deploy.sh). Addresses are in [\`de
 | Demo market oracle (fixed price) | Base Sepolia | ${a(BASE, market.oracle)} | ${src(84532, market.oracle)} |
 | SiblingVault | Unichain Sepolia (1301) | ${a(UNI, uniSluice.siblingVault)} | ${src(1301, uniSluice.siblingVault)} |
 | MockUSD | Unichain Sepolia | ${a(UNI, uniToken.mockUSD)} | ${src(1301, uniToken.mockUSD)} |${TRY ? `
-| OneClickRepay (demo helper for the Quick repay shortcut, not part of Sluice) | Base Sepolia | ${a(BASE, TRY.oneClickRepay)} | ${src(84532, TRY.oneClickRepay)} |` : ""}
+| OneClickRepay (demo helper for the one-click repay shortcut, not part of Sluice) | Base Sepolia | ${a(BASE, TRY.oneClickRepay)} | ${src(84532, TRY.oneClickRepay)} |` : ""}
 
 All Sluice contracts are source-verified on [Sourcify](https://sourcify.dev) with an **exact match** (creation and runtime bytecode), so the code at each address is exactly this repository's code.
 
@@ -173,15 +173,15 @@ The dashboard's **Live demo** section runs the whole product with two separate w
 
 **Nobody calls Sluice to settle.** When the borrower repays on Morpho, Reactive sees the \`Repay\` event and Reactive's signer pays the lender's ticket. The pool view shows the Morpho tank, the live queue tickets, and what Reactive just did (\`Repay\` on Base, \`PullRequested\` on Lasna, \`WithdrawSettled\` on Base, with timings from block timestamps).
 
-**Order matters.** The queue must be empty when the demo starts, because a lender's deposit pays earlier tickets first. \`npm run stage\` in \`harness/\` puts the system in that start state (cross-chain fronting paused so the Morpho path is the one that pays, nobody queued, the market fully borrowed by our demo borrower). The Quick repay shortcut below needs the opposite state (armed tickets, \`npm run arm -- --x 10 --slots 10\`), so don't mix the two in one session.
+**Order matters.** The queue must be empty when the demo starts, because a lender's deposit pays earlier tickets first. \`npm run stage\` in \`harness/\` puts the system in that start state (cross-chain fronting paused so the Morpho path is the one that pays, nobody queued, the market fully borrowed by our demo borrower). The one-click repay shortcut below needs the opposite state (armed tickets, \`npm run arm -- --x 10 --slots 10\`), so don't mix the two in one session.
 
 **Real vs test setup:** every transaction and every number on screen is real. The tokens are open-mint mocks, the Morpho market and its price feed are ours, and it all runs on testnets.
 
-### Quick repay (shortcut) and terminal steps
+### One-click repay (shortcut) and terminal steps
 
 Anyone can also trigger a real Sluice settlement with one transaction, with nothing of ours involved. In Morpho Blue, **anyone can repay on behalf of a borrower**, and our demo token is open-mint.
 ${TRY ? `
-**One click:** the dashboard's *Quick repay* panel does it from your browser wallet. The helper it uses is demo scaffolding for convenience, not part of Sluice. Its *Connect wallet* button opens a wallet list (RainbowKit, on wagmi) with MetaMask, Phantom, Coinbase Wallet, Rabby and any other installed wallet, then switches the wallet to Base Sepolia (Phantom needs Testnet Mode on: Settings → Developer Settings → Testnet Mode). The panel calls ${a(BASE, TRY.oneClickRepay)} (source verified), which mints 10 demo mUSD and repays them on the borrower's behalf in a single transaction, so you confirm one transaction instead of three.${OC ? ` We tested the one-click path end to end with a brand-new wallet we created: [its transaction](${OC.links.visitorSettle}) was settled by [this callback](${OC.links.reactiveCallback}), sent by Reactive's signer ([\`results/oneclick-ui-test.json\`](results/oneclick-ui-test.json); the test drove the panel's earlier connect button with an injected wallet provider in place of a MetaMask popup).` : ""}
+**One click:** the dashboard's *One-click repay* shortcut (under *Deep dive*) does it from your browser wallet. The helper it uses is demo scaffolding for convenience, not part of Sluice. Its *Connect wallet* button opens a wallet list (RainbowKit, on wagmi) with MetaMask, Phantom, Coinbase Wallet, Rabby and any other installed wallet, then switches the wallet to Base Sepolia (Phantom needs Testnet Mode on: Settings → Developer Settings → Testnet Mode). The panel calls ${a(BASE, TRY.oneClickRepay)} (source verified), which mints 10 demo mUSD and repays them on the borrower's behalf in a single transaction, so you confirm one transaction instead of three.${OC ? ` We tested the one-click path end to end with a brand-new wallet we created: [its transaction](${OC.links.visitorSettle}) was settled by [this callback](${OC.links.reactiveCallback}), sent by Reactive's signer ([\`results/oneclick-ui-test.json\`](results/oneclick-ui-test.json); the test drove the panel's earlier connect button with an injected wallet provider in place of a MetaMask popup).` : ""}
 
 **From a terminal**, the same three steps with \`cast\`:
 ` : ""}

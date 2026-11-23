@@ -196,7 +196,7 @@ Deployed with [`scripts/deploy.sh`](scripts/deploy.sh). Addresses are in [`deplo
 | Demo market oracle (fixed price) | Base Sepolia | [`0x26f814373D575bDC074175A686c3Ff197D4e3b07`](https://sepolia.basescan.org/address/0x26f814373D575bDC074175A686c3Ff197D4e3b07) | [verified ✓](https://repo.sourcify.dev/84532/0x26f814373D575bDC074175A686c3Ff197D4e3b07) |
 | SiblingVault | Unichain Sepolia (1301) | [`0x2CD91D217610083aBfF78b6609c79193E619b5d7`](https://sepolia.uniscan.xyz/address/0x2CD91D217610083aBfF78b6609c79193E619b5d7) | [verified ✓](https://repo.sourcify.dev/1301/0x2CD91D217610083aBfF78b6609c79193E619b5d7) |
 | MockUSD | Unichain Sepolia | [`0xdAFaC2C362d3D811124be77B0ABF84e677091750`](https://sepolia.uniscan.xyz/address/0xdAFaC2C362d3D811124be77B0ABF84e677091750) | [verified ✓](https://repo.sourcify.dev/1301/0xdAFaC2C362d3D811124be77B0ABF84e677091750) |
-| OneClickRepay (demo helper for the Quick repay shortcut, not part of Sluice) | Base Sepolia | [`0x8bAcfF9D6d55801f25368170411BD2A2b5095C11`](https://sepolia.basescan.org/address/0x8bAcfF9D6d55801f25368170411BD2A2b5095C11) | [verified ✓](https://repo.sourcify.dev/84532/0x8bAcfF9D6d55801f25368170411BD2A2b5095C11) |
+| OneClickRepay (demo helper for the one-click repay shortcut, not part of Sluice) | Base Sepolia | [`0x8bAcfF9D6d55801f25368170411BD2A2b5095C11`](https://sepolia.basescan.org/address/0x8bAcfF9D6d55801f25368170411BD2A2b5095C11) | [verified ✓](https://repo.sourcify.dev/84532/0x8bAcfF9D6d55801f25368170411BD2A2b5095C11) |
 
 All Sluice contracts are source-verified on [Sourcify](https://sourcify.dev) with an **exact match** (creation and runtime bytecode), so the code at each address is exactly this repository's code.
 
@@ -224,15 +224,15 @@ The dashboard's **Live demo** section runs the whole product with two separate w
 
 **Nobody calls Sluice to settle.** When the borrower repays on Morpho, Reactive sees the `Repay` event and Reactive's signer pays the lender's ticket. The pool view shows the Morpho tank, the live queue tickets, and what Reactive just did (`Repay` on Base, `PullRequested` on Lasna, `WithdrawSettled` on Base, with timings from block timestamps).
 
-**Order matters.** The queue must be empty when the demo starts, because a lender's deposit pays earlier tickets first. `npm run stage` in `harness/` puts the system in that start state (cross-chain fronting paused so the Morpho path is the one that pays, nobody queued, the market fully borrowed by our demo borrower). The Quick repay shortcut below needs the opposite state (armed tickets, `npm run arm -- --x 10 --slots 10`), so don't mix the two in one session.
+**Order matters.** The queue must be empty when the demo starts, because a lender's deposit pays earlier tickets first. `npm run stage` in `harness/` puts the system in that start state (cross-chain fronting paused so the Morpho path is the one that pays, nobody queued, the market fully borrowed by our demo borrower). The one-click repay shortcut below needs the opposite state (armed tickets, `npm run arm -- --x 10 --slots 10`), so don't mix the two in one session.
 
 **Real vs test setup:** every transaction and every number on screen is real. The tokens are open-mint mocks, the Morpho market and its price feed are ours, and it all runs on testnets.
 
-### Quick repay (shortcut) and terminal steps
+### One-click repay (shortcut) and terminal steps
 
 Anyone can also trigger a real Sluice settlement with one transaction, with nothing of ours involved. In Morpho Blue, **anyone can repay on behalf of a borrower**, and our demo token is open-mint.
 
-**One click:** the dashboard's *Quick repay* panel does it from your browser wallet. The helper it uses is demo scaffolding for convenience, not part of Sluice. Its *Connect wallet* button opens a wallet list (RainbowKit, on wagmi) with MetaMask, Phantom, Coinbase Wallet, Rabby and any other installed wallet, then switches the wallet to Base Sepolia (Phantom needs Testnet Mode on: Settings → Developer Settings → Testnet Mode). The panel calls [`0x8bAcfF9D6d55801f25368170411BD2A2b5095C11`](https://sepolia.basescan.org/address/0x8bAcfF9D6d55801f25368170411BD2A2b5095C11) (source verified), which mints 10 demo mUSD and repays them on the borrower's behalf in a single transaction, so you confirm one transaction instead of three. We tested the one-click path end to end with a brand-new wallet we created: [its transaction](https://sepolia.basescan.org/tx/0x82db92a8e94825d7258c693593ac2661dedf69a7ae4ae276817fb106b6826236) was settled by [this callback](https://sepolia.basescan.org/tx/0xc106ab4c6212ae2d0ec64e3aff5fe815d9d90d185b0555348e7a0a16172af5fb), sent by Reactive's signer ([`results/oneclick-ui-test.json`](results/oneclick-ui-test.json); the test drove the panel's earlier connect button with an injected wallet provider in place of a MetaMask popup).
+**One click:** the dashboard's *One-click repay* shortcut (under *Deep dive*) does it from your browser wallet. The helper it uses is demo scaffolding for convenience, not part of Sluice. Its *Connect wallet* button opens a wallet list (RainbowKit, on wagmi) with MetaMask, Phantom, Coinbase Wallet, Rabby and any other installed wallet, then switches the wallet to Base Sepolia (Phantom needs Testnet Mode on: Settings → Developer Settings → Testnet Mode). The panel calls [`0x8bAcfF9D6d55801f25368170411BD2A2b5095C11`](https://sepolia.basescan.org/address/0x8bAcfF9D6d55801f25368170411BD2A2b5095C11) (source verified), which mints 10 demo mUSD and repays them on the borrower's behalf in a single transaction, so you confirm one transaction instead of three. We tested the one-click path end to end with a brand-new wallet we created: [its transaction](https://sepolia.basescan.org/tx/0x82db92a8e94825d7258c693593ac2661dedf69a7ae4ae276817fb106b6826236) was settled by [this callback](https://sepolia.basescan.org/tx/0xc106ab4c6212ae2d0ec64e3aff5fe815d9d90d185b0555348e7a0a16172af5fb), sent by Reactive's signer ([`results/oneclick-ui-test.json`](results/oneclick-ui-test.json); the test drove the panel's earlier connect button with an injected wallet provider in place of a MetaMask popup).
 
 **From a terminal**, the same three steps with `cast`:
 
@@ -281,7 +281,7 @@ Your wallet sends only the repayment. The queued withdrawal belongs to Alice (ab
 | [`test/`](test/) | 67 tests: vault, reserve, sibling, reactive (through the Omni pipeline), end to end |
 | [`script/`](script/), [`scripts/deploy.sh`](scripts/deploy.sh) | 9-step deployment across the three chains |
 | [`harness/`](harness/) | `status`, `flowB`, `flowC`, `race`, `summary` (TypeScript + viem) |
-| [`dashboard/`](dashboard/) | Landing page (three.js) at `/` and live dashboard at `/dashboard/` (Next.js static export; reads the chains directly, and its *Live demo* and *Quick repay* panels connect your wallet through wagmi and RainbowKit) |
+| [`dashboard/`](dashboard/) | Landing page (three.js) at `/` and live dashboard at `/dashboard/` (Next.js static export; reads the chains directly, and its *Live demo* and *One-click repay* shortcut (under *Deep dive*)s connect your wallet through wagmi and RainbowKit) |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Full spec: verified addresses, every function and event, flows, failure modes |
 | [`docs/BUILD_GUIDE.md`](docs/BUILD_GUIDE.md) | Step-by-step guide from an empty machine to a running deployment |
 
@@ -331,7 +331,7 @@ Every loop is traced by its origin transaction hash, which every callback carrie
 
 ### Landing page and dashboard
 
-One static site with two pages: a landing page at `/` (a three.js logo over an animated glyph background; its numbers are read from `results/summary.json`) and the live dashboard at `/dashboard/`, which reads the chains directly. Only its *Live demo* and *Quick repay* panels send anything, and each transaction is signed by the visitor's own wallet (a lender and a borrower, two separate wallets).
+One static site with two pages: a landing page at `/` (a three.js logo over an animated glyph background; its numbers are read from `results/summary.json`) and the live dashboard at `/dashboard/`, which reads the chains directly. Only its *Live demo* and *One-click repay* shortcut (under *Deep dive*)s send anything, and each transaction is signed by the visitor's own wallet (a lender and a borrower, two separate wallets).
 
 ```shell
 cd dashboard && npm install && npm run build    # static site in dashboard/out
