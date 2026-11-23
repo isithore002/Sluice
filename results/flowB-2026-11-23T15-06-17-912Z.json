@@ -1,0 +1,35 @@
+[
+  {
+    "flow": "B",
+    "i": 0,
+    "ok": true,
+    "x": "10000000",
+    "paid": "10000000",
+    "txs": {
+      "origin": "0x612184585e606a199a2a1a041c32e59505d397e9ae99a9a5be555e841626b2ef",
+      "reactive": "0xd00fc2260ca8a3d99c64a6570fc844ff27360c8045f7f0c06678bc6d909830bf",
+      "callback": "0xaf1e2b083796f4af33d0a5d74b7d899ab5bce623e9989383e5a8c27a49363a9e"
+    },
+    "links": {
+      "origin": "https://sepolia.basescan.org/tx/0x612184585e606a199a2a1a041c32e59505d397e9ae99a9a5be555e841626b2ef",
+      "reactive": "https://lasna.reactscan.net/tx/0xd00fc2260ca8a3d99c64a6570fc844ff27360c8045f7f0c06678bc6d909830bf",
+      "callback": "https://sepolia.basescan.org/tx/0xaf1e2b083796f4af33d0a5d74b7d899ab5bce623e9989383e5a8c27a49363a9e"
+    },
+    "blocks": {
+      "origin": "62622572",
+      "reactive": "9064427",
+      "callback": "62622575"
+    },
+    "chainSeconds": {
+      "origin": 1795446383,
+      "reactive": 1795446382,
+      "callback": 1795446383,
+      "total": 0
+    },
+    "wallMs": {
+      "total": 769,
+      "originToReactive": 1048,
+      "reactiveToCallback": -279
+    }
+  }
+]
