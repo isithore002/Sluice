@@ -29,6 +29,8 @@ Written from what actually worked, including the problems hit along the way. It 
 
 Fund the reactive contract with 5 at deploy, then top it up as needed (step 14). **A contract in debt stops receiving events.**
 
+**Budget before a long run, not during it.** On 2026-11-23 a 100-loop Flow B run stopped at loop 70 because the reactive contract had spent its whole reserve: it was blacklisted by the network and every later loop timed out, with no revert and no alert ([record](../results/README.md)). A run of N Flow B loops needs about 0.08 × N lREACT in the reactive contract's reserve (so about 8 for 100 loops), plus the keeper baseline's 60 rounds (about 4). Run `npm run status` first and top up if the reserve is short. The harness now checks the reserve and debt before every loop or round and stops with a clear message if the contract cannot pay for the next one, instead of failing silently.
+
 ---
 
 ## Phase A: Tools, wallet, funds
