@@ -1,16 +1,16 @@
 # Sluice measurement summary
 
-Generated 2026-11-19T13:30:58.621Z.
+Generated 2026-11-23T17:16:55.216Z.
 
 ## Flow B: Morpho repayment → queue paid (one reactive hop)
 
-Succeeded 33/33.
+Succeeded 104/104.
 
 | Measure | Median | p95 | Max |
 |---|---|---|---|
-| Repay → queue paid (wall clock) | 1.58 s | 2.10 s | 2.20 s |
-| Repay → Lasna react (wall clock) | 1.17 s | 1.83 s | 1.99 s |
-| Lasna react → Base callback (wall clock) | 0.41 s | 0.75 s | 1.34 s |
+| Repay → queue paid (wall clock) | 1.32 s | 1.79 s | 2.44 s |
+| Repay → Lasna react (wall clock) | 1.22 s | 1.99 s | 2.92 s |
+| Lasna react → Base callback (wall clock) | 0.05 s | 0.60 s | 1.34 s |
 | Repay → queue paid (block timestamps, 1 s resolution) | 1 s | 2 s | 2 s |
 
 ## Flow C: Base shortfall → fronted by reserve, reimbursed on Unichain
