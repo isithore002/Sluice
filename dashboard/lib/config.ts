@@ -47,11 +47,15 @@ export const CHAINS: Record<ChainKey, ChainInfo> = {
   },
 };
 
-export const clients: Record<ChainKey, PublicClient> = {
-  base: createPublicClient({ chain: CHAINS.base.chain, transport: http(CHAINS.base.rpc) }) as PublicClient,
-  uni: createPublicClient({ chain: CHAINS.uni.chain, transport: http(CHAINS.uni.rpc) }) as PublicClient,
-  lasna: createPublicClient({ chain: CHAINS.lasna.chain, transport: http(CHAINS.lasna.rpc) }) as PublicClient,
-};
+/**
+ * Public RPCs rate-limit, and the dashboard polls a lot: balances, queue, events, three chains. So requests made in the
+ * same moment are merged: eth_calls to one chain go out as a single Multicall3 call (Base and Unichain Sepolia have it,
+ * Lasna does not), and everything else shares one JSON-RPC batch per HTTP request (all three RPCs accept batches).
+ */
+const client = (k: ChainKey) =>
+  createPublicClient({ chain: CHAINS[k].chain, transport: http(CHAINS[k].rpc, { batch: true }), batch: { multicall: k !== "lasna" } }) as PublicClient;
+
+export const clients: Record<ChainKey, PublicClient> = { base: client("base"), uni: client("uni"), lasna: client("lasna") };
 
 export const PROXIES = {
   base: "0x476F44b11F5C942c58f4c8E3d0300E5710743585",

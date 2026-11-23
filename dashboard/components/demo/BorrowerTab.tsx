@@ -13,7 +13,7 @@ import { WalletGate, errText } from "./WalletGate";
 import { useRoles } from "./roles";
 import "./demo-borrower.css";
 
-const POLL_MS = 3000;
+const POLL_MS = 5000;
 const pullRequested = parseAbiItem("event PullRequested(uint256 indexed traceId, uint8 attempt)");
 
 /** Collateral has 18 decimals. */
@@ -63,9 +63,6 @@ export function BorrowerTab({ addresses }: { addresses: Record<string, string> }
   const roles = useRoles("borrower", address);
   return (
     <div className="dm-b">
-      <p className="dm-b-lead">
-        You are the borrower. You never call Sluice: you repay Morpho like any borrower, and Reactive does the rest.
-      </p>
       <WalletGate
         role="Borrower"
         notice={
@@ -89,6 +86,32 @@ interface Timeline {
   repayTs: number;
   minedAtMs: number;
   lasnaFrom: bigint;
+  /** True when this browser reloaded and found the repay again: the "browser saw it" timing no longer applies. */
+  restored?: boolean;
+}
+
+// A reload right after the repay must not lose what the repayment set off. The repay's own hash is remembered for a few
+// minutes (the public Lasna RPC is searched back about 290 blocks, so older repayments couldn't be followed anyway).
+const REMEMBER_MS = 4 * 60_000;
+const repayKey = (morpho: string, who: string) => `sluice-demo-borrower-repay-${morpho.toLowerCase()}-${who.toLowerCase()}`;
+function loadRepay(morpho: string, who: string): Timeline | null {
+  try {
+    const raw = window.localStorage.getItem(repayKey(morpho, who));
+    if (!raw) return null;
+    const j = JSON.parse(raw) as { repayTx: Hex; repayBlock: string; repayTs: number; lasnaFrom: string; savedAt: number };
+    if (Date.now() - j.savedAt > REMEMBER_MS) return null;
+    return { repayTx: j.repayTx, repayBlock: BigInt(j.repayBlock), repayTs: j.repayTs, minedAtMs: j.savedAt, lasnaFrom: BigInt(j.lasnaFrom), restored: true };
+  } catch {
+    return null;
+  }
+}
+function saveRepay(morpho: string, who: string, t: Timeline | null) {
+  try {
+    if (!t) window.localStorage.removeItem(repayKey(morpho, who));
+    else window.localStorage.setItem(repayKey(morpho, who), JSON.stringify({ repayTx: t.repayTx, repayBlock: String(t.repayBlock), repayTs: t.repayTs, lasnaFrom: String(t.lasnaFrom), savedAt: Date.now() }));
+  } catch {
+    /* the page just won't remember it */
+  }
 }
 
 function BorrowerSteps({ who, addresses, onAct }: { who: Address; addresses: Record<string, string>; onAct: (a: Address) => void }) {
@@ -98,8 +121,9 @@ function BorrowerSteps({ who, addresses, onAct }: { who: Address; addresses: Rec
   const [busy, setBusy] = useState<number | null>(null);
   const [failed, setFailed] = useState<{ n: number; msg: string } | null>(null);
   const [txs, setTxs] = useState<Record<number, Hex>>({});
-  const [timeline, setTimeline] = useState<Timeline | null>(null);
-  const [repaid, setRepaid] = useState(false);
+  const [timeline, setTimeline] = useState<Timeline | null>(() => loadRepay(addresses.morpho, who));
+  const [repaid, setRepaid] = useState(() => loadRepay(addresses.morpho, who) !== null);
+  const [readFails, setReadFails] = useState(0);
   const alive = useRef(true);
 
   const params = marketParams(addresses);
@@ -110,9 +134,13 @@ function BorrowerSteps({ who, addresses, onAct }: { who: Address; addresses: Rec
   const reload = useCallback(async () => {
     try {
       const d = await readChain(addresses, who);
-      if (alive.current) setData(d);
+      if (alive.current) {
+        setData(d);
+        setReadFails(0);
+      }
     } catch {
       /* the next poll retries */
+      if (alive.current) setReadFails((n) => n + 1);
     }
   }, [addresses, who]);
 
@@ -126,7 +154,21 @@ function BorrowerSteps({ who, addresses, onAct }: { who: Address; addresses: Rec
     };
   }, [reload]);
 
-  if (!data) return <p className="sl-note">Reading your position from Morpho…</p>;
+  const newLoan = repaid && data !== null && data.debt > 0n;
+  useEffect(() => {
+    if (!newLoan) return;
+    setRepaid(false);
+    setTimeline(null);
+    saveRepay(addresses.morpho, who, null);
+  }, [newLoan, addresses.morpho, who]);
+
+  if (!data) {
+    return readFails >= 2 ? (
+      <p className="sl-err">The public RPC isn&apos;t answering, so your position can&apos;t load yet. Retrying every {POLL_MS / 1000} s.</p>
+    ) : (
+      <p className="sl-note">Reading your position from Morpho…</p>
+    );
+  }
 
   const free = data.supply > data.borrowed ? data.supply - data.borrowed : 0n;
   const hasDebt = data.debt > 0n;
@@ -211,11 +253,14 @@ function BorrowerSteps({ who, addresses, onAct }: { who: Address; addresses: Rec
     );
     if (!out) return;
     const blk = await clients.base.getBlock({ blockNumber: out.rc.blockNumber });
+    const t: Timeline = { repayTx: out.hash, repayBlock: out.rc.blockNumber, repayTs: Number(blk.timestamp), minedAtMs: Date.now(), lasnaFrom };
+    saveRepay(addresses.morpho, who, t);
     setRepaid(true);
-    setTimeline({ repayTx: out.hash, repayBlock: out.rc.blockNumber, repayTs: Number(blk.timestamp), minedAtMs: Date.now(), lasnaFrom });
+    setTimeline(t);
   };
 
   const startOver = () => {
+    saveRepay(addresses.morpho, who, null);
     setRepaid(false);
     setTimeline(null);
     setTxs({});
@@ -227,13 +272,6 @@ function BorrowerSteps({ who, addresses, onAct }: { who: Address; addresses: Rec
 
   return (
     <div className="dm-b-steps">
-      <div className="dm-b-stats">
-        <Stat label="Free cash in the pool" value={`${usd(free)} mUSD`} />
-        <Stat label="Your collateral" value={`${col(data.posCollateral)} mCOL`} />
-        <Stat label="Your debt" value={`${usd(data.debt)} mUSD`} />
-        <Stat label="Your mUSD" value={usd(data.walletUsd)} />
-      </div>
-
       {free === 0n && !hasDebt && !repaid && (
         <p className="sl-note">
           Nothing to borrow until a lender deposits: the pool has no free cash right now. Have the lender deposit first, then come back here.
@@ -338,15 +376,6 @@ function BorrowerSteps({ who, addresses, onAct }: { who: Address; addresses: Rec
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="dm-b-stat">
-      <span>{label}</span>
-      <b>{value}</b>
-    </div>
-  );
-}
-
 interface Seen {
   reactive?: { tx: Hex; ts: number };
   callback?: { tx: Hex; ts: number; from: string; paid: bigint; firstId: bigint; count: number };
@@ -369,6 +398,7 @@ function SettlementTimeline({ t, addresses }: { t: Timeline; addresses: Record<s
     const reactive = addresses.sluiceReactive as Address;
     const started = Date.now();
     const cur: Seen = {};
+    let callbackAt = 0;
 
     (async () => {
       while (!stop && Date.now() - started < 60_000) {
@@ -402,13 +432,15 @@ function SettlementTimeline({ t, addresses }: { t: Timeline; addresses: Record<s
                 count: hits.length,
               };
               setSeenMs(Date.now() - t.minedAtMs);
+              callbackAt = Date.now();
             }
           }
         } catch {
           /* public RPCs blip; try again */
         }
         if (!stop) setSeen({ ...cur });
-        if (cur.callback) return;
+        // The callback on Base can be seen before Lasna's public RPC returns Reactive's own log: keep looking for it a while.
+        if (cur.callback && (cur.reactive || Date.now() - callbackAt > 20_000)) return;
         if (!cur.reactive && Date.now() - started > 15_000) setNobody(true);
         await new Promise((r) => setTimeout(r, 500));
       }
@@ -483,7 +515,7 @@ function SettlementTimeline({ t, addresses }: { t: Timeline; addresses: Record<s
       {callback && (
         <p className="dm-b-sum">
           {Math.max(0, callback.ts - t.repayTs)} s between your repayment and the payout by block timestamps
-          {seenMs !== null ? `; your browser saw it ${(seenMs / 1000).toFixed(1)} s after your transaction was mined` : ""}. Block timestamps have
+          {seenMs !== null && !t.restored ? `; your browser saw it ${(seenMs / 1000).toFixed(1)} s after your transaction was mined` : ""}. Block timestamps have
           one-second resolution.
         </p>
       )}

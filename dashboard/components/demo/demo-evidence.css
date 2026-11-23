@@ -1,0 +1,26 @@
+/* Recorded-run evidence next to the live demo. Classes prefixed dm-ev-. */
+.dm-ev-head { margin: 34px 0 4px; font-size: clamp(1.15rem, 2vw, 1.45rem); }
+.dm-ev-intro { margin: 0 0 14px; }
+.dm-ev { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); align-items: start; margin-top: 8px; }
+.dm-ev-card h3 { margin-bottom: 6px; }
+.dm-ev-lede { margin: 0 0 14px; color: var(--ink-2); font-size: 14px; }
+.dm-ev-rows { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 0; }
+.dm-ev-rows li { display: flex; justify-content: space-between; gap: 14px; align-items: baseline; padding: 8px 0; border-top: 1px dashed var(--line); font-size: 14px; color: var(--ink-2); }
+.dm-ev-rows li:first-child { border-top: 0; }
+.dm-ev-rows b { color: var(--ink); }
+.dm-ev-rows a.sl-mono { white-space: nowrap; }
+.dm-ev-cells { display: grid; grid-template-columns: repeat(20, 1fr); gap: 3px; margin: 4px 0 12px; }
+.dm-ev-cell { aspect-ratio: 1; border-radius: 3px; background: var(--muted); }
+.dm-ev-cell.b1 { background: var(--blue); }
+.dm-ev-cell.b2 { background: var(--violet); }
+.dm-ev-foot { margin: 0; color: var(--ink-2); font-size: 13px; line-height: 1.5; }
+.dm-ev-ok { color: var(--good); }
+.dm-ev-tablewrap { overflow-x: auto; margin-bottom: 12px; }
+.dm-ev-table th, .dm-ev-table td { vertical-align: top; }
+.dm-ev-table td span { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+.dm-ev-table td b { font-size: 18px; font-variant-numeric: tabular-nums; }
+.dm-ev-table td.win b { color: var(--good); }
+.dm-ev-table td.lose b { color: #ff6b6b; }
+.dm-ev-notes { margin: 0; padding-left: 18px; display: grid; gap: 8px; color: var(--ink-2); font-size: 13.5px; line-height: 1.5; }
+.dm-ev-notes b { color: var(--ink); }
+@media (max-width: 640px) { .dm-ev-rows li { flex-direction: column; gap: 2px; } }

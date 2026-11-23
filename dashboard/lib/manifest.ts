@@ -139,6 +139,22 @@ export interface CaseStudy {
   rerun: { file: string; loops: number; succeeded: number; examples: { loop: number; links: Record<string, string>; userPaidMs: number; relayerReimbursedMs: number }[] };
 }
 
+/** One full Live-demo run (two fresh wallets, every step a real transaction), recorded from results/demo-flow-test.json. */
+export interface DemoRun {
+  date: string;
+  lender: string;
+  borrower: string;
+  /** The wallets' own transactions in order, without the operator's gas funding. */
+  steps: { role: "lender" | "borrower"; label: string; hash: string }[];
+  repayTx: string;
+  /** Reactive's callback that paid the lender's ticket (its trace id is the repay transaction hash). */
+  settleTx: string;
+  settlePaid: string;
+  callbackSender: string;
+  callbackSentByReactiveSigner: boolean;
+  repayToPaidSeconds: number;
+}
+
 export interface Manifest {
   generatedAt: string;
   deployed: boolean;
@@ -147,6 +163,7 @@ export interface Manifest {
   raceReplay: RaceReplay | null;
   batch: BatchResult | null;
   caseStudy: CaseStudy | null;
+  demoRun: DemoRun | null;
 }
 
 export async function loadManifest(): Promise<Manifest> {
@@ -154,5 +171,5 @@ export async function loadManifest(): Promise<Manifest> {
   const res = await fetch(`${base}/data/manifest.json`, { cache: "no-store" });
   if (!res.ok) throw new Error(`manifest: HTTP ${res.status}`);
   const m = (await res.json()) as Partial<Manifest> & Pick<Manifest, "generatedAt" | "deployed" | "addresses" | "summary">;
-  return { raceReplay: null, batch: null, caseStudy: null, ...m };
+  return { raceReplay: null, batch: null, caseStudy: null, demoRun: null, ...m };
 }

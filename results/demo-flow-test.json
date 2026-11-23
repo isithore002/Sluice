@@ -1,0 +1,214 @@
+{
+  "description": "End-to-end run of the dashboard's Live demo (#demo) by two brand-new wallets (lender A, borrower B) we generated for the test, each funded with 0.00006 Base Sepolia ETH. The page ran in headless Edge with a test wallet provider injected in place of a MetaMask popup; it signs with the wallets' keys, and every transaction is a real Base Sepolia transaction. Keys are never recorded.",
+  "date": "2026-11-22T17:03:51.051Z",
+  "lender": "0x11bB36140D593B3e7AE88A064b0342B6f2D023a7",
+  "borrower": "0x5b61CB57004c610416744C196175DE3d8E355826",
+  "txs": [
+    {
+      "step": "fund",
+      "from": "operator",
+      "hash": "0x417ce7c9a64793babae9e65e57b329dbe7ed45831d2b3d74caeb9ca1bfac9219"
+    },
+    {
+      "step": "fund",
+      "from": "operator",
+      "hash": "0xcfccc9e736743bbc128c434206ece78971fc8daaa22d4c71be8588c0ab915c13"
+    },
+    {
+      "step": "lender: mint 10 mUSD",
+      "from": "lender",
+      "hash": "0xebc0b3d6b25e04dd4d65cdd7761a316e5fd7680ac2d11d50a68143d544b208a3",
+      "sentAt": 1795367052209
+    },
+    {
+      "step": "lender: approve vault",
+      "from": "lender",
+      "hash": "0xe68c1f552b3edfe54c8750f2f9b93c66493626edcbf8a6de6093a7ba91db2967",
+      "sentAt": 1795367054724
+    },
+    {
+      "step": "lender: deposit 10 mUSD",
+      "from": "lender",
+      "hash": "0xfc89ea22e0669b95e6663632c0ebb2d5235fb5ea0f6fc984e0b566c629e48fdd",
+      "sentAt": 1795367057027
+    },
+    {
+      "step": "borrower: mint collateral",
+      "from": "borrower",
+      "hash": "0x7a62e407c8efe55d4239225751380fa2a5f6eb4003bca6d248c1cea0a082dca2",
+      "sentAt": 1795367070286
+    },
+    {
+      "step": "borrower: approve collateral",
+      "from": "borrower",
+      "hash": "0x086087647511fc04666c22858c5a2ddcddfb4dc8fe95427fd40de50d09ba03db",
+      "sentAt": 1795367072807
+    },
+    {
+      "step": "borrower: supply collateral",
+      "from": "borrower",
+      "hash": "0xd344228540d56569735bb256b4255bc7d19f38f583610eb9e10822cd1204a762",
+      "sentAt": 1795367075207
+    },
+    {
+      "step": "borrower: borrow free cash",
+      "from": "borrower",
+      "hash": "0x891741cafe271b17fe6020490d15b3b9d4de09d7621cd62d1f09cfd169a6ac6e",
+      "sentAt": 1795367077167
+    },
+    {
+      "step": "lender: request withdrawal",
+      "from": "lender",
+      "hash": "0x370bfc9900fb6e3ceffef52fd895421139e36fac08eedeaa07073bcc51e7fbf4",
+      "sentAt": 1795367088566
+    },
+    {
+      "step": "borrower: approve mUSD",
+      "from": "borrower",
+      "hash": "0x42c9196d1d706e47429c1d4695a7e8dea60ab1a199babd6f36466f2fed61fc53",
+      "sentAt": 1795367098771
+    },
+    {
+      "step": "borrower: repay",
+      "from": "borrower",
+      "hash": "0x780af099a2a8f96c3ec047d6ac06882be00fe7c96e29cafa43f6b88c1539bb46",
+      "sentAt": 1795367101188
+    },
+    {
+      "step": "return ETH",
+      "from": "A",
+      "hash": "0xd7f3315790c132abc3b7297ff100fea3eff1cc42dbb0f3a9cec87ee2b32573bb"
+    },
+    {
+      "step": "return ETH",
+      "from": "B",
+      "hash": "0x731140eab88841bc44d9cd5ae43c0bf1cfd8b9622745721b0b620f7368384fb2"
+    }
+  ],
+  "steps": [
+    {
+      "name": "0. page loads the Live demo section",
+      "pass": true
+    },
+    {
+      "name": "1a. Lender connects through the RainbowKit modal (Test Wallet listed once)",
+      "pass": true,
+      "detail": "Lender · 0x11bB…23a7 · Test Wallet Use a different wallet"
+    },
+    {
+      "name": "1b. Lender mint, approve and deposit through the UI",
+      "pass": true,
+      "detail": "pool: Supplied by lenders | Borrowed out | Free cash | Utilization | Free cash 10 mUSD: lenders who ask now are paid straight away. | Nobody is waiting. | Waiting for the next repayment. When a borrower repays, the steps below"
+    },
+    {
+      "name": "1c. Pool shows free cash 10 after the deposit",
+      "pass": true,
+      "detail": "free cash shown: 10"
+    },
+    {
+      "name": "2a. Role clash: connecting the lender's account in the Borrower tab shows a warning",
+      "pass": true,
+      "detail": "Borrower · 0x11bB…23a7 · Test Wallet | Use a different wallet |  | This is the wallet you used as the lender. A borrower should be a different wallet: switch accounts in your wallet, or the demo shows one person doing both roles."
+    },
+    {
+      "name": "2b. Switching the wallet to account B (accountsChanged) updates the Borrower tab and clears the warning",
+      "pass": true,
+      "detail": "Borrower · 0x5b61…5826 · Test Wallet Use a different wallet"
+    },
+    {
+      "name": "2c. Borrower mints collateral, supplies it and borrows the free cash through the UI",
+      "pass": true,
+      "detail": "borrow button said: Borrow 10 mUSD"
+    },
+    {
+      "name": "2d. Pool shows free cash 0 after the borrow",
+      "pass": true,
+      "detail": "free cash shown: 0; no free cash | Supplied by lenders | Borrowed out | Free cash | Utilization | Free cash 0: lenders who ask now wait in line. | Nobody is waiting. | Waiting for the next repayment. When a borrower repa"
+    },
+    {
+      "name": "3a. Lender's withdrawal is queued (not paid instantly)",
+      "pass": true,
+      "detail": "Waiting for cash. Nothing for you to do. |  | Your ticket | #269 · 10 mUSD | Still owed to you | … | In front of you | nobody, you are next |  | The pool is fully lent out. When a borrower repays the Morpho market, cash comes back, and Reactive pays the queue "
+    },
+    {
+      "name": "3b. Pool view's queue lists the ticket",
+      "pass": true,
+      "detail": "no free cash | Supplied by lenders | Borrowed out | Free cash | Utilization | Free cash 0: lenders who ask now wait in line. | 1 waiting · 0 mUSD owed, first come first served | #269 | Waiting for the next repayment. When a borrower repays, the steps below app"
+    },
+    {
+      "name": "4a. Borrower's repay shows a live settlement timeline (repay → Reactive → vault callback → lender paid)",
+      "pass": true,
+      "detail": "What your repayment set off | Repay mined on Base | +0 s | 0x780af099…39bb46 ↗ | Reactive noticed it on Lasna | +0 s | 0x63cc817b…8674ea ↗ | Reactive's signer called the vault | +1 s | 0x994c332a…8c0216 ↗ | ✓ sent by Reactive's signer, not by us or you | The lender was paid | 10 mUSD to request #269 |  | 1 s between your repayment and the payout by block timestamps; your browser saw it 1.4 s after your transaction wa"
+    },
+    {
+      "name": "4b. Pool view's 'What Reactive just did' strip shows the settlement",
+      "pass": true,
+      "detail": "REACTIVE JUST DID |  | Paid 10 mUSD about 1 s after the repayment. Nobody called Sluice. |  | Borrower repays on Morpho | start | 0x780af0…bb46 ↗ | Reactive sees it on Lasna | same second | 0x63cc81…74ea ↗ | Reactive's signer pays the queue | +1 s | 0x994c33…0216 ↗ |  | Times are block timestamps (one-second resolution; the chains' clocks can differ by a second). |  | WHO DOES "
+    },
+    {
+      "name": "4c. Lender tab shows '✓ Paid by Reactive'",
+      "pass": true,
+      "detail": "✓ Paid by Reactive |  | You received | 10 mUSD (ticket #269) | Payout transaction | 0x994c332a…8c0216 ↗ | Sent by | ✓ Reactive's signer, not by you and not by us | Borrower's repayment | 0x780af099…39bb46 ↗ | Repayment to payout | about 1.00 s |  | Measured from block timestamps (1 second resolution). You didn't call anything: the borrower repaid and Reactive did the rest. |  |"
+    },
+    {
+      "name": "5a. Lender's mUSD balance is back to 10 (paid by the settlement)",
+      "pass": true,
+      "detail": "balance 10000000"
+    },
+    {
+      "name": "5b. WithdrawSettled's traceId equals the borrower's repay tx hash",
+      "pass": true,
+      "detail": "settle tx 0x994c332aa74a9e682cc674cf72f6c444fd335495d04906f159ea89f5918c0216"
+    },
+    {
+      "name": "5c. The callback was sent by Reactive's signer, not by us",
+      "pass": true,
+      "detail": "sender 0xf7e866d726658f6c3f14b8ee537fe268a4d91ddb"
+    },
+    {
+      "name": "6. Phone width (390 px): no horizontal overflow",
+      "pass": true
+    }
+  ],
+  "consoleProblems": [],
+  "screenshots": [
+    "C:\\Users\\91892\\AppData\\Local\\Temp\\claude\\157a26ecf2d8e7ce\\7f0914bd-0734-4c66-a1c1-accb5d19d33f\\scratchpad\\e2e\\e2e-0-initial.png",
+    "C:\\Users\\91892\\AppData\\Local\\Temp\\claude\\157a26ecf2d8e7ce\\7f0914bd-0734-4c66-a1c1-accb5d19d33f\\scratchpad\\e2e\\e2e-1a-modal.png",
+    "C:\\Users\\91892\\AppData\\Local\\Temp\\claude\\157a26ecf2d8e7ce\\7f0914bd-0734-4c66-a1c1-accb5d19d33f\\scratchpad\\e2e\\e2e-1b-after-deposit.png",
+    "C:\\Users\\91892\\AppData\\Local\\Temp\\claude\\157a26ecf2d8e7ce\\7f0914bd-0734-4c66-a1c1-accb5d19d33f\\scratchpad\\e2e\\e2e-2a-role-clash.png",
+    "C:\\Users\\91892\\AppData\\Local\\Temp\\claude\\157a26ecf2d8e7ce\\7f0914bd-0734-4c66-a1c1-accb5d19d33f\\scratchpad\\e2e\\e2e-2b-pool-empty.png",
+    "C:\\Users\\91892\\AppData\\Local\\Temp\\claude\\157a26ecf2d8e7ce\\7f0914bd-0734-4c66-a1c1-accb5d19d33f\\scratchpad\\e2e\\e2e-3-queued.png",
+    "C:\\Users\\91892\\AppData\\Local\\Temp\\claude\\157a26ecf2d8e7ce\\7f0914bd-0734-4c66-a1c1-accb5d19d33f\\scratchpad\\e2e\\e2e-4a-timeline.png",
+    "C:\\Users\\91892\\AppData\\Local\\Temp\\claude\\157a26ecf2d8e7ce\\7f0914bd-0734-4c66-a1c1-accb5d19d33f\\scratchpad\\e2e\\e2e-4c-pool-strip.png",
+    "C:\\Users\\91892\\AppData\\Local\\Temp\\claude\\157a26ecf2d8e7ce\\7f0914bd-0734-4c66-a1c1-accb5d19d33f\\scratchpad\\e2e\\e2e-4b-lender-paid.png",
+    "C:\\Users\\91892\\AppData\\Local\\Temp\\claude\\157a26ecf2d8e7ce\\7f0914bd-0734-4c66-a1c1-accb5d19d33f\\scratchpad\\e2e\\e2e-5-phone.png"
+  ],
+  "timings": {
+    "repaySentToTimelineCompleteMs": 4237,
+    "poolStripShowedSettlementAfterMs": 6683,
+    "repayToPaidSecondsByBlockTimestamps": 1
+  },
+  "onchain": {
+    "lenderMusdBalance": "10000000",
+    "repayTx": "0x780af099a2a8f96c3ec047d6ac06882be00fe7c96e29cafa43f6b88c1539bb46",
+    "settleTx": "0x994c332aa74a9e682cc674cf72f6c444fd335495d04906f159ea89f5918c0216",
+    "settleTraceIdEqualsRepayTxHash": true,
+    "settlePaid": "10000000",
+    "callbackSender": "0xf7e866d726658f6c3f14b8ee537fe268a4d91ddb",
+    "callbackSentByReactiveSigner": true,
+    "repayBlockTimestamp": 1795367103,
+    "callbackBlockTimestamp": 1795367104,
+    "repayToPaidSecondsByBlockTimestamps": 1,
+    "finalPool": {
+      "queueWaiting": "0",
+      "pendingTotal": "0",
+      "morphoSupplied": "9400000000",
+      "morphoBorrowed": "9400000000",
+      "borrowerBorrowShares": "0",
+      "borrowerCollateral": "11860465116279069767"
+    }
+  },
+  "notes": [
+    "console problems: 0 (same-key warnings: 0)"
+  ]
+}

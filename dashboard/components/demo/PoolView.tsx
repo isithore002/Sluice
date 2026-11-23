@@ -14,6 +14,8 @@ interface Props {
   addresses: Record<string, string>;
   state: LiveState | null;
   events: FeedEvent[];
+  /** Show the "who does what" diagram under the cards (the demo stage places it itself, below the steps). */
+  legend?: boolean;
 }
 
 interface Ticket {
@@ -32,7 +34,7 @@ interface Settled {
 }
 
 const QUEUE_SHOWN = 8;
-const POLL_MS = 3000;
+const POLL_MS = 5000;
 const PAID_SHOWN_FOR_S = 120;
 
 const sameAddr = (a?: string, b?: string) => !!a && !!b && a.toLowerCase() === b.toLowerCase();
@@ -43,7 +45,7 @@ const nowS = () => Date.now() / 1000;
  * the last settlement Reactive made (repay -> Reactive -> payout), matched by trace id. Nothing here is simulated: every
  * number is read from the chains, and the strip stays empty until a real repayment has been settled.
  */
-export function PoolView({ addresses, state, events }: Props) {
+export function PoolView({ addresses, state, events, legend = true }: Props) {
   const vault = addresses.sluiceVault as Address;
   const { address: me } = useAccount();
 
@@ -184,7 +186,7 @@ export function PoolView({ addresses, state, events }: Props) {
       <PoolTank state={state} />
       <QueueCard queue={queue} paid={paid} me={me} pending={state?.pending ?? null} />
       <ReactiveStrip chain={chain} repayTime={chain ? (chain.repay?.time ?? timeCache.current.get(chain.repayHash) ?? null) : null} />
-      <RoleLegend />
+      {legend && <RoleLegend />}
     </div>
   );
 }
@@ -256,7 +258,7 @@ function QueueCard({
     <div className="sl-card dm-p-queue" aria-live="polite">
       <h3>The queue</h3>
       <p className="dm-p-qhead">
-        {waiting === null ? "Reading the queue…" : waiting === 0n ? "Nobody is waiting." : `${waiting.toString()} waiting · ${usd(pending ?? 0n)} mUSD owed, first come first served`}
+        {waiting === null ? "Reading the queue…" : waiting === 0n ? "Nobody is in line. When a lender asks for money the pool can't pay right now, their numbered ticket appears here, and it turns green when Reactive pays it." : `${waiting.toString()} waiting · ${usd(pending ?? 0n)} mUSD owed, first come first served`}
       </p>
       <ol className="dm-p-tickets">
         {paid.map((p) => (
@@ -299,9 +301,14 @@ function ReactiveStrip({
   chain: { settle: FeedEvent; logs: Settled[]; repayHash: Hex; repay: FeedEvent | null; pull: FeedEvent | null } | null;
   repayTime: number | null;
 }) {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setTick((n) => n + 1), 1000);
+    return () => clearInterval(t);
+  }, []);
   if (!chain) {
     return (
-      <div className="sl-card dm-p-strip">
+      <div className="sl-card dm-p-strip" aria-live="polite">
         <h3>What Reactive just did</h3>
         <p className="sl-note">Waiting for the next repayment. When a borrower repays, the steps below appear with their real transactions.</p>
       </div>
@@ -312,6 +319,8 @@ function ReactiveStrip({
   const total = off(settleT);
   const paidTotal = chain.logs.reduce((n, l) => n + l.paid, 0n);
   const signer = isReactiveSigner(chain.settle.from);
+  // A settlement from the last half minute gets a highlighted "Reactive is doing this" moment.
+  const fresh = settleT != null && nowS() - settleT <= 30;
   const steps = [
     { chip: "base", name: "Borrower repays on Morpho", tx: chain.repayHash, chain: "base" as const, at: repayTime != null ? "start" : "" },
     {
@@ -330,8 +339,13 @@ function ReactiveStrip({
     },
   ];
   return (
-    <div className="sl-card dm-p-strip">
+    <div className={`sl-card dm-p-strip${fresh ? " fresh" : ""}`} aria-live="polite">
       <h3>What Reactive just did</h3>
+      {fresh && (
+        <p className="dm-p-flash" role="status">
+          <span aria-hidden="true">⚡</span> Reactive just paid the queue by itself. No one called Sluice.
+        </p>
+      )}
       <p className="dm-p-sum">
         {total !== null ? (
           <>
@@ -366,7 +380,7 @@ function fmtOff(s: number | null): string {
   return s === null ? "" : s === 0 ? "same second" : `+${s} s`;
 }
 
-function RoleLegend() {
+export function RoleLegend() {
   return (
     <div className="sl-card dm-p-legend">
       <h3>Who does what</h3>

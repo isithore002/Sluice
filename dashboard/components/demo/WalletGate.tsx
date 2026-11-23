@@ -5,7 +5,6 @@ import { useState, type ReactNode } from "react";
 import type { Address } from "viem";
 import { useAccount, useBalance, useDisconnect, useSwitchChain } from "wagmi";
 import { baseSepolia } from "wagmi/chains";
-import { short } from "../dashboard/format";
 
 const FAUCETS = [
   { name: "Coinbase Developer Platform faucet", url: "https://portal.cdp.coinbase.com/products/faucet" },
@@ -50,7 +49,7 @@ interface GateProps {
  * "Switch to Base Sepolia" button, then the gas check. Only then does it render the role's steps.
  */
 export function WalletGate({ role, children, notice }: GateProps) {
-  const { address, chainId, connector } = useAccount();
+  const { address, chainId, connector, status } = useAccount();
   const { switchChainAsync } = useSwitchChain();
   const { disconnect } = useDisconnect();
   const balance = useBalance({ address, chainId: baseSepolia.id, query: { enabled: Boolean(address), refetchInterval: 8000 } });
@@ -70,6 +69,18 @@ export function WalletGate({ role, children, notice }: GateProps) {
     }
   }
 
+  // After a reload wagmi still remembers the account while it reconnects the wallet in the background. A click in that
+  // window fails ("connector.getChainId is not a function"), so the steps wait for the reconnect to finish.
+  if (status === "reconnecting") {
+    return (
+      <div className="dm-gate">
+        <p className="sl-note" aria-live="polite">
+          Reconnecting your wallet…
+        </p>
+      </div>
+    );
+  }
+
   if (!address) {
     return (
       <div className="dm-gate">
@@ -84,34 +95,28 @@ export function WalletGate({ role, children, notice }: GateProps) {
     );
   }
 
-  const header = (
-    <div className="dm-gate-head">
-      <span>
-        <b>{role}</b> · <span className="sl-mono">{short(address, 4, 4)}</span>
-        {connector ? ` · ${connector.name}` : ""}
-      </span>
-      <button className="dm-link" onClick={() => disconnect()}>
-        Use a different wallet
-      </button>
-    </div>
+  // The one control kept from the old wallet header: two roles need two wallets, so switching must stay possible.
+  const switchLink = (
+    <button className="dm-link" onClick={() => disconnect()}>
+      Use a different wallet
+    </button>
   );
 
   if (chainId !== baseSepolia.id) {
     return (
       <div className="dm-gate">
-        {header}
         <p className="sl-note">Your wallet is on another network. The demo runs on Base Sepolia.</p>
         <button className="sl-btn primary" onClick={switchToBase} disabled={switching}>
           {switching ? "Switching…" : "Switch to Base Sepolia"}
         </button>
         {error && <p className="sl-err">{error}</p>}
+        {switchLink}
       </div>
     );
   }
 
   return (
     <div className="dm-gate">
-      {header}
       {notice}
       {eth === 0n && (
         <p className="sl-note">
@@ -127,7 +132,11 @@ export function WalletGate({ role, children, notice }: GateProps) {
           .
         </p>
       )}
-      {children({ address, eth })}
+      {/* No gas, no steps: a disabled fieldset disables every button and field inside it. */}
+      <fieldset className="dm-gas-lock" disabled={eth === 0n}>
+        {children({ address, eth })}
+      </fieldset>
+      {switchLink}
     </div>
   );
 }

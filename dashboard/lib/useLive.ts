@@ -33,7 +33,7 @@ export interface FeedEvent {
   from: string | null;
 }
 
-const POLL_MS = 4000;
+const POLL_MS = 6000;
 /**
  * Public RPCs time out or return an odd error now and then. Each chain is read on its own, a chain that fails keeps
  * its last values, and it is reported only after failing this many polls in a row (about 12 s).

@@ -39,7 +39,7 @@ interface Settled {
   viaDeposit: boolean;
 }
 
-const POLL_MS = 3000;
+const POLL_MS = 5000;
 const WINDOW = 189n; // Base Sepolia's public RPC serves at most 200 blocks of logs per query
 
 const storeKey = (vault: string, a: string) => `sluice-demo-lender-withdrawal-${vault.toLowerCase()}-${a.toLowerCase()}`;
@@ -55,6 +55,24 @@ function save(vault: string, a: string, s: Saved | null) {
   try {
     if (s) window.localStorage.setItem(storeKey(vault, a), JSON.stringify(s));
     else window.localStorage.removeItem(storeKey(vault, a));
+  } catch {
+    /* the page just won't remember it */
+  }
+}
+
+// "Start over" must stick: a ticket the lender has dismissed is never found again by the on-chain lookup below.
+const dismissKey = (vault: string, a: string) => `${storeKey(vault, a)}-dismissed`;
+function dismissedId(vault: string, a: string): bigint {
+  try {
+    const raw = window.localStorage.getItem(dismissKey(vault, a));
+    return raw ? BigInt(raw) : -1n;
+  } catch {
+    return -1n;
+  }
+}
+function dismiss(vault: string, a: string, id: string) {
+  try {
+    window.localStorage.setItem(dismissKey(vault, a), id);
   } catch {
     /* the page just won't remember it */
   }
@@ -93,7 +111,7 @@ async function lookupSettlement(vault: Address, id: bigint, owner: Address, from
 }
 
 /** The lender's recent queued withdrawal, if this browser forgot it (a few minutes of history). */
-async function discoverTicket(vault: Address, owner: Address): Promise<Saved | null> {
+async function discoverTicket(vault: Address, owner: Address, dismissed: bigint): Promise<Saved | null> {
   const c = clients.base;
   const latest = await c.getBlockNumber();
   let to = latest;
@@ -101,7 +119,11 @@ async function discoverTicket(vault: Address, owner: Address): Promise<Saved | n
     const from = to - WINDOW > 0n ? to - WINDOW : 0n;
     const logs = await c.getContractEvents({ address: vault, abi: vaultUserAbi, eventName: "WithdrawQueued", args: { owner }, fromBlock: from, toBlock: to });
     const l = logs[logs.length - 1];
-    if (l) return { kind: "ticket", id: String(l.args.requestId), assets: String(l.args.assets), block: String(l.blockNumber), tx: l.transactionHash!, at: Date.now() };
+    if (l) {
+      // Ticket ids only grow, so if the newest one was dismissed, every older one was too.
+      if ((l.args.requestId ?? 0n) <= dismissed) return null;
+      return { kind: "ticket", id: String(l.args.requestId), assets: String(l.args.assets), block: String(l.blockNumber), tx: l.transactionHash!, at: Date.now() };
+    }
     to = from - 1n;
   }
   return null;
@@ -118,10 +140,6 @@ export function LenderTab({ addresses }: { addresses: Record<string, string> }) 
   ) : undefined;
   return (
     <div className="dm-l">
-      <p className="sl-note dm-l-note">
-        You are the <b>lender</b>. You put money in and ask for it back. You never call Reactive or Morpho: when a borrower repays, Reactive pays your ticket by
-        itself.
-      </p>
       <WalletGate role="Lender" notice={notice}>
         {({ address: a }) => <LenderSteps key={a} address={a} addresses={addresses} remember={remember} />}
       </WalletGate>
@@ -142,6 +160,7 @@ function LenderSteps({ address, addresses, remember }: { address: Address; addre
   const [err, setErr] = useState<{ step: number; msg: string } | null>(null);
   const [txs, setTxs] = useState<Record<number, Hex>>({});
   const [tick, setTick] = useState(0);
+  const [readFails, setReadFails] = useState(0);
   const looked = useRef<string | null>(null);
 
   const amount = (() => {
@@ -165,9 +184,13 @@ function LenderSteps({ address, addresses, remember }: { address: Address; addre
           c.readContract({ address: vault, abi: vaultUserAbi, functionName: "head" }),
           sv !== null ? c.readContract({ address: vault, abi: vaultUserAbi, functionName: "request", args: [sv] }) : Promise.resolve(null),
         ]);
-        if (!stopped) setReads({ bal, allowance, shares, pendingTotal, queueLength, head, remaining: req ? req[1] : null });
+        if (!stopped) {
+          setReads({ bal, allowance, shares, pendingTotal, queueLength, head, remaining: req ? req[1] : null });
+          setReadFails(0);
+        }
       } catch {
         /* a slow public RPC: keep the last values and try again */
+        if (!stopped) setReadFails((n) => n + 1);
       }
     }
     read();
@@ -178,11 +201,14 @@ function LenderSteps({ address, addresses, remember }: { address: Address; addre
     };
   }, [address, vault, usdToken, saved, tick]);
 
-  // A browser that forgot its ticket (another profile, cleared storage) finds a recent one on-chain.
+  // A browser that forgot its ticket (another profile, cleared storage) finds a recent one on-chain. Only a lender with
+  // nothing deposited can have a ticket in flight (asking for the money back moves the deposit into the ticket), so a
+  // lender who deposited again never gets an old ticket back.
+  const noShares = reads !== null && reads.shares === 0n;
   useEffect(() => {
-    if (saved) return;
+    if (saved || !noShares) return;
     let stopped = false;
-    discoverTicket(vault, address)
+    discoverTicket(vault, address, dismissedId(vault, address))
       .then((s) => {
         if (!stopped && s) {
           save(vault, address, s);
@@ -193,7 +219,7 @@ function LenderSteps({ address, addresses, remember }: { address: Address; addre
     return () => {
       stopped = true;
     };
-  }, [vault, address]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [vault, address, noShares]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Once the ticket is fully paid, find the payout on-chain (amount, callback transaction, who sent it, how fast).
   const ticketPaid = saved?.kind === "ticket" && reads?.remaining === 0n;
@@ -275,6 +301,7 @@ function LenderSteps({ address, addresses, remember }: { address: Address; addre
     });
 
   function startOver() {
+    if (saved?.kind === "ticket") dismiss(vault, address, saved.id);
     save(vault, address, null);
     looked.current = null;
     setSaved(null);
@@ -284,13 +311,22 @@ function LenderSteps({ address, addresses, remember }: { address: Address; addre
     setTick((t) => t + 1);
   }
 
-  if (!reads) return <p className="sl-note">Reading the chain…</p>;
+  if (!reads) {
+    return readFails >= 2 ? (
+      <p className="sl-err">The public RPC isn&apos;t answering, so your balances can&apos;t load yet. Retrying every {POLL_MS / 1000} s.</p>
+    ) : (
+      <p className="sl-note">Reading the chain…</p>
+    );
+  }
 
   // Which step is next, from what the chain says (so a reload resumes where the lender left off).
   const hasPosition = reads.shares > 0n;
   const withdrawn = saved !== null;
   const stage = withdrawn ? 4 : hasPosition ? 3 : amount > 0n && reads.allowance >= amount && reads.bal >= amount ? 2 : amount > 0n && reads.bal >= amount ? 1 : 0;
-  const stateOf = (i: number): StepState => (busy === i ? "busy" : err?.step === i ? "error" : i < stage ? "done" : i === stage ? "active" : "todo");
+  // An amount outside 1..100 can't be minted, approved or deposited: those steps wait until it is valid.
+  const needsAmount = amount === 0n && stage < 3;
+  const stateOf = (i: number): StepState =>
+    busy === i ? "busy" : err?.step === i ? "error" : i < stage ? "done" : i === stage && !needsAmount ? "active" : "todo";
   const ticket = saved?.kind === "ticket" ? saved : null;
   const ahead = ticket && reads ? Number(BigInt(ticket.id) > reads.head ? BigInt(ticket.id) - reads.head : 0n) : 0;
   const queuedBefore = reads.pendingTotal > 0n;
@@ -298,21 +334,6 @@ function LenderSteps({ address, addresses, remember }: { address: Address; addre
 
   return (
     <div className="dm-l-steps">
-      <div className="dm-l-stats" aria-live="polite">
-        <div>
-          <span>Your mUSD</span>
-          <b>{usd(reads.bal)}</b>
-        </div>
-        <div>
-          <span>Your deposit in Sluice</span>
-          <b>{usd(reads.shares)}</b>
-        </div>
-        <div>
-          <span>Others waiting in line</span>
-          <b>{usd(reads.pendingTotal)}</b>
-        </div>
-      </div>
-
       <ol className="dm-steps">
         <StepRow
           n={1}

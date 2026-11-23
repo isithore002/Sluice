@@ -33,6 +33,27 @@ if (existsSync(baseMarket)) addresses.mockUSD = JSON.parse(readFileSync(baseMark
 const readJson = (p) => (existsSync(p) ? JSON.parse(readFileSync(p, "utf8")) : null);
 const raceReplay = readJson(resolve(results, "replay-race.json"));
 const caseStudy = readJson(resolve(results, "case-study-flowC.json"));
+// The recorded two-wallet Live-demo run: only the wallets' own transactions (no operator gas funding), plus Reactive's callback.
+let demoRun = null;
+{
+  const j = readJson(resolve(results, "demo-flow-test.json"));
+  if (j?.onchain?.settleTx && Array.isArray(j.txs)) {
+    demoRun = {
+      date: j.date,
+      lender: j.lender,
+      borrower: j.borrower,
+      steps: j.txs
+        .filter((t) => t.from === "lender" || t.from === "borrower")
+        .map((t) => ({ role: t.from, label: String(t.step).replace(/^(lender|borrower): /, ""), hash: t.hash })),
+      repayTx: j.onchain.repayTx,
+      settleTx: j.onchain.settleTx,
+      settlePaid: String(j.onchain.settlePaid),
+      callbackSender: j.onchain.callbackSender,
+      callbackSentByReactiveSigner: Boolean(j.onchain.callbackSentByReactiveSigner),
+      repayToPaidSeconds: j.onchain.repayToPaidSecondsByBlockTimestamps ?? j.timings?.repayToPaidSecondsByBlockTimestamps ?? 0,
+    };
+  }
+}
 let batch = null;
 if (existsSync(results)) {
   const files = readdirSync(results).filter((f) => /^batch-\d{4}-.*\.json$/.test(f)).sort().reverse();
@@ -45,7 +66,7 @@ if (existsSync(results)) {
   }
 }
 
-const manifest = { generatedAt: new Date().toISOString(), deployed, addresses, summary, raceReplay, batch, caseStudy };
+const manifest = { generatedAt: new Date().toISOString(), deployed, addresses, summary, raceReplay, batch, caseStudy, demoRun };
 writeFileSync(resolve(outDir, "manifest.json"), JSON.stringify(manifest, null, 2));
 console.log(
   `dashboard data: deployed=${deployed}, summary=${summary ? "yes" : "no"}, replay=${raceReplay ? raceReplay.rounds.length + " rounds" : "no"}, batch=${batch ? batch.n + " withdrawals" : "no"}, caseStudy=${caseStudy ? "yes" : "no"}`,

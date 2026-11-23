@@ -1,11 +1,6 @@
 /* Borrower tab. Shared step and gate styles live in demo-stage.css. */
 .dm-b { display: grid; gap: 14px; }
-.dm-b-lead { margin: 0; color: var(--ink-2); font-size: 15px; max-width: 760px; }
 .dm-b-steps { display: grid; gap: 14px; width: 100%; }
-.dm-b-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
-.dm-b-stat { display: grid; gap: 4px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: rgba(10, 12, 20, 0.6); }
-.dm-b-stat span { color: var(--muted); font: 12px/1.2 var(--mono); text-transform: uppercase; letter-spacing: 0.04em; }
-.dm-b-stat b { font-size: 18px; font-variant-numeric: tabular-nums; }
 .dm-b-amount { display: grid; gap: 6px; margin-top: 10px; max-width: 240px; color: var(--ink-2); font-size: 13px; }
 .dm-b-amount input { padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.04); color: var(--ink); font: 15px var(--sans); }
 .dm-b-amount input:disabled { opacity: 0.5; }

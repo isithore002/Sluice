@@ -71,3 +71,11 @@
 @media (max-width: 520px) { .dm-p-legend svg { display: none; } .dm-p-lglist { display: grid; } }
 
 @media (prefers-reduced-motion: reduce) { .dm-p-liquid { transition: none; } }
+
+/* ---- the moment Reactive pays: a clear, brief highlight ---- */
+.dm-p-flash { margin: 0 0 10px; padding: 8px 12px; border-radius: 10px; font-weight: 600; color: var(--ink); background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.6); }
+.dm-p-strip.fresh { border-color: rgba(139, 92, 246, 0.7); box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.25), 0 0 44px rgba(139, 92, 246, 0.3); animation: dm-p-glow 2.4s ease-out 1; }
+@keyframes dm-p-glow { from { box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.8), 0 0 80px rgba(139, 92, 246, 0.6); } to { box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.25), 0 0 44px rgba(139, 92, 246, 0.3); } }
+.dm-p-qhead { max-width: 52ch; }
+.dm-p-state, .dm-p-sat { color: var(--ink-2); }
+@media (prefers-reduced-motion: reduce) { .dm-p-strip.fresh { animation: none; } }
