@@ -14,8 +14,8 @@ Built for the [Reactive Omni Buildathon](https://dorahacks.io/hackathon/reactive
 |---|---|
 | Networks | Reactive Lasna (5318007), Base Sepolia (84532), Unichain Sepolia (1301) |
 | Protocol integrated | Morpho Blue (the live deployment on Base Sepolia, `0xBBBB…FFCb`) |
-| Tests | 62 passing, against **Morpho's real bytecode** and **the real Omni system contracts** |
-| Results | Live on testnet: 33/33 flow B loops, 31/32 flow C loops, a 60-round latency race. See [Results](#results) |
+| Tests | 67 passing, against **Morpho's real bytecode** and **the real Omni system contracts** |
+| Results | Live on testnet: **one repayment paid 40 queued withdrawals** in two callbacks (25 + 15, first come first served, 2.97 s); 33/33 flow B loops; flow C **32 of 32 completed** (31 timed, [why](#the-cross-chain-loop-that-is-not-in-the-numbers)); a 60-round latency race. See [Results](#results) |
 
 ---
 
@@ -347,6 +347,9 @@ Wallets connect through wagmi and RainbowKit. Browser-extension wallets (MetaMas
 - **The ~legacy comparison is reproduced on Omni, not re-run.** The legacy network no longer exists: Lasna moved to the Omni fork on Oct 7, 2026 ([Reactive](https://blog.reactive.network/lasna-testnet-completes-migration-to-omni-fork/)) and Reactive Mainnet on Oct 28 ([Reactive](https://blog.reactive.network/reactive-mainnet-migration-complete/)). We reproduce its cadence by delaying Sluice 6 Lasna blocks. Reactive puts legacy blocks at about 7 seconds ([buildathon announcement](https://blog.reactive.network/reactive-omni-buildathon-thirty-days-to-find-out-what-one-second-buys/)), and the delayed Sluice acted in about 7.6 s.
 - **The demo market uses `irm = address(0)`,** so there's no interest. Vault shares are 1:1, and the vault is ERC-7540-*style*, not a full ERC-7540 implementation.
 - **The demo is staged by us.** The market, tokens, oracle, vault funding and the queued withdrawal are ours (unavoidable on a testnet). Most loops reuse one wallet for several roles; the independent-actor loops and the try-it-yourself steps above exist so you can check Sluice doesn't depend on that.
+- **A pull is confirmed by any vault state update.** SluiceReactive treats the next `StateUpdated` from the vault as confirmation of an outstanding Morpho pull, including an update caused by an unrelated deposit or withdrawal request. If the pull's own callback had failed, that update would clear its retry state, and only the next repayment or deposit (not a timer) would start a new pull. Matching confirmations to the specific pull's trace id is a known hardening we have not deployed: changing the deployed contracts would orphan the verified runs above.
+- **A late `front` isn't capped by the current shortfall.** `RelayerReserve.front()` sends the lesser of the requested amount and its balance. If the queue was already paid by the time a delayed callback lands, the reserve still sends the requested amount to the vault, where it sits as idle cash, and the Unichain credit is later reimbursed for it. No lender loses funds, but capital moves that wasn't needed. Capping by the vault's current `shortfall()` is a known hardening we have not deployed, for the same reason.
+- **Live settlement depends on Reactive delivering the callback.** On 2026-11-23 the Base and Unichain callback proxies rejected Reactive's signer with `NotAuthorized()`, so every callback reverted before reaching the vault (see [`results/demo-edge-tests.json`](results/demo-edge-tests.json); the dashboard shows the state live). SluiceReactive retries with backoff and the vault's permissionless `poke()` can pay the queue by hand, but a settlement cannot complete while delivery is rejected.
 
 ## License
 
