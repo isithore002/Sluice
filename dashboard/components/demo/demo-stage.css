@@ -71,10 +71,7 @@
 /* A fieldset only to disable what is inside it (a wallet with no gas): it must not look like one. */
 .dm-gas-lock { border: 0; margin: 0; padding: 0; min-width: 0; width: 100%; }
 
-/* ---- console: act on the left, watch the chain react on the right ---- */
-.dm-console { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); gap: 18px; align-items: start; }
-.dm-console .dm-p { grid-template-columns: minmax(0, 1fr); }
-.dm-live { min-width: 0; }
+/* ---- the wallet action card: one column, readable width ---- */
+.dm-console { max-width: 860px; }
 .dm-actions-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
 .dm-actions-head h3 { margin: 0; }
-@media (max-width: 1000px) { .dm-console { grid-template-columns: minmax(0, 1fr); } }

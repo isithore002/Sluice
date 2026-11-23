@@ -28,11 +28,21 @@ const TryItPanel = dynamic(() => import("../../components/web3/TryItPanel"), {
   loading: () => <p className="sl-note">Loading wallet options…</p>,
 });
 
+const LivePoolPanel = dynamic(() => import("../../components/web3/LivePoolPanel"), {
+  ssr: false,
+  // Roughly the finished height of the pool, queue and Reactive panels, so the page doesn't jump when they appear.
+  loading: () => (
+    <div style={{ minHeight: 640 }} aria-busy="true">
+      <p className="sl-note">Loading the live pool…</p>
+    </div>
+  ),
+});
+
 const DemoStagePanel = dynamic(() => import("../../components/web3/DemoStagePanel"), {
   ssr: false,
   // Reserve roughly the finished height, so the page below doesn't jump when the demo appears.
   loading: () => (
-    <div style={{ minHeight: 2000 }} aria-busy="true">
+    <div style={{ minHeight: 760 }} aria-busy="true">
       <p className="sl-note">Loading the live demo…</p>
     </div>
   ),
@@ -170,6 +180,8 @@ export default function Dashboard() {
         {manifest?.deployed && addresses && (
           <section id="treasury" className="sl-section tight sl-wrap dash-sec" data-ascii-avoid="0.8">
             <TreasuryView addresses={manifest.addresses} state={state} events={events} />
+            <h3 className="dash-subhead">The pool and the queue, live</h3>
+            <LivePoolPanel addresses={manifest.addresses} state={state} events={events} />
           </section>
         )}
 
@@ -186,7 +198,7 @@ export default function Dashboard() {
               <p className="dash-intro">
                 Two wallets, two roles. The lender deposits and asks for money back; the borrower borrows from the Morpho market and repays it. Nobody calls
                 Sluice to settle: Reactive sees the repayment and pays the queue. Every button is a real transaction on Base Sepolia with free test tokens, and the
-                pool below is read from the chain.
+                pool above is read from the chain.
               </p>
               <DemoStagePanel addresses={manifest.addresses} state={state} events={events} />
             </Reveal>

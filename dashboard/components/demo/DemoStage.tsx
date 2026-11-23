@@ -4,7 +4,7 @@ import { useRef, useState, type KeyboardEvent } from "react";
 import type { FeedEvent, LiveState } from "../../lib/useLive";
 import { BorrowerTab } from "./BorrowerTab";
 import { LenderTab } from "./LenderTab";
-import { PoolView, RoleLegend } from "./PoolView";
+import { RoleLegend } from "./PoolView";
 import type { Role } from "./roles";
 import "./demo-stage.css";
 
@@ -84,7 +84,7 @@ function BeforeYouStart() {
  * The live product demo: two separate wallets, one per role, and a pool view that shows what both do to the pool.
  * Every button is a real transaction on Base Sepolia, and everything shown is read from the chains.
  */
-export function DemoStage({ addresses, state, events }: DemoStageProps) {
+export function DemoStage({ addresses }: DemoStageProps) {
   const [role, setRole] = useState<Role>("lender");
   const tabs = useRef<Record<Role, HTMLButtonElement | null>>({ lender: null, borrower: null });
 
@@ -129,10 +129,6 @@ export function DemoStage({ addresses, state, events }: DemoStageProps) {
             {role === "lender" ? <LenderTab addresses={addresses} /> : <BorrowerTab addresses={addresses} />}
           </div>
         </section>
-
-        <div className="dm-live">
-          <PoolView addresses={addresses} state={state} events={events} legend={false} />
-        </div>
       </div>
 
       <details className="dm-legend">
