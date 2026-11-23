@@ -13,9 +13,17 @@ export const ago = (t: number | null) => {
   return s < 60 ? `${s}s ago` : s < 3600 ? `${Math.round(s / 60)}m ago` : `${Math.round(s / 3600)}h ago`;
 };
 
-/** Reactive's signer, observed sending every callback on Base Sepolia and Unichain Sepolia. */
-export const REACTIVE_SIGNER = "0xf7e866d726658f6c3f14b8ee537fe268a4d91ddb";
-export const isReactiveSigner = (from: string | null) => !!from && from.toLowerCase() === REACTIVE_SIGNER;
+/**
+ * Reactive's callback signers, observed sending callbacks on Base Sepolia and Unichain Sepolia. Reactive rotated its signer between
+ * 2026-11-19 and 2026-11-23: the first address sent every callback up to the 19th, the second sends them now, and each proxy
+ * authorizes only the current one. All lowercase on purpose.
+ */
+export const REACTIVE_SIGNERS = [
+  "0xf9f61c1d3325e2d4abb55dd9e0db84f7a0d914b0", // current
+  "0xf7e866d726658f6c3f14b8ee537fe268a4d91ddb", // until 2026-11-19 at least
+] as const;
+export const REACTIVE_SIGNER = REACTIVE_SIGNERS[0];
+export const isReactiveSigner = (from: string | null) => !!from && (REACTIVE_SIGNERS as readonly string[]).includes(from.toLowerCase());
 export const whoSent = (from: string | null) =>
   !from ? "" : isReactiveSigner(from) ? "sent by Reactive's signer" : `sent by ${from.slice(0, 6)}…${from.slice(-4)}`;
 

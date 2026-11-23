@@ -5,9 +5,17 @@ import type { Address, Hex } from "viem";
 import { encodeFunctionData, parseAbi } from "viem";
 import { clients, PROXIES, type ChainKey } from "./config";
 
-/** Reactive's signer: the account that has sent every callback we have seen on Base Sepolia and Unichain Sepolia. */
+/**
+ * Reactive's callback signers: the accounts that have sent callbacks we have seen on Base Sepolia and Unichain Sepolia. Reactive rotated
+ * its signer between 2026-11-19 and 2026-11-23 (the old one is no longer authorized, the current one is), so the proxy is healthy when it
+ * accepts ANY of them and rejected only when it refuses every one.
+ */
 // All lowercase on purpose: viem rejects a mixed-case address whose checksum is not exactly right.
-export const REACTIVE_SIGNER = "0xf7e866d726658f6c3f14b8ee537fe268a4d91ddb" as Address;
+export const REACTIVE_SIGNERS = [
+  "0xf9f61c1d3325e2d4abb55dd9e0db84f7a0d914b0", // current
+  "0xf7e866d726658f6c3f14b8ee537fe268a4d91ddb", // until 2026-11-19 at least
+] as Address[];
+export const REACTIVE_SIGNER = REACTIVE_SIGNERS[0];
 
 /** `NotAuthorized()`: what a callback proxy answers when the sender is not one of its operators (its `onlyOperators` check). */
 const NOT_AUTHORIZED = "0xea8e4eb5";
@@ -38,12 +46,12 @@ function revertData(e: unknown): string {
   return parts.join(" ").toLowerCase();
 }
 
-/** Asks one callback proxy whether it would accept Reactive's signer right now. */
-async function probe(chain: ChainKey): Promise<Verdict> {
+/** Asks one callback proxy whether it would accept one given signer right now. */
+async function probeSigner(chain: ChainKey, signer: Address): Promise<Verdict> {
   const to = chain === "base" ? PROXIES.base : PROXIES.uni;
   try {
     // batch: false keeps this a raw eth_call from the signer; a Multicall3 batch would change the sender and the answer.
-    await clients[chain].call({ account: REACTIVE_SIGNER, to, data: PROBE_DATA, batch: false });
+    await clients[chain].call({ account: signer, to, data: PROBE_DATA, batch: false });
     return "accepted";
   } catch (e) {
     const text = revertData(e);
@@ -52,6 +60,14 @@ async function probe(chain: ChainKey): Promise<Verdict> {
     // Anything that is not a revert (a network error, a rate limit, a timeout) says nothing about authorization.
     return text.includes("revert") ? "accepted" : "unknown";
   }
+}
+
+/** Does the proxy accept at least one known Reactive signer? Rejected only if it refuses every one, and "unknown" if any answer is missing. */
+async function probe(chain: ChainKey): Promise<Verdict> {
+  const verdicts = await Promise.all(REACTIVE_SIGNERS.map((s) => probeSigner(chain, s)));
+  if (verdicts.includes("accepted")) return "accepted";
+  if (verdicts.every((v) => v === "rejected")) return "rejected";
+  return "unknown";
 }
 
 /**
