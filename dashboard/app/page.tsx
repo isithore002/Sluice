@@ -261,7 +261,7 @@ export default function Landing() {
                   queue settle itself in about two seconds.
                 </p>
                 <div className="sl-cta">
-                  <Link href="/dashboard#tryit" className="sl-btn primary">
+                  <Link href="/dashboard#demo" className="sl-btn primary">
                     Try it from your wallet <span aria-hidden="true">→</span>
                   </Link>
                   <a href={baseTx(OUTSIDER.settlement)} target="_blank" rel="noreferrer" className="sl-btn">
