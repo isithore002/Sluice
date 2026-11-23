@@ -81,14 +81,15 @@ Measured live ([`results/lifeline-probe.json`](results/lifeline-probe.json), [`r
 
 ## Against a polling keeper
 
-"Why not just run a bot?" is the fair question about any Reactive queue, so we measured it. A keeper bot polls Morpho for free liquidity every N ms and calls the vault's permissionless `poke()` as soon as it sees some while people are queued. Each round queues a withdrawal, repays on Morpho, and lets the keeper and Reactive race to pay it. The winner is read from the `WithdrawSettled` event's trace id, so it is not a guess. 40 live rounds, 39 completed ([`results/keeper-2026-11-23T15-08-05-219Z.json`](results/keeper-2026-11-23T15-08-05-219Z.json); the 40th hit a cleanup error in our harness after the round, not a failed settlement).
+"Why not just run a bot?" is the fair question about any Reactive queue, so we measured it. A keeper bot polls Morpho for free liquidity every N ms and calls the vault's permissionless `poke()` as soon as it sees some while people are queued. Each round queues a withdrawal, repays on Morpho, and lets the keeper and Reactive race to pay it. The winner is read from the `WithdrawSettled` event's trace id, so it is not a guess. Two live runs, 60 rounds, 59 completed ([run 1](results/keeper-2026-11-23T15-08-05-219Z.json), [run 2](results/keeper-2026-11-23T15-55-48-723Z.json)).
 
-| Keeper polling | Rounds | Keeper paid first | Reactive paid first | Repay → queue paid (median / p95) |
-|---|---|---|---|---|
-| every 1,000 ms | 20 | 1 | 19 | 1.33 s / 2.08 s |
-| every 250 ms | 19 | 7 | 12 | 1.23 s / 2.86 s |
+| Keeper polling | Run | Rounds | Keeper paid first | Reactive paid first | Repay → queue paid (median / p95) |
+|---|---|---|---|---|---|
+| every 1,000 ms | 1 | 20 | 1 | 19 | 1.33 s / 2.08 s |
+| every 250 ms | 1 | 19 | 7 | 12 | 1.23 s / 2.86 s |
+| every 250 ms | 2 | 20 | 16 | 4 | 1.11 s / 1.35 s |
 
-**Reading it honestly:** a keeper polling fast enough does beat Reactive some of the time, and it is not slower when it wins, so **we do not claim Reactive is faster than a bot.** What Reactive removes is the bot: no server to keep running, no hot key holding payout rights, no operator who decides when to pay. The keeper here runs on the same machine and public RPC as the harness, so a co-located bot with a private RPC would do better than this one. Times are measured from when the harness saw the repayment's receipt, and a keeper can see the new liquidity slightly before that, which is why a few keeper wins show under half a second.
+**Reading it honestly:** a keeper polling every second mostly loses, but one polling every 250 ms is roughly level with Reactive, and the split moved a lot between two runs an hour apart (7 of 19, then 16 of 20), so we draw no more from it than that. **We do not claim Reactive is faster than a bot.** What Reactive removes is the bot: no server to keep running, no hot key holding payout rights, no operator who decides when to pay. The keeper here runs on the same machine and public RPC as the harness, so a co-located bot with a private RPC would do better still. Times are measured from when the harness saw the repayment's receipt, and a keeper can see the new liquidity slightly before that, which is why a few keeper wins show under half a second. Run 1's one failed round was a race in the harness's own cleanup (a borrow overshooting free liquidity while a transaction was still in flight); it is fixed (the cleanup now waits for in-flight transactions and re-reads before borrowing) and run 2 completed all 20 rounds.
 
 ## Why Reactive, and why Omni
 
