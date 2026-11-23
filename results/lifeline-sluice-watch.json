@@ -1,0 +1,15 @@
+{
+  "what": "Lifeline armed on the real SluiceReactive on Reactive Lasna (2026-11-23), after SluiceReactive ran out of lREACT during a 100-loop Flow B run and was blacklisted by the network.",
+  "lifelineReactive": "0x6f78bcA62BAAA1e3920d0C7C89e736aB5117a07b",
+  "watchedContract": "0xD49236Bb296e8935dC302De0cccFDf5EC5413157",
+  "watchLocal": { "tx": "0x8bb8419e5b58a4176f821c1eba83e35cdddc74872708c188fa279d6bcb4bdf3c", "minGapSeconds": 60 },
+  "sponsorLocal": {
+    "tx": "0x6fb330add00056d59ba96bc18bff57a6585e3c11baef52028a65ee8bcb8990bb",
+    "budget_lREACT": "0.9",
+    "cap_lREACT": "0.5",
+    "topUp_lREACT": "0.3"
+  },
+  "worstCase": "At most 0.9 lREACT can ever be spent on this contract by Lifeline, 0.5 per rescue and no more than one rescue per 60 seconds.",
+  "status": "Armed, not yet triggered on SluiceReactive. The same mechanism was exercised live on a probe contract (results/lifeline-probe.json); it has not been shown on this contract because doing so means letting it run into debt on purpose.",
+  "note": "The earlier outage was fixed by hand: 6.5 lREACT was sent to the system contract's depositTo for SluiceReactive, which paid its 0.0121 lREACT debt and the network emitted WhitelistContract (tx 0x02f130979f57cdef6ca5dfdee861aed53b0ba8bc090904d54afd38186070de4a)."
+}
