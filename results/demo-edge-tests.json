@@ -1,0 +1,23 @@
+{
+  "description": "Edge-case tests of the dashboard's Live demo (lender and borrower tabs) in headless Edge with throwaway test wallets (keys generated in memory, never recorded) sending real Base Sepolia transactions. Outcomes only; no keys.",
+  "date": "2026-11-23",
+  "cases": [
+    { "id": "reload-resume", "result": "pass after fix", "note": "Every step resumes after a reload (lender and borrower). Bug found: right after a reload wagmi shows the account while it is still reconnecting, and a click failed with 'connection.connector.getChainId is not a function'. Fixed: steps wait for the reconnect." },
+    { "id": "ticket-and-timeline-after-reload", "result": "pass after fix", "note": "Queued ticket and instant-payout result survive a reload. The borrower's settlement timeline did not: now remembered for 4 minutes. 'Start over' did not stick (old paid ticket came back after a reload): fixed." },
+    { "id": "wallet-rejects-each-prompt", "result": "pass", "note": "Rejecting lender mint/approve/deposit/withdraw and borrower mint/approve/supply/borrow/approve/repay shows 'You rejected the request in your wallet.' then retry works; no stuck busy state." },
+    { "id": "wrong-network", "result": "pass", "note": "Wallet on the wrong network is switched to Base Sepolia during connect; moving it away mid-flow shows the Switch button again." },
+    { "id": "disconnect-and-account-switch", "result": "pass", "note": "Disconnect returns to the Connect button, reconnect works, account switch updates the tab without reload." },
+    { "id": "same-wallet-both-roles", "result": "pass", "note": "Warning shown, tab still works." },
+    { "id": "instant-payout", "result": "pass", "note": "Withdrawing while the pool has cash is 'Paid instantly'; pool and queue stay coherent." },
+    { "id": "fifo-two-lenders", "result": "pass", "note": "Second ticket shows 1 in front; one Reactive callback paid both in order; a third lender sees the 'a deposit pays earlier tickets first' warning; the borrower timeline says 'and 1 more'." },
+    { "id": "borrow-less-than-free-cash", "result": "pass", "note": "Amount capped at free cash; negative/non-numeric fall back; borrowing 4 of 10 gives a partial payout (6 now, 4 owed), then fully paid after the repay (card states 10)." },
+    { "id": "amount-inputs", "result": "pass after fix", "note": "0, empty, >100, negative and <1 left 'Mint 0 mUSD' clickable; now disabled." },
+    { "id": "zero-eth-wallet", "result": "pass after fix", "note": "Faucet note shown; steps were still enabled; now disabled." },
+    { "id": "rpc-blocked", "result": "pass after fix", "note": "Banner and last values kept, recovery works. Both tabs showed an endless 'Reading…' on first load with the RPC down: now a clear message." },
+    { "id": "keyboard", "result": "pass", "note": "Enter opens the modal, focus moves into it, Tab reaches the wallet option, Escape closes and returns focus." },
+    { "id": "quick-repay-coexists", "result": "pass", "note": "Panel renders on the same wallet connection." },
+    { "id": "request-rate", "result": "improved, still above target on Base", "before": { "baseSepoliaPerMin": 338, "lasnaPerMin": 105, "unichainPerMin": 60, "totalPerMin": 503 }, "after": { "baseSepoliaPerMin": 166, "lasnaPerMin": 80, "unichainPerMin": 30, "totalPerMin": 276 }, "note": "Multicall + JSON-RPC batching and slower idle polling. Heap flat over 3 minutes." },
+    { "id": "missing-callback", "result": "open", "note": "In the last live run one repay (Reactive reacted on Lasna) produced no payout on Base for 10+ minutes (queue 1, 10 mUSD pending, free cash 10). Earlier runs (about 8 repays) paid in 1-2 s. Cleared by the staging script's deposit." }
+  ],
+  "finalPool": { "queued": 0, "supplied": 9410, "borrowed": 9410, "crossChainFronting": "halted", "delayBlocks": 0 }
+}
