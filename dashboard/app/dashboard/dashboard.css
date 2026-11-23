@@ -142,3 +142,7 @@
 .dash-deep-item > summary span { color: var(--muted); font-size: 13px; padding-left: 1.1em; }
 .dash-deep-item > summary:hover b { color: #fff; }
 .dash-deep-body { padding: 4px 18px 18px; }
+
+/* callback health notice above the live demo */
+.cb-notice { margin: 0 0 16px; max-width: 780px; border-style: solid; border-color: rgba(255, 107, 107, 0.45); color: var(--ink-2); font-size: 14px; line-height: 1.55; }
+.cb-notice b { color: var(--ink); }

@@ -8,6 +8,7 @@ import { ContractsTable } from "../../components/dashboard/ContractsTable";
 import { EventFeed } from "../../components/dashboard/EventFeed";
 import { ExampleLoops } from "../../components/dashboard/ExampleLoops";
 import { LatencyTable } from "../../components/dashboard/LatencySection";
+import { CallbackBadge, CallbackNotice } from "../../components/dashboard/CallbackHealth";
 import { FundingStatus } from "../../components/dashboard/LiveCards";
 import { DemoEvidence } from "../../components/demo/DemoEvidence";
 import { RaceReplay } from "../../components/dashboard/RaceReplay";
@@ -16,6 +17,7 @@ import { Reveal } from "../../components/Motion";
 import { RaceChart } from "../../components/RaceChart";
 import { SiteShell } from "../../components/SiteShell";
 import { loadManifest, type Manifest } from "../../lib/manifest";
+import { useCallbackHealth } from "../../lib/useCallbackHealth";
 import { useLive } from "../../lib/useLive";
 import "./dashboard.css";
 
@@ -74,6 +76,7 @@ export default function Dashboard() {
 
   const addresses = useMemo(() => (manifest?.deployed ? manifest.addresses : null), [manifest]);
   const { state, events, error, updatedAt } = useLive(addresses);
+  const health = useCallbackHealth(Boolean(addresses));
 
   const summary = manifest?.summary ?? null;
   const race = summary?.race ?? [];
@@ -120,6 +123,7 @@ export default function Dashboard() {
               <span className="sl-chip uni">Unichain Sepolia</span>
             </div>
             {manifest?.deployed && <FundingStatus state={state} />}
+            {manifest?.deployed && <CallbackBadge health={health} />}
             {updatedAt && <span className="upd">updated {new Date(updatedAt).toLocaleTimeString()}</span>}
           </div>
         </header>
@@ -133,6 +137,7 @@ export default function Dashboard() {
           {error && <p className="sl-err">{error}</p>}
           {manifest?.deployed && (
             <Reveal>
+              <CallbackNotice health={health} />
               <p className="dash-intro">
                 Two wallets, two roles. The lender deposits and asks for money back; the borrower borrows from the Morpho market and repays it. Nobody calls
                 Sluice to settle: Reactive sees the repayment and pays the queue. Every button is a real transaction on Base Sepolia with free test tokens, and the
