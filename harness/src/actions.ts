@@ -1,7 +1,7 @@
 import { parseAbi, type Address, type Hex } from "viem";
 import { account, base, rnk, uni } from "./chains.js";
 import { ABI, ADDR } from "./contracts.js";
-import { read, send, type Sent } from "./util.js";
+import { read, send, sleep, type Sent } from "./util.js";
 
 export const me: Address = account.address;
 
@@ -132,10 +132,20 @@ export async function normalize(log: (s: string) => void = () => {}): Promise<vo
     await mintUsd(p);
     await deposit(p); // a deposit pays the queue in the same transaction
   }
-  const l = await liquidity();
-  if (l > 0n) {
+  // Read the free liquidity and borrow exactly that, but a transaction still in flight (a late poke, a Reactive pull) can move
+  // it between the read and the borrow, so Morpho answers "insufficient liquidity". That is a race, not a failure: read again.
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const l = await liquidity();
+    if (l === 0n) return;
     log(`  normalize: borrowing ${l} free liquidity`);
-    await borrow(l);
+    try {
+      await borrow(l);
+      return;
+    } catch (e) {
+      if (!String(e).includes("insufficient liquidity") || attempt === 5) throw e;
+      log("  normalize: free liquidity moved under us (a transaction was still in flight), reading it again");
+      await sleep(1_500);
+    }
   }
 }
 

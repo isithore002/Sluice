@@ -22,7 +22,8 @@ import { base, txUrl } from "./chains.js";
 import { ABI, ADDR } from "./contracts.js";
 import * as act from "./actions.js";
 import { RESULTS, flag } from "./env.js";
-import { allEvents, sleep, stats, usdUnits, waitForEvent } from "./util.js";
+import { allEvents, read, sleep, stats, usdUnits, waitForEvent } from "./util.js";
+import { rnk } from "./chains.js";
 
 const ROUNDS = Number(flag("rounds", "15"));
 const X = usdUnits(Number(flag("x", "10")));
@@ -82,6 +83,15 @@ async function round(pollMs: number, r: number) {
   });
   stop = true;
   await keeper;
+
+  // Let everything still in flight land before the next round touches the market: the keeper's own poke (a loser's poke is
+  // a no-op, but it is still a transaction that may land after we read the market) and Reactive's pull confirmation.
+  if (keeperTx) await base.pub.waitForTransactionReceipt({ hash: keeperTx as `0x${string}`, pollingInterval: 100, timeout: 30_000 }).catch(() => {});
+  for (let i = 0; i < 40; i++) {
+    if (!(await read<boolean>(rnk, ADDR.reactive, ABI.reactive, "pullPending").catch(() => false))) break;
+    await sleep(500);
+  }
+  await sleep(1_000);
 
   if (!first) throw new Error(`round ${r}: nobody paid the queue within 40 s`);
   const winner = (first.log.args.traceId as bigint) === trace ? "reactive" : (first.log.args.traceId as bigint) === 0n ? "keeper" : "other";
