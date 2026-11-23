@@ -79,6 +79,17 @@ On Omni, a contract whose debt is above zero is blacklisted and its `react()` or
 
 Measured live ([`results/lifeline-probe.json`](results/lifeline-probe.json), [`results/lifeline-remote-probe.json`](results/lifeline-remote-probe.json)): a contract with no funds was blacklisted on its first reaction and revived one Lasna block later; a callback recipient on Base Sepolia that ran into debt at the real callback proxy was revived in about a second (Base timestamps resolve to 1 s) and received its next callback. Both used probe contracts we deployed, not the Sluice contracts. A rescue restores delivery going forward and does not replay events missed while the contract was halted. What we learned about Omni along the way, including a callback gas overhead that quietly starves small gas limits, is in [`docs/OMNI_FIELD_NOTES.md`](docs/OMNI_FIELD_NOTES.md).
 
+## Against a polling keeper
+
+"Why not just run a bot?" is the fair question about any Reactive queue, so we measured it. A keeper bot polls Morpho for free liquidity every N ms and calls the vault's permissionless `poke()` as soon as it sees some while people are queued. Each round queues a withdrawal, repays on Morpho, and lets the keeper and Reactive race to pay it. The winner is read from the `WithdrawSettled` event's trace id, so it is not a guess. 40 live rounds, 39 completed ([`results/keeper-2026-11-23T15-08-05-219Z.json`](results/keeper-2026-11-23T15-08-05-219Z.json); the 40th hit a cleanup error in our harness after the round, not a failed settlement).
+
+| Keeper polling | Rounds | Keeper paid first | Reactive paid first | Repay → queue paid (median / p95) |
+|---|---|---|---|---|
+| every 1,000 ms | 20 | 1 | 19 | 1.33 s / 2.08 s |
+| every 250 ms | 19 | 7 | 12 | 1.23 s / 2.86 s |
+
+**Reading it honestly:** a keeper polling fast enough does beat Reactive some of the time, and it is not slower when it wins, so **we do not claim Reactive is faster than a bot.** What Reactive removes is the bot: no server to keep running, no hot key holding payout rights, no operator who decides when to pay. The keeper here runs on the same machine and public RPC as the harness, so a co-located bot with a private RPC would do better than this one. Times are measured from when the harness saw the repayment's receipt, and a keeper can see the new liquidity slightly before that, which is why a few keeper wins show under half a second.
+
 ## Why Reactive, and why Omni
 
 **Reactive** is what lets a vault respond to things it can't hook: a third party's repayment in Morpho, or a credit line on another chain. No server and no keeper.
