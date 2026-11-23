@@ -389,6 +389,8 @@ interface Seen {
 function SettlementTimeline({ t, addresses }: { t: Timeline; addresses: Record<string, string> }) {
   const [seen, setSeen] = useState<Seen>({});
   const [nobody, setNobody] = useState(false);
+  // Set when Reactive stayed silent although a lender IS in the queue (so "nobody was waiting" would be wrong).
+  const [waiting, setWaiting] = useState<bigint | null>(null);
   const [seenMs, setSeenMs] = useState<number | null>(null);
 
   useEffect(() => {
@@ -441,7 +443,18 @@ function SettlementTimeline({ t, addresses }: { t: Timeline; addresses: Record<s
         if (!stop) setSeen({ ...cur });
         // The callback on Base can be seen before Lasna's public RPC returns Reactive's own log: keep looking for it a while.
         if (cur.callback && (cur.reactive || Date.now() - callbackAt > 20_000)) return;
-        if (!cur.reactive && Date.now() - started > 15_000) setNobody(true);
+        if (!cur.reactive && Date.now() - started > 15_000) {
+          let owed = 0n;
+          try {
+            owed = await clients.base.readContract({ address: vault, abi: vaultAbi, functionName: "pendingTotal" });
+          } catch {
+            /* unknown: fall back to the neutral wording below */
+          }
+          if (!stop) {
+            if (owed > 0n) setWaiting(owed);
+            else setNobody(true);
+          }
+        }
         await new Promise((r) => setTimeout(r, 500));
       }
     })();
@@ -475,7 +488,7 @@ function SettlementTimeline({ t, addresses }: { t: Timeline; addresses: Record<s
                 {short(reactive.tx, 8, 6)} ↗
               </a>
             ) : (
-              <span className="dm-b-wait">{nobody ? "Nothing yet" : "Watching…"}</span>
+              <span className="dm-b-wait">{nobody || waiting !== null ? "Nothing yet" : "Watching…"}</span>
             )}
           </div>
         </li>
@@ -493,7 +506,7 @@ function SettlementTimeline({ t, addresses }: { t: Timeline; addresses: Record<s
                 </span>
               </>
             ) : (
-              <span className="dm-b-wait">{nobody ? "Nothing yet" : "Waiting…"}</span>
+              <span className="dm-b-wait">{nobody || waiting !== null ? "Nothing yet" : "Waiting…"}</span>
             )}
           </div>
         </li>
@@ -517,6 +530,12 @@ function SettlementTimeline({ t, addresses }: { t: Timeline; addresses: Record<s
           {Math.max(0, callback.ts - t.repayTs)} s between your repayment and the payout by block timestamps
           {seenMs !== null && !t.restored ? `; your browser saw it ${(seenMs / 1000).toFixed(1)} s after your transaction was mined` : ""}. Block timestamps have
           one-second resolution.
+        </p>
+      )}
+      {waiting !== null && !callback && !reactive && (
+        <p className="sl-note">
+          A lender is still waiting ({usd(waiting)} mUSD) and Reactive has not reacted to your repayment yet. Reactive only reacts while its contract is funded and its
+          callbacks are accepted; the status card at the top of the page shows either problem. The payout follows as soon as it reacts.
         </p>
       )}
       {nobody && !callback && !reactive && (

@@ -368,6 +368,8 @@ export function TreasuryView({ addresses, state, events: _feed }: TreasuryViewPr
   if (reach) {
     if (waiting === 0 && reachable === 0n) sentence = "The pool is fully borrowed, so there is no cash to reach, and nobody is waiting.";
     else if (waiting === 0) sentence = `Nobody is waiting. ${usd(reachable)} mUSD of reachable cash is available for the next withdrawal.`;
+    else if (reachable >= pending && state && state.debts.reactive > 0n)
+      sentence = `Cash ${usd(reachable)} covers the ${usd(pending)} waiting, but Reactive is out of funds (in debt) and cannot pay until it is topped up.`;
     else if (reachable >= pending) sentence = `Cash ${usd(reachable)} covers the ${usd(pending)} waiting: Reactive is paying ${waiting === 1 ? "it" : "them"}.`;
     else if (reachable === 0n) sentence = `Cash 0: ${waiting} request${waiting === 1 ? " is" : "s are"} waiting for cash. When a borrower repays, Reactive pays the next ticket by itself.`;
     else sentence = `Cash ${usd(reachable)} covers part of the ${usd(pending)} waiting. Reactive pays in order as cash arrives.`;

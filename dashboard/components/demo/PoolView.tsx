@@ -233,8 +233,14 @@ function PoolTank({ state }: { state: LiveState | null }) {
           </div>
         </div>
       </div>
-      <p className={`dm-p-free${free === 0n ? " none" : ""}`}>
-        {free === 0n ? "Free cash 0: lenders who ask now wait in line." : `Free cash ${usd(free)} mUSD: lenders who ask now are paid straight away.`}
+      <p className={`dm-p-free${free === 0n || (state.pending > 0n && state.debts.reactive > 0n) ? " none" : ""}`}>
+        {free === 0n
+          ? "Free cash 0: lenders who ask now wait in line."
+          : state.pending > 0n
+            ? state.debts.reactive > 0n
+              ? `Free cash ${usd(free)} mUSD, but ${usd(state.pending)} is waiting and Reactive is out of funds, so it cannot pay the queue yet.`
+              : `Free cash ${usd(free)} mUSD, and ${usd(state.pending)} is waiting: Reactive pays the queue first, in order.`
+            : `Free cash ${usd(free)} mUSD: lenders who ask now are paid straight away.`}
       </p>
       <p className="sl-note">Deposits come from lenders (through the Sluice vault); borrowing comes from borrowers (on Morpho). Both move this tank.</p>
     </div>

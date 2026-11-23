@@ -96,9 +96,23 @@ export function WalletGate({ role, children, notice }: GateProps) {
   }
 
   // The one control kept from the old wallet header: two roles need two wallets, so switching must stay possible.
+  // Disconnecting alone does not work for MetaMask-style wallets: the site keeps its permission, so connecting again silently
+  // returns the same account. wallet_requestPermissions makes the wallet show its account picker; the wallet then reports the
+  // newly chosen account and wagmi follows it. Wallets without that method fall back to a plain disconnect.
+  async function changeAccount() {
+    setError(null);
+    try {
+      const provider = (await connector?.getProvider()) as { request?: (a: { method: string; params?: unknown[] }) => Promise<unknown> } | undefined;
+      if (!provider?.request) throw new Error("no provider");
+      await provider.request({ method: "wallet_requestPermissions", params: [{ eth_accounts: {} }] });
+    } catch (e) {
+      if (rejected(e)) return; // the visitor closed the picker: stay on the current account
+      disconnect(); // unsupported by this wallet: the normal connect flow opens its own account choice
+    }
+  }
   const switchLink = (
-    <button className="dm-link" onClick={() => disconnect()}>
-      Use a different wallet
+    <button className="dm-link" onClick={changeAccount}>
+      Use a different account or wallet
     </button>
   );
 
