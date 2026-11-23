@@ -149,6 +149,25 @@ export async function normalize(log: (s: string) => void = () => {}): Promise<vo
   }
 }
 
+/**
+ * Stop before a loop, with a clear message, if SluiceReactive cannot pay for it. A reactive contract with any debt is blacklisted by the
+ * network: it silently stops reacting, with no revert and no alert, and every later loop just times out. A loop costs about 0.08 lREACT
+ * (more for flow C and the race), so the default floor leaves room for one. Top up with the system contract's depositTo.
+ */
+export async function assertReactiveHealthy(minReserveWei = 150_000_000_000_000_000n): Promise<void> {
+  const { reserves, debt } = (await payerState(rnk, ADDR.reactive, ADDR.system)) as { reserves: bigint; debt: bigint };
+  if (debt > 0n) {
+    throw new Error(
+      `SluiceReactive is in debt (${debt} wei of lREACT) so the network has stopped it from reacting. Fund it with depositTo on the system contract (${ADDR.system}), then rerun.`,
+    );
+  }
+  if (reserves < minReserveWei) {
+    throw new Error(
+      `SluiceReactive's reserve is ${reserves} wei of lREACT, below the ${minReserveWei} this run needs for one more loop. Top it up with depositTo on the system contract (${ADDR.system}) before continuing; a loop costs about 0.08 lREACT.`,
+    );
+  }
+}
+
 /** Set the cross-chain switch and delay mode, sending Lasna transactions only when something changes. */
 export async function setMode(opts: { crossChain: boolean; delay: bigint }, log: (s: string) => void = () => {}) {
   const isHalted = await halted();

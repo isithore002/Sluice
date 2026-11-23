@@ -126,6 +126,7 @@ async function main() {
   const results: any[] = [];
   for (const pollMs of POLLS) {
     for (let r = 0; r < ROUNDS; r++) {
+      await act.assertReactiveHealthy();
       try {
         const res = await round(pollMs, r);
         results.push(res);

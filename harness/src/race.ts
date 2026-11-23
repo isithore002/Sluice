@@ -118,6 +118,7 @@ async function main() {
     for (const c of DELAYS) {
       let captured = 0;
       for (let r = 0; r < ROUNDS; r++) {
+        await act.assertReactiveHealthy(250_000_000_000_000_000n); // the legacy-like mode also pays for Cron ticks
         try {
           const res = await round(speed, c, r);
           results.push(res);

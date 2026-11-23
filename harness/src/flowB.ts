@@ -84,6 +84,7 @@ async function main() {
   const out = resolve(RESULTS, `flowB-${new Date().toISOString().replace(/[:.]/g, "-")}.json`);
   const results: unknown[] = [];
   for (let i = 0; i < N; i++) {
+    await act.assertReactiveHealthy(); // stops the run (results so far are already saved) if Reactive can no longer pay
     try {
       const r = await loop(i);
       results.push(r);

@@ -109,6 +109,7 @@ async function main() {
   const out = resolve(RESULTS, `flowC-${new Date().toISOString().replace(/[:.]/g, "-")}.json`);
   const results: unknown[] = [];
   for (let i = 0; i < N; i++) {
+    await act.assertReactiveHealthy(250_000_000_000_000_000n); // a flow C loop costs more
     try {
       const r = await loop(i);
       results.push(r);
