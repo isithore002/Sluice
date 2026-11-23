@@ -1,0 +1,342 @@
+[
+  {
+    "round": 0,
+    "pollMs": 250,
+    "winner": "keeper",
+    "repayToPaidMs": 1121,
+    "keeperSawLiquidityAfterMs": -1,
+    "keeperPolls": 4,
+    "paid": "10000000",
+    "txs": {
+      "repay": "0x9a44861407c822a9554b49c5689970060fda3904a77fb1454f048c82d6210a51",
+      "firstPayment": "0x2bacbd6a313c1bca9750e41cfe6588fe90fe1d102f3f24bb12ca4cccc9e048c5",
+      "keeperPoke": "0x2bacbd6a313c1bca9750e41cfe6588fe90fe1d102f3f24bb12ca4cccc9e048c5"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0x9a44861407c822a9554b49c5689970060fda3904a77fb1454f048c82d6210a51"
+    }
+  },
+  {
+    "round": 1,
+    "pollMs": 250,
+    "winner": "keeper",
+    "repayToPaidMs": 1032,
+    "keeperSawLiquidityAfterMs": -58,
+    "keeperPolls": 4,
+    "paid": "10000000",
+    "txs": {
+      "repay": "0x3de96172eab17d587089743324027f68444d63b8150e42561df0109bc1db6f9b",
+      "firstPayment": "0x53d5d984cf00a4eba03aab296656cce68950cab67029d8fcc491a5df9064ed1d",
+      "keeperPoke": "0x53d5d984cf00a4eba03aab296656cce68950cab67029d8fcc491a5df9064ed1d"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0x3de96172eab17d587089743324027f68444d63b8150e42561df0109bc1db6f9b"
+    }
+  },
+  {
+    "round": 2,
+    "pollMs": 250,
+    "winner": "keeper",
+    "repayToPaidMs": 1552,
+    "keeperSawLiquidityAfterMs": 263,
+    "keeperPolls": 5,
+    "paid": "10000000",
+    "txs": {
+      "repay": "0xb648b96dcc13272f5500f3917f871142e3c434fc27cd96c79e97978a57c93e83",
+      "firstPayment": "0x864739e7243d1d291af904f57c810b9d0a8c52f4dc260cf17fb1116cbf08e43d",
+      "keeperPoke": "0x864739e7243d1d291af904f57c810b9d0a8c52f4dc260cf17fb1116cbf08e43d"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0xb648b96dcc13272f5500f3917f871142e3c434fc27cd96c79e97978a57c93e83"
+    }
+  },
+  {
+    "round": 3,
+    "pollMs": 250,
+    "winner": "keeper",
+    "repayToPaidMs": 1081,
+    "keeperSawLiquidityAfterMs": -63,
+    "keeperPolls": 4,
+    "paid": "10000000",
+    "txs": {
+      "repay": "0xcea49418bb9bfadc6eefe4eaa3d23c9d50d6d8016212398a115f46a081278ce3",
+      "firstPayment": "0xa2a368a7fc5d1ebaf11981e39fab22272e18567f1d3add90c2cf334218b71eb4",
+      "keeperPoke": "0xa2a368a7fc5d1ebaf11981e39fab22272e18567f1d3add90c2cf334218b71eb4"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0xcea49418bb9bfadc6eefe4eaa3d23c9d50d6d8016212398a115f46a081278ce3"
+    }
+  },
+  {
+    "round": 4,
+    "pollMs": 250,
+    "winner": "keeper",
+    "repayToPaidMs": 1348,
+    "keeperSawLiquidityAfterMs": 324,
+    "keeperPolls": 5,
+    "paid": "10000000",
+    "txs": {
+      "repay": "0x8e40ab906a082d47caa4939ed0697a297c8a4d719a7b004b2189fb3f552b2549",
+      "firstPayment": "0xe042a7026b5d1963924fb2bbb6c5693297ee27b4e32eeb5c5d6366048d6ba734",
+      "keeperPoke": "0xe042a7026b5d1963924fb2bbb6c5693297ee27b4e32eeb5c5d6366048d6ba734"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0x8e40ab906a082d47caa4939ed0697a297c8a4d719a7b004b2189fb3f552b2549"
+    }
+  },
+  {
+    "round": 5,
+    "pollMs": 250,
+    "winner": "keeper",
+    "repayToPaidMs": 1111,
+    "keeperSawLiquidityAfterMs": 1,
+    "keeperPolls": 4,
+    "paid": "10000000",
+    "txs": {
+      "repay": "0x25e186232795e4b1c896400865c7a9dd64f44261bf194de1296fb0e7b4fb5293",
+      "firstPayment": "0xc668ccb5a6ad93cdf1b4bdc195a8a226ee531049746b16883a15771ada6c3316",
+      "keeperPoke": "0xc668ccb5a6ad93cdf1b4bdc195a8a226ee531049746b16883a15771ada6c3316"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0x25e186232795e4b1c896400865c7a9dd64f44261bf194de1296fb0e7b4fb5293"
+    }
+  },
+  {
+    "round": 6,
+    "pollMs": 250,
+    "winner": "keeper",
+    "repayToPaidMs": 1060,
+    "keeperSawLiquidityAfterMs": -22,
+    "keeperPolls": 4,
+    "paid": "10000000",
+    "txs": {
+      "repay": "0x4597d4b5bf009483a6a375e829521e5637b7421ee55e9b7d9ec19f8f5a9f7a3b",
+      "firstPayment": "0xdd0091052a495920df0990ed80fcd3b7e73d729d713fbd3c7a7dd26f2134e1e4",
+      "keeperPoke": "0xdd0091052a495920df0990ed80fcd3b7e73d729d713fbd3c7a7dd26f2134e1e4"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0x4597d4b5bf009483a6a375e829521e5637b7421ee55e9b7d9ec19f8f5a9f7a3b"
+    }
+  },
+  {
+    "round": 7,
+    "pollMs": 250,
+    "winner": "reactive",
+    "repayToPaidMs": 712,
+    "keeperSawLiquidityAfterMs": 2,
+    "keeperPolls": 4,
+    "paid": "10000000",
+    "txs": {
+      "repay": "0x6f3fd84b46883087f062bf13b4af7d793779669d48ec6b40198e1116cfc55160",
+      "firstPayment": "0x04a10647778bfc4bf36e1734c7ef4d1fa3628db8856c1b47a963a13cae07237d",
+      "keeperPoke": "0x661f5b876b2b9844df5ddf13cfe04ce45c63850148511d702651a153d79f828e"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0x6f3fd84b46883087f062bf13b4af7d793779669d48ec6b40198e1116cfc55160"
+    }
+  },
+  {
+    "round": 8,
+    "pollMs": 250,
+    "winner": "keeper",
+    "repayToPaidMs": 1057,
+    "keeperSawLiquidityAfterMs": -22,
+    "keeperPolls": 4,
+    "paid": "10000000",
+    "txs": {
+      "repay": "0xbd0eff897ab53c8bce6f195eb4dc90451172b02717fdc39fab600269f9049866",
+      "firstPayment": "0xa833f67e2cc7700ef93731b5fd7c3e95b05fa2d2b278e8b827103aaee1cdc569",
+      "keeperPoke": "0xa833f67e2cc7700ef93731b5fd7c3e95b05fa2d2b278e8b827103aaee1cdc569"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0xbd0eff897ab53c8bce6f195eb4dc90451172b02717fdc39fab600269f9049866"
+    }
+  },
+  {
+    "round": 9,
+    "pollMs": 250,
+    "winner": "keeper",
+    "repayToPaidMs": 1296,
+    "keeperSawLiquidityAfterMs": -35,
+    "keeperPolls": 4,
+    "paid": "10000000",
+    "txs": {
+      "repay": "0xf41aa93c35851814d1f72a7fb5e5720d4704989a3c443fe7c5f7f484004f624e",
+      "firstPayment": "0xf42e7d74dd57c9583fb367f0c7b3d3759e40e1a860dfa28a7631e817e7d68f4a",
+      "keeperPoke": "0xf42e7d74dd57c9583fb367f0c7b3d3759e40e1a860dfa28a7631e817e7d68f4a"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0xf41aa93c35851814d1f72a7fb5e5720d4704989a3c443fe7c5f7f484004f624e"
+    }
+  },
+  {
+    "round": 10,
+    "pollMs": 250,
+    "winner": "keeper",
+    "repayToPaidMs": 1048,
+    "keeperSawLiquidityAfterMs": -263,
+    "keeperPolls": 4,
+    "paid": "10000000",
+    "txs": {
+      "repay": "0x098c0c435c05c530cff072119e4d351d5698a179fe95324c3add33bcf81f3a7b",
+      "firstPayment": "0xd47db62d2cd491fb90cdf37b0dff2c7fe42ff47b9d74bbf736ae19a6467c0b98",
+      "keeperPoke": "0xd47db62d2cd491fb90cdf37b0dff2c7fe42ff47b9d74bbf736ae19a6467c0b98"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0x098c0c435c05c530cff072119e4d351d5698a179fe95324c3add33bcf81f3a7b"
+    }
+  },
+  {
+    "round": 11,
+    "pollMs": 250,
+    "winner": "reactive",
+    "repayToPaidMs": 1219,
+    "keeperSawLiquidityAfterMs": -1,
+    "keeperPolls": 4,
+    "paid": "10000000",
+    "txs": {
+      "repay": "0x359429a0c74fea7004cf9550b2ca71d4348bda872e43bff6e918891601bcc511",
+      "firstPayment": "0x6fac47d40bf8942783e61ff52331cd883d22e2b64ad389de0ff7a2a51cb15ae2",
+      "keeperPoke": "0xba92dd639a14dab76d0955619c453def2557cfee4998c5eec61fc242c733bbf8"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0x359429a0c74fea7004cf9550b2ca71d4348bda872e43bff6e918891601bcc511"
+    }
+  },
+  {
+    "round": 12,
+    "pollMs": 250,
+    "winner": "keeper",
+    "repayToPaidMs": 1332,
+    "keeperSawLiquidityAfterMs": 6,
+    "keeperPolls": 4,
+    "paid": "10000000",
+    "txs": {
+      "repay": "0xd1e789380700779ae55f23f76a47910f1b7f1dc358efc41c7c1b7820b4805d18",
+      "firstPayment": "0xf40fb537761566180614d31ed216b4d768f173b6969f62073234d0ba17ba44e5",
+      "keeperPoke": "0xf40fb537761566180614d31ed216b4d768f173b6969f62073234d0ba17ba44e5"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0xd1e789380700779ae55f23f76a47910f1b7f1dc358efc41c7c1b7820b4805d18"
+    }
+  },
+  {
+    "round": 13,
+    "pollMs": 250,
+    "winner": "keeper",
+    "repayToPaidMs": 1331,
+    "keeperSawLiquidityAfterMs": 8,
+    "keeperPolls": 4,
+    "paid": "10000000",
+    "txs": {
+      "repay": "0xa19062e944a09c6ec5da564ebdd9af23f64533c9efbe3abb0695c0a258c5b44c",
+      "firstPayment": "0x3c283e40c019654ef373bc1b17436c1b0148f3548c6f16d267f87478672f5878",
+      "keeperPoke": "0x3c283e40c019654ef373bc1b17436c1b0148f3548c6f16d267f87478672f5878"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0xa19062e944a09c6ec5da564ebdd9af23f64533c9efbe3abb0695c0a258c5b44c"
+    }
+  },
+  {
+    "round": 14,
+    "pollMs": 250,
+    "winner": "keeper",
+    "repayToPaidMs": 1062,
+    "keeperSawLiquidityAfterMs": -101,
+    "keeperPolls": 4,
+    "paid": "10000000",
+    "txs": {
+      "repay": "0x6a274ebf49b28e2fcaea13c3288575bfa73847bb2be7fa201c208b18b8fc7fb5",
+      "firstPayment": "0xca09fdcd6f8ff51d67b6a784654b1bafe8fe2dad8e4ed5c73e327084cb42ed74",
+      "keeperPoke": "0xca09fdcd6f8ff51d67b6a784654b1bafe8fe2dad8e4ed5c73e327084cb42ed74"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0x6a274ebf49b28e2fcaea13c3288575bfa73847bb2be7fa201c208b18b8fc7fb5"
+    }
+  },
+  {
+    "round": 15,
+    "pollMs": 250,
+    "winner": "reactive",
+    "repayToPaidMs": 1121,
+    "keeperSawLiquidityAfterMs": 1,
+    "keeperPolls": 4,
+    "paid": "10000000",
+    "txs": {
+      "repay": "0x9070576e981b7bb155a7269fe5692ef7a854fd7a5e3703300702187414d224c6",
+      "firstPayment": "0x3ebacb734868ed9944cbd7902beee1251c7fdbec317b97d14ee4bfaf0badcb1d",
+      "keeperPoke": "0xd7aa4bb03d6673a7d555ac07857776506a28082a0d8142b630d733359db501d1"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0x9070576e981b7bb155a7269fe5692ef7a854fd7a5e3703300702187414d224c6"
+    }
+  },
+  {
+    "round": 16,
+    "pollMs": 250,
+    "winner": "reactive",
+    "repayToPaidMs": 1059,
+    "keeperSawLiquidityAfterMs": 633,
+    "keeperPolls": 5,
+    "paid": "10000000",
+    "txs": {
+      "repay": "0x64c687b7a7fd8d08e3775bfbcafb6ceb8769e85d11d213dcf81eeea1fe015e6b",
+      "firstPayment": "0xefeccf5a1211ee4ebd9ddf11ff504d9ca30c72540886e9ecb1925591f8efd14a",
+      "keeperPoke": "0x2fff8813f295a639e886fd80572d3dce49e6f6146838159ae089cb01a6381783"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0x64c687b7a7fd8d08e3775bfbcafb6ceb8769e85d11d213dcf81eeea1fe015e6b"
+    }
+  },
+  {
+    "round": 17,
+    "pollMs": 250,
+    "winner": "keeper",
+    "repayToPaidMs": 1150,
+    "keeperSawLiquidityAfterMs": 163,
+    "keeperPolls": 4,
+    "paid": "10000000",
+    "txs": {
+      "repay": "0x2971367a4ca9fca7a4ce78e5d56a3b4aab14b7c330f1fb1ff0b956fcd7fd9d78",
+      "firstPayment": "0x4b7349009d36e65b0f68f8bffb9c707d8c57dbdc02b0c3a83900e74942ee139f",
+      "keeperPoke": "0x4b7349009d36e65b0f68f8bffb9c707d8c57dbdc02b0c3a83900e74942ee139f"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0x2971367a4ca9fca7a4ce78e5d56a3b4aab14b7c330f1fb1ff0b956fcd7fd9d78"
+    }
+  },
+  {
+    "round": 18,
+    "pollMs": 250,
+    "winner": "keeper",
+    "repayToPaidMs": 1127,
+    "keeperSawLiquidityAfterMs": 30,
+    "keeperPolls": 4,
+    "paid": "10000000",
+    "txs": {
+      "repay": "0xdaad3e5de3a4f02d44f7d9cdf70813b2a312a42c3a05baa8259c110686cbbb8b",
+      "firstPayment": "0x4cf68348a6dc4bfcd8eab1a5017d3fc18fa80391a3383d9e804d0fc888554122",
+      "keeperPoke": "0x4cf68348a6dc4bfcd8eab1a5017d3fc18fa80391a3383d9e804d0fc888554122"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0xdaad3e5de3a4f02d44f7d9cdf70813b2a312a42c3a05baa8259c110686cbbb8b"
+    }
+  },
+  {
+    "round": 19,
+    "pollMs": 250,
+    "winner": "keeper",
+    "repayToPaidMs": 1103,
+    "keeperSawLiquidityAfterMs": 1,
+    "keeperPolls": 4,
+    "paid": "10000000",
+    "txs": {
+      "repay": "0xa087bb4688c0e8804000cec97dfecff30274aa43ffde459c32c6a397a009a2d3",
+      "firstPayment": "0xf184bfccfa9b1ca6198afbbcdfcfde9bf8d9a1920c64cb3451b1ab775e0c49ce",
+      "keeperPoke": "0xf184bfccfa9b1ca6198afbbcdfcfde9bf8d9a1920c64cb3451b1ab775e0c49ce"
+    },
+    "links": {
+      "repay": "https://sepolia.basescan.org/tx/0xa087bb4688c0e8804000cec97dfecff30274aa43ffde459c32c6a397a009a2d3"
+    }
+  }
+]
