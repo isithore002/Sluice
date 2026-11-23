@@ -15,7 +15,7 @@ Built for the [Reactive Omni Buildathon](https://dorahacks.io/hackathon/reactive
 | Networks | Reactive Lasna (5318007), Base Sepolia (84532), Unichain Sepolia (1301) |
 | Protocol integrated | Morpho Blue (the live deployment on Base Sepolia, `0xBBBB…FFCb`) |
 | Tests | 90 passing, against **Morpho's real bytecode** and **the real Omni system contracts** |
-| Results | Live on testnet: **one repayment paid 40 queued withdrawals** in two callbacks (25 + 15, first come first served, 2.97 s); 33/33 flow B loops; flow C **32 of 32 completed** (31 timed, [why](#the-cross-chain-loop-that-is-not-in-the-numbers)); a 60-round latency race. See [Results](#results) |
+| Results | Live on testnet: **one repayment paid 40 queued withdrawals** in two callbacks (25 + 15, first come first served, 2.97 s); 104/104 flow B loops; flow C **32 of 32 completed** (31 timed, [why](#the-cross-chain-loop-that-is-not-in-the-numbers)); a 60-round latency race. See [Results](#results) |
 
 ---
 
@@ -103,14 +103,14 @@ Measured live ([`results/lifeline-probe.json`](results/lifeline-probe.json), [`r
 ## Results
 
 <!-- RESULTS:START -->
-Measured on live testnets and generated from [`results/summary.json`](results/summary.json) (2026-11-19). Every record in [`results/`](results/) carries the transaction hashes of each hop. Wall-clock times come from polling every ~150 ms, so each includes up to one poll interval of observation delay.
+Measured on live testnets and generated from [`results/summary.json`](results/summary.json) (2026-11-23). Every record in [`results/`](results/) carries the transaction hashes of each hop. Wall-clock times come from polling every ~150 ms, so each includes up to one poll interval of observation delay.
 
 ### Latency
 
 | Loop | Success | Median | p95 | Max |
 |---|---|---|---|---|
-| **Flow B:** Morpho repay → queue paid | 33/33 | **1.58 s** | 2.10 s | 2.20 s |
-|   of which repay → Lasna react | | 1.17 s | 1.83 s | 1.99 s |
+| **Flow B:** Morpho repay → queue paid | 104/104 | **1.32 s** | 1.79 s | 2.44 s |
+|   of which repay → Lasna react | | 1.22 s | 1.99 s | 2.92 s |
 | **Flow C:** shortfall → user paid by the reserve | 31/32 | **1.36 s** | 2.16 s | 2.19 s |
 |   shortfall → relayer reimbursed on Unichain | | 4.60 s | 5.08 s | 5.31 s |
 
