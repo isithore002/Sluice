@@ -14,7 +14,7 @@ Built for the [Reactive Omni Buildathon](https://dorahacks.io/hackathon/reactive
 |---|---|
 | Networks | Reactive Lasna (5318007), Base Sepolia (84532), Unichain Sepolia (1301) |
 | Protocol integrated | Morpho Blue (the live deployment on Base Sepolia, `0xBBBB…FFCb`) |
-| Tests | 67 passing, against **Morpho's real bytecode** and **the real Omni system contracts** |
+| Tests | 90 passing, against **Morpho's real bytecode** and **the real Omni system contracts** |
 | Results | Live on testnet: **one repayment paid 40 queued withdrawals** in two callbacks (25 + 15, first come first served, 2.97 s); 33/33 flow B loops; flow C **32 of 32 completed** (31 timed, [why](#the-cross-chain-loop-that-is-not-in-the-numbers)); a 60-round latency race. See [Results](#results) |
 
 ---
@@ -68,6 +68,16 @@ Three liquidity sources, three flows:
 - **Fresh state before confirmation.** The reserve always lets the vault publish fresh state *before* confirming a front. Even if both events of an execution are missed, a retry can't cause a double front. Our test suite found this case.
 - **Bounded retries.** Retries run on Cron10 with exponential backoff, at most 3, and Cron is subscribed only while something is in flight, because ticks are billed.
 - **No billed reverts.** `react()` never reverts to filter events. The vault's pull never reverts when there's nothing to do.
+- **Checked by fuzzing, not only by examples.** Stateful invariant suites drive random sequences of deposits, withdrawals, borrows, repayments and Reactive pulls against the real Morpho bytecode, and hammer `front` and `reimburse` with duplicated, reordered and forged calls. They check conservation, solvency, strict FIFO and that nothing is ever paid twice, with no reverts allowed. These are fuzz runs (256 runs of 60 calls each), not formal proofs.
+
+## Lifeline: a queue that never silently stops
+
+On Omni, a contract whose debt is above zero is blacklisted and its `react()` or callbacks just stop. Nothing reverts and nobody is told, and for a withdrawal queue that is the worst failure there is. Lifeline is a small, separate repair tool (the Sluice contracts above are untouched):
+
+- **`LifelineReactive`** (Lasna) subscribes to the network's `BlacklistContract` event for chosen targets. For a callback recipient on Base or Unichain it asks a funder on that chain to pay; for a reactive contract on Lasna it pays the debt itself with `depositTo`.
+- **`LifelineFunder`** (destination chain) pays a target's debt plus a top-up from a budget its sponsor set in advance, with a cap per rescue and a cooldown. It spends nothing unless the debt can actually be cleared, a repeated request is a no-op, and it never reverts after its auth checks. A buggy or hostile target can burn only what its sponsor chose to put at risk.
+
+Measured live ([`results/lifeline-probe.json`](results/lifeline-probe.json), [`results/lifeline-remote-probe.json`](results/lifeline-remote-probe.json)): a contract with no funds was blacklisted on its first reaction and revived one Lasna block later; a callback recipient on Base Sepolia that ran into debt at the real callback proxy was revived in about a second (Base timestamps resolve to 1 s) and received its next callback. Both used probe contracts we deployed, not the Sluice contracts. A rescue restores delivery going forward and does not replay events missed while the contract was halted. What we learned about Omni along the way, including a callback gas overhead that quietly starves small gas limits, is in [`docs/OMNI_FIELD_NOTES.md`](docs/OMNI_FIELD_NOTES.md).
 
 ## Why Reactive, and why Omni
 
@@ -278,12 +288,14 @@ Your wallet sends only the repayment. The queued withdrawal belongs to Alice (ab
 | Path | What's there |
 |---|---|
 | [`src/`](src/) | `SluiceVault`, `SluiceReactive`, `RelayerReserve`, `SiblingVault`, interfaces, mocks |
-| [`test/`](test/) | 67 tests: vault, reserve, sibling, reactive (through the Omni pipeline), end to end |
+| [`src/lifeline/`](src/lifeline/) | `LifelineReactive`, `LifelineFunder`, and the probe contracts used to test them live |
+| [`test/`](test/) | 90 tests: vault, reserve, sibling, reactive (through the Omni pipeline), end to end, stateful invariants, Lifeline |
 | [`script/`](script/), [`scripts/deploy.sh`](scripts/deploy.sh) | 9-step deployment across the three chains |
 | [`harness/`](harness/) | `status`, `flowB`, `flowC`, `race`, `summary` (TypeScript + viem) |
 | [`dashboard/`](dashboard/) | Landing page (three.js) at `/` and live dashboard at `/dashboard/` (Next.js static export; reads the chains directly, and its *Live demo* and *One-click repay* shortcut (under *Deep dive*)s connect your wallet through wagmi and RainbowKit) |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Full spec: verified addresses, every function and event, flows, failure modes |
 | [`docs/BUILD_GUIDE.md`](docs/BUILD_GUIDE.md) | Step-by-step guide from an empty machine to a running deployment |
+| [`docs/OMNI_FIELD_NOTES.md`](docs/OMNI_FIELD_NOTES.md) | What we verified directly on Lasna and Base Sepolia, and how |
 
 ## Quick start
 
@@ -293,7 +305,7 @@ Requires [Foundry](https://book.getfoundry.sh/) 1.5.x and Node.js 22.
 git clone --recurse-submodules https://github.com/isithore002/Sluice.git
 cd Sluice
 forge build
-forge test          # 67 tests, no network needed
+forge test          # 90 tests, no network needed
 ```
 
 ### How the tests work
