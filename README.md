@@ -309,6 +309,7 @@ Your wallet sends only the repayment. The queued withdrawal belongs to Alice (ab
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Full spec: verified addresses, every function and event, flows, failure modes |
 | [`docs/BUILD_GUIDE.md`](docs/BUILD_GUIDE.md) | Step-by-step guide from an empty machine to a running deployment |
 | [`docs/OMNI_FIELD_NOTES.md`](docs/OMNI_FIELD_NOTES.md) | What we verified directly on Lasna and Base Sepolia, and how |
+| [`docs/SLITHER_TRIAGE.md`](docs/SLITHER_TRIAGE.md) | The 72 Slither findings and our reading of each (our own review, not an audit) |
 
 ## Quick start
 
