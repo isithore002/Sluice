@@ -18,6 +18,7 @@ and [`results/lifeline-remote-probe.json`](../results/lifeline-remote-probe.json
 | 10 | Debt blacklists a contract silently: nothing reverts and no one is told. Lifeline's measured blacklist-to-revival time was about one second on both paths (one Lasna block locally, five Base blocks cross-chain, timestamps resolve to 1 s). | Event timestamps in the two result files |
 | 11 | Lasna's faucet is slow. Three payments (0.095 ETH total) were paid out after about 1 to 1.5 hours, all at 100 lREACT per ETH. | Watched the wallet's balance |
 | 12 | Base Sepolia's public RPC refuses `eth_getLogs` over 200 blocks. | Error `-32614` |
+| 13 | Reactive's callback signer is not permanent. Callbacks on 2026-11-19 were sent by `0xF7E866D7…1DDb`; callbacks on 2026-11-23 are sent by `0xF9F61C1D…14B0`. Each callback proxy's `_operators` list authorizes only the current one, so anything that hard-codes the old signer (a health check, a "sent by Reactive" label) breaks silently. During the changeover the proxies answered `NotAuthorized()` to callbacks. | Read the sender of a 2026-11-19 and a 2026-11-23 callback transaction; `_operators(address)` on the Base and Unichain proxies; `eth_call` of `deliverCallback` from each signer |
 
 ## Not verified
 
