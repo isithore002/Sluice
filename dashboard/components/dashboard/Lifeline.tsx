@@ -120,7 +120,6 @@ export function LifelineView({ data }: { data: LifelineEvidence }) {
               {data.local.notTested.map((n) => (
                 <li key={n}>{n}</li>
               ))}
-              <li>A rescue restores delivery going forward. It does not replay events missed while the contract was halted.</li>
             </ul>
           </div>
         </div>

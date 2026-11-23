@@ -5,12 +5,33 @@
     "probeVictim1_blacklistedBeforeLifelineWatched": "0xc0A2cFA49ba9145c228627674043ED2E4b3CF698",
     "probeVictim2_watched": "0x3f14CCF38d1Bf7D2ba8c9E05cBF52C636F249D9F"
   },
-  "policy": { "cap_lREACT": "0.1", "topUp_lREACT": "0.05", "budget_lREACT": "0.3", "minGapSeconds": 30 },
+  "policy": {
+    "cap_lREACT": "0.1",
+    "topUp_lREACT": "0.05",
+    "budget_lREACT": "0.3",
+    "minGapSeconds": 30
+  },
   "firstLoop": {
-    "blacklistEvent": { "block": 9062751, "timestamp": 1795444607, "tx": "0x0674ea9d019f5938d9ec75f2dc0da1895b9c39ae598513b8d017dea18f50cf82" },
-    "rescueTx_depositToInsideReact": { "block": 9062752, "timestamp": 1795444608, "tx": "0xbdc0e5b4c12435ffd51ec24d14d7648793819caf678673cc594f2a24a3ae2207", "amount_lREACT": "0.0655", "debtBefore_lREACT": "0.0155" },
-    "whitelistEvent": { "block": 9062752, "tx": "0xbdc0e5b4c12435ffd51ec24d14d7648793819caf678673cc594f2a24a3ae2207" },
-    "reviveSeenByLifeline": { "block": 9062753, "tx": "0x87987d0ba49e0bae00f68ad925369b7543aed7faa37365e4cff9e8dae1212f6a" },
+    "blacklistEvent": {
+      "block": 9062751,
+      "timestamp": 1795444607,
+      "tx": "0x0674ea9d019f5938d9ec75f2dc0da1895b9c39ae598513b8d017dea18f50cf82"
+    },
+    "rescueTx_depositToInsideReact": {
+      "block": 9062752,
+      "timestamp": 1795444608,
+      "tx": "0xbdc0e5b4c12435ffd51ec24d14d7648793819caf678673cc594f2a24a3ae2207",
+      "amount_lREACT": "0.0655",
+      "debtBefore_lREACT": "0.0155"
+    },
+    "whitelistEvent": {
+      "block": 9062752,
+      "tx": "0xbdc0e5b4c12435ffd51ec24d14d7648793819caf678673cc594f2a24a3ae2207"
+    },
+    "reviveSeenByLifeline": {
+      "block": 9062753,
+      "tx": "0x87987d0ba49e0bae00f68ad925369b7543aed7faa37365e4cff9e8dae1212f6a"
+    },
     "blacklistToRescueBlocks": 1,
     "blacklistToRescueSeconds": 1
   },
@@ -24,7 +45,7 @@
     "The rescue repeated (2 ReactiveRescued events) before the victim was stopped, bounded by the sponsor budget and the 30 s minGap."
   ],
   "notTested": [
-    "The destination half (LifelineFunder on Base / Unichain) against the real callback proxy.",
-    "A rescued contract's missed events: nothing was replayed; only delivery going forward is restored."
+    "A rescued contract's missed events: nothing was replayed; only delivery going forward is restored.",
+    "Lifeline against the real SluiceReactive: it is armed (results/lifeline-sluice-watch.json) but has not been triggered on that contract."
   ]
 }
