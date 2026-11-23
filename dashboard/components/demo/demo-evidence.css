@@ -1,7 +1,9 @@
 /* Recorded-run evidence next to the live demo. Classes prefixed dm-ev-. */
 .dm-ev-head { margin: 34px 0 4px; font-size: clamp(1.15rem, 2vw, 1.45rem); }
 .dm-ev-intro { margin: 0 0 14px; }
-.dm-ev { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); align-items: start; margin-top: 8px; }
+.dm-ev { display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; margin-top: 8px; }
+.dm-ev > :nth-child(3) { grid-column: 1 / -1; }
+@media (max-width: 1000px) { .dm-ev { grid-template-columns: minmax(0, 1fr); } .dm-ev > :nth-child(3) { grid-column: auto; } }
 .dm-ev-card h3 { margin-bottom: 6px; }
 .dm-ev-lede { margin: 0 0 14px; color: var(--ink-2); font-size: 14px; }
 .dm-ev-rows { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 0; }

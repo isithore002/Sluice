@@ -5,7 +5,6 @@ import type { FeedEvent, LiveState } from "../../lib/useLive";
 import { BorrowerTab } from "./BorrowerTab";
 import { LenderTab } from "./LenderTab";
 import { PoolView, RoleLegend } from "./PoolView";
-import { TreasuryView } from "./TreasuryView";
 import type { Role } from "./roles";
 import "./demo-stage.css";
 
@@ -102,36 +101,41 @@ export function DemoStage({ addresses, state, events }: DemoStageProps) {
     <div className="dm">
       <BeforeYouStart />
 
-      <PoolView addresses={addresses} state={state} events={events} legend={false} />
-      <TreasuryView addresses={addresses} state={state} events={events} />
+      <div className="dm-console">
+        <section className="sl-card dm-actions" aria-label="Your wallet">
+          <div className="dm-actions-head">
+            <h3>Your turn</h3>
+            <div className="sl-seg" role="tablist" aria-label="Choose a role" onKeyDown={onKey}>
+              {ROLES.map((r) => (
+                <button
+                  key={r.id}
+                  ref={(el) => {
+                    tabs.current[r.id] = el;
+                  }}
+                  role="tab"
+                  id={`dm-tab-${r.id}`}
+                  aria-selected={role === r.id}
+                  aria-controls="dm-panel"
+                  tabIndex={role === r.id ? 0 : -1}
+                  className={role === r.id ? "on" : ""}
+                  onClick={() => setRole(r.id)}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div role="tabpanel" id="dm-panel" aria-labelledby={`dm-tab-${role}`}>
+            {role === "lender" ? <LenderTab addresses={addresses} /> : <BorrowerTab addresses={addresses} />}
+          </div>
+        </section>
 
-      <div className="dm-roles">
-        <div className="sl-seg" role="tablist" aria-label="Choose a role" onKeyDown={onKey}>
-          {ROLES.map((r) => (
-            <button
-              key={r.id}
-              ref={(el) => {
-                tabs.current[r.id] = el;
-              }}
-              role="tab"
-              id={`dm-tab-${r.id}`}
-              aria-selected={role === r.id}
-              aria-controls="dm-panel"
-              tabIndex={role === r.id ? 0 : -1}
-              className={role === r.id ? "on" : ""}
-              onClick={() => setRole(r.id)}
-            >
-              {r.label}
-            </button>
-          ))}
+        <div className="dm-live">
+          <PoolView addresses={addresses} state={state} events={events} legend={false} />
         </div>
       </div>
 
-      <div role="tabpanel" id="dm-panel" aria-labelledby={`dm-tab-${role}`}>
-        {role === "lender" ? <LenderTab addresses={addresses} /> : <BorrowerTab addresses={addresses} />}
-      </div>
-
-      <details className="dm-legend" open>
+      <details className="dm-legend">
         <summary>Who does what, and where Reactive fits in</summary>
         <RoleLegend />
       </details>

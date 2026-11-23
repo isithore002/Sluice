@@ -11,6 +11,7 @@ import { LatencyTable } from "../../components/dashboard/LatencySection";
 import { CallbackBadge, CallbackNotice } from "../../components/dashboard/CallbackHealth";
 import { FundingStatus } from "../../components/dashboard/LiveCards";
 import { DemoEvidence } from "../../components/demo/DemoEvidence";
+import { TreasuryView } from "../../components/demo/TreasuryView";
 import { RaceReplay } from "../../components/dashboard/RaceReplay";
 import { secs } from "../../components/dashboard/format";
 import { Reveal } from "../../components/Motion";
@@ -91,6 +92,7 @@ export default function Dashboard() {
     <SiteShell
       badge="live"
       links={[
+        { href: "#treasury", label: "Treasury" },
         { href: "#demo", label: "Live demo" },
         { href: "#evidence", label: "Evidence" },
         ...(hasLatency ? [{ href: "#latency", label: "Latency" }] : []),
@@ -103,32 +105,75 @@ export default function Dashboard() {
     >
       <main className="dash">
         <header className="dash-head sl-wrap" data-ascii-avoid="0.85">
-          <p className="sl-kicker sl-rise">* Live dashboard</p>
-          <h1 className="sl-title">
-            <span className="a sl-rise" style={{ animationDelay: "0.08s" }}>
-              The queue, live.
-            </span>
-            <span className="b" style={{ animationDelay: "0.2s" }}>
-              Every claim, verifiable.
-            </span>
-          </h1>
-          <p className="dash-lede sl-rise" style={{ animationDelay: "0.32s" }}>
-            Real contracts on Base Sepolia, Reactive Lasna and Unichain Sepolia. Everything below is read straight from public RPCs, and every measurement links to
-            the transactions behind it.
-          </p>
-          <div className="dash-meta sl-rise" style={{ animationDelay: "0.44s" }}>
-            <div className="sl-chips">
-              <span className="sl-chip base">Base Sepolia</span>
-              <span className="sl-chip lasna">Reactive Lasna</span>
-              <span className="sl-chip uni">Unichain Sepolia</span>
-            </div>
-            {manifest?.deployed && <FundingStatus state={state} />}
-            {manifest?.deployed && <CallbackBadge health={health} />}
-            {updatedAt && <span className="upd">updated {new Date(updatedAt).toLocaleTimeString()}</span>}
+          <div className="dash-head-main">
+            <p className="sl-kicker sl-rise">* Live dashboard</p>
+            <h1 className="sl-title">
+              <span className="a sl-rise" style={{ animationDelay: "0.08s" }}>
+                The queue, live.
+              </span>
+              <span className="b" style={{ animationDelay: "0.2s" }}>
+                Every claim, verifiable.
+              </span>
+            </h1>
+            <p className="dash-lede sl-rise" style={{ animationDelay: "0.32s" }}>
+              Real contracts on Base Sepolia, Reactive Lasna and Unichain Sepolia. Everything below is read straight from public RPCs, and every measurement links to
+              the transactions behind it.
+            </p>
           </div>
+          <aside className="sl-card dash-status sl-rise" style={{ animationDelay: "0.44s" }} aria-label="Network status">
+            <h3>Status</h3>
+            <ul>
+              <li>
+                <span>Networks</span>
+                <div className="sl-chips">
+                  <span className="sl-chip base">Base Sepolia</span>
+                  <span className="sl-chip lasna">Reactive Lasna</span>
+                  <span className="sl-chip uni">Unichain Sepolia</span>
+                </div>
+              </li>
+              {manifest?.deployed && (
+                <li>
+                  <span>Contracts</span>
+                  <FundingStatus state={state} />
+                </li>
+              )}
+              {manifest?.deployed && (
+                <li>
+                  <span>Callbacks</span>
+                  <CallbackBadge health={health} />
+                </li>
+              )}
+              <li>
+                <span>Updated</span>
+                <b className="upd">{updatedAt ? new Date(updatedAt).toLocaleTimeString() : "loading…"}</b>
+              </li>
+            </ul>
+          </aside>
         </header>
 
-        <section id="demo" className="sl-section tight sl-wrap" data-ascii-avoid="0.8">
+        <nav className="dash-jump sl-wrap" aria-label="Sections">
+          {[
+            { href: "#treasury", label: "Treasury" },
+            { href: "#demo", label: "Live demo" },
+            { href: "#evidence", label: "Evidence" },
+            ...(hasLatency ? [{ href: "#latency", label: "Latency" }] : []),
+            ...(hasLoops ? [{ href: "#crosschain", label: "Cross-chain" }] : []),
+            { href: "#deep", label: "Deep dive" },
+            { href: "#contracts", label: "Contracts" },
+          ].map((l) => (
+            <a key={l.href} href={l.href}>
+              {l.label}
+            </a>
+          ))}
+        </nav>
+
+        {manifest?.deployed && addresses && (
+          <section id="treasury" className="sl-section tight sl-wrap dash-sec" data-ascii-avoid="0.8">
+            <TreasuryView addresses={manifest.addresses} state={state} events={events} />
+          </section>
+        )}
+
+        <section id="demo" className="sl-section tight sl-wrap dash-sec" data-ascii-avoid="0.8">
           <p className="sl-kicker">Live demo</p>
           <h2>A lender, a borrower, and a queue that settles itself</h2>
           {!manifest && !loadError && <p className="sl-note">Loading…</p>}
@@ -149,7 +194,7 @@ export default function Dashboard() {
         </section>
 
         {manifest?.deployed && (batch || race.length > 0 || demoRun) && (
-          <section id="evidence" className="sl-section tight sl-wrap" data-ascii-avoid="0.8">
+          <section id="evidence" className="sl-section tight sl-wrap dash-sec" data-ascii-avoid="0.8">
             <Reveal>
               <p className="sl-kicker">Evidence</p>
               <h2>A full run, the 40-ticket run, and the race</h2>
@@ -160,7 +205,7 @@ export default function Dashboard() {
         )}
 
         {hasLatency && summary && (
-          <section id="latency" className="sl-section tight sl-wrap" data-ascii-avoid="0.8">
+          <section id="latency" className="sl-section tight sl-wrap dash-sec" data-ascii-avoid="0.8">
             <Reveal>
               <p className="sl-kicker">Measured</p>
               <h2>Latency of each live loop</h2>
@@ -171,7 +216,7 @@ export default function Dashboard() {
         )}
 
         {hasLoops && summary && (
-          <section id="crosschain" className="sl-section tight sl-wrap" data-ascii-avoid="0.8">
+          <section id="crosschain" className="sl-section tight sl-wrap dash-sec" data-ascii-avoid="0.8">
             <Reveal>
               <p className="sl-kicker">Cross-chain</p>
               <h2>One verified loop per flow</h2>
@@ -184,7 +229,7 @@ export default function Dashboard() {
           </section>
         )}
 
-        <section id="deep" className="sl-section tight sl-wrap" data-ascii-avoid="0.8">
+        <section id="deep" className="sl-section tight sl-wrap dash-sec" data-ascii-avoid="0.8">
           <p className="sl-kicker">Deep dive</p>
           <h2>For the curious</h2>
           <p className="dash-intro">Everything behind the evidence above. Each item opens on demand.</p>
@@ -280,7 +325,7 @@ export default function Dashboard() {
         </section>
 
         {manifest?.deployed && (
-          <section id="contracts" className="sl-section tight sl-wrap" data-ascii-avoid="0.8">
+          <section id="contracts" className="sl-section tight sl-wrap dash-sec" data-ascii-avoid="0.8">
             <Reveal>
               <p className="sl-kicker">Deployed</p>
               <h2>Contracts</h2>
