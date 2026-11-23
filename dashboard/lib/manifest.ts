@@ -104,6 +104,30 @@ export interface BatchResult {
   queued: { requestId: number; owner: string; tx: string; link: string }[];
 }
 
+/** The two recorded Lifeline probes (results/lifeline-probe.json and results/lifeline-remote-probe.json). */
+export interface LifelineEvidence {
+  local: {
+    contracts: Record<string, string>;
+    policy: { cap_lREACT: string; topUp_lREACT: string; budget_lREACT: string; minGapSeconds: number };
+    firstLoop: {
+      blacklistEvent: { block: number; timestamp: number; tx: string };
+      rescueTx_depositToInsideReact: { block: number; timestamp: number; tx: string; amount_lREACT: string; debtBefore_lREACT: string };
+      reviveSeenByLifeline: { block: number; tx: string };
+      blacklistToRescueSeconds: number;
+    };
+    findings: string[];
+    notTested: string[];
+  };
+  remote: {
+    contracts: Record<string, string>;
+    policy: { cap_ETH: string; topUp_ETH: string; budget_ETH: string; cooldownSeconds: number };
+    timeline: { t: string; event: string; tx?: string }[];
+    blacklistToRevivedSecondsApprox: number;
+    noteOnTiming: string;
+    findings: string[];
+  };
+}
+
 export interface CaseStep {
   key: string;
   label: string;
@@ -163,6 +187,7 @@ export interface Manifest {
   raceReplay: RaceReplay | null;
   batch: BatchResult | null;
   caseStudy: CaseStudy | null;
+  lifeline?: LifelineEvidence | null;
   demoRun: DemoRun | null;
 }
 

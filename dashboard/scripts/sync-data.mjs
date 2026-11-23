@@ -66,7 +66,12 @@ if (existsSync(results)) {
   }
 }
 
-const manifest = { generatedAt: new Date().toISOString(), deployed, addresses, summary, raceReplay, batch, caseStudy, demoRun };
+// Lifeline's two live probes (reactive-chain rescue, and cross-chain rescue through the Base callback proxy).
+const lifelineLocal = readJson(resolve(results, "lifeline-probe.json"));
+const lifelineRemote = readJson(resolve(results, "lifeline-remote-probe.json"));
+const lifeline = lifelineLocal && lifelineRemote ? { local: lifelineLocal, remote: lifelineRemote } : null;
+
+const manifest = { generatedAt: new Date().toISOString(), deployed, addresses, summary, raceReplay, batch, caseStudy, demoRun, lifeline };
 writeFileSync(resolve(outDir, "manifest.json"), JSON.stringify(manifest, null, 2));
 console.log(
   `dashboard data: deployed=${deployed}, summary=${summary ? "yes" : "no"}, replay=${raceReplay ? raceReplay.rounds.length + " rounds" : "no"}, batch=${batch ? batch.n + " withdrawals" : "no"}, caseStudy=${caseStudy ? "yes" : "no"}`,

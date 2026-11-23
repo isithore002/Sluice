@@ -10,6 +10,7 @@ import { ExampleLoops } from "../../components/dashboard/ExampleLoops";
 import { LatencyTable } from "../../components/dashboard/LatencySection";
 import { CallbackBadge, CallbackNotice } from "../../components/dashboard/CallbackHealth";
 import { FundingStatus } from "../../components/dashboard/LiveCards";
+import { LifelineView } from "../../components/dashboard/Lifeline";
 import { DemoEvidence } from "../../components/demo/DemoEvidence";
 import { TreasuryView } from "../../components/demo/TreasuryView";
 import { RaceReplay } from "../../components/dashboard/RaceReplay";
@@ -94,6 +95,7 @@ export default function Dashboard() {
   const replay = manifest?.raceReplay ?? null;
   const batch = manifest?.batch ?? null;
   const caseStudy = manifest?.caseStudy ?? null;
+  const lifeline = manifest?.lifeline ?? null;
   const demoRun = manifest?.demoRun ?? null;
   const hasLatency = !!summary && (summary.flowB.succeeded > 0 || summary.flowC.succeeded > 0);
   const hasLoops = !!summary && !!(summary.flowB.example || summary.flowC.example);
@@ -320,6 +322,12 @@ export default function Dashboard() {
                   the relayer reimbursed. What failed was the test harness&apos;s own cleanup. Reconstructed step by step from chain data.
                 </p>
                 <CaseStudyView study={caseStudy} />
+              </Deep>
+            )}
+
+            {lifeline && (
+              <Deep id="lifeline" title="Lifeline: reviving a contract Omni silently stopped" hint="Recorded live probes: blacklist to revival in about a second, on Lasna and across chains">
+                <LifelineView data={lifeline} />
               </Deep>
             )}
 
