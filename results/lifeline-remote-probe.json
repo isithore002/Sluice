@@ -1,0 +1,32 @@
+{
+  "what": "Live end-to-end probe of Lifeline's cross-chain rescue: a callback recipient on Base Sepolia runs into debt at the real callback proxy, Lifeline (Lasna) sees the proxy's BlacklistContract event, a LifelineFunder on Base pays the debt, and the recipient's callbacks resume. Run 2026-11-23.",
+  "contracts": {
+    "lifelineReactive_lasna": "0x6f78bcA62BAAA1e3920d0C7C89e736aB5117a07b",
+    "lifelineFunder_baseSepolia": "0x6f78bcA62BAAA1e3920d0C7C89e736aB5117a07b",
+    "probeRemoteTrigger_lasna": "0x2c9E8a0F2E712019251E2eAD18062e889517182A",
+    "callbackSink_baseSepolia": "0x134f4F6F20Eec6C754472ca2F6214DfCfBBE7132",
+    "baseCallbackProxy": "0x476F44b11F5C942c58f4c8E3d0300E5710743585"
+  },
+  "policy": { "cap_ETH": "0.001", "topUp_ETH": "0.0002", "budget_ETH": "0.01", "cooldownSeconds": 30 },
+  "timeline": [
+    { "t": "Lasna block 9063211 (ts 1795445095)", "event": "trigger reacts to Cron10 and requests a callback to the sink" },
+    { "t": "Base block 62616140 (ts 1795445096)", "event": "callback #1 delivered: sink pings (state changes), is then charged with no reserves, goes into debt and the proxy emits BlacklistContract(sink)", "tx": "0xd754c53a6b4505f45f150087d5a1fb072641645d48a419411c925b8933bd1db4" },
+    { "t": "Lasna block 9063212 (ts 1795445096)", "event": "Lifeline reacts to the proxy's BlacklistContract and requests a rescue callback", "tx": "0xb346f8d4832b88e7964ea5ad74068d499e85e72a1179189cbd515f7dd58ea882" },
+    { "t": "Base block 62616145 (ts 1795445097)", "event": "LifelineFunder.rescue pays the debt plus top-up; proxy emits WhitelistContract(sink)", "tx": "0xa992ee82470d1648e516c279251734a3abcc8729097d73133f8512b6394e0a62" },
+    { "t": "Base block 62616193 (ts 1795445107)", "event": "next callback delivered and executed: the recipient is live again", "tx": "0x7fe39af93a71b6323b26f344d8c918de3e1b2662ed7b8f20a1260fbe0ad48f29" }
+  ],
+  "blacklistToRevivedBaseBlocks": 5,
+  "blacklistToRevivedSecondsApprox": 1,
+  "noteOnTiming": "Base block timestamps resolve to 1 s (about 5 blocks per second), so these are approximate to one second.",
+  "findings": [
+    "The Base callback proxy emits BlacklistContract(address indexed) / WhitelistContract(address indexed) for callback recipients, and Lasna reactive contracts can subscribe to them per target (topic1 = target).",
+    "A recipient is charged AFTER its callback runs. The first callback therefore executes; the recipient is blacklisted afterwards.",
+    "A recipient receives gasLimit - (extraGas 80,000 + maxChargeGas 50,000) of gas. A 200,000 request left about 70,000: a cold first-write ping ran out of gas, emitted CallbackFailure, and was still billed. Five such callbacks drained the sink's reserve with no state change. Rerun with 500,000 worked.",
+    "LifelineFunder.rescue ran inside the 300,000 gas request and cleared the debt in one callback."
+  ],
+  "firstAttemptThatFailedForGas": {
+    "sink": "0xBe013D30f465251D1f88a1D4c4E9E4E7830c2940",
+    "trigger": "0xf4b0221a797578c5861F33cec69B3962B4222848",
+    "result": "rescue loop worked (blacklist tx 0xa84c913b46a328c5608987afff67f2fa45a22db54c350f71392af19be3d15d04, rescued in 0x9985a6c904772d354f21d358507ab51efa7b3bbbb804de469b5d96debfffdf04) but the sink's own ping callbacks ran out of gas because the probe requested only 200,000"
+  }
+}
