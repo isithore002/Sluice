@@ -39,3 +39,27 @@ jobs:
 
       - name: Run Forge tests
         run: forge test -vvv
+
+  slither:
+    name: Slither static analysis
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.5.1
+
+      # Reports findings in the log without failing the build.
+      - name: Run Slither
+        uses: crytic/slither-action@v0.4.1
+        with:
+          target: src/
+          fail-on: none
+          slither-args: --filter-paths "lib|test|script|mocks|demo"
