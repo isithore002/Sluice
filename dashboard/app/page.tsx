@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { AsciiBackdrop } from "../components/AsciiBackdrop";
 import { Intro } from "../components/Intro";
 import { CountUp, Reveal } from "../components/Motion";
 import { PixelGlyph } from "../components/PixelGlyph";
@@ -178,7 +179,7 @@ export default function Landing() {
         <Intro />
 
         <section className="lp-hero" aria-labelledby="lp-name">
-          <div className="lp-dots" aria-hidden="true" />
+          <AsciiBackdrop className="lp-ascii" />
           <div>
             <Reveal>
               <h1 id="lp-name" className="lp-name">

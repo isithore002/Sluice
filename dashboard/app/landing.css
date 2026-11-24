@@ -19,7 +19,7 @@ html:not([data-intro="off"]) .site:has(.intro) .sl-nav { opacity: 0; transform: 
 /* ---- hero: the name, huge and centred ---- */
 .lp-hero { position: relative; z-index: 1; min-height: 100svh; display: grid; place-items: center; text-align: center; padding: clamp(88px, 12vh, 128px) 24px clamp(36px, 6vh, 80px); }
 .lp-hero::before { content: ""; position: absolute; inset: 0; z-index: -2; background: radial-gradient(58% 46% at 50% 40%, rgba(255, 255, 255, 0.075), transparent 72%); }
-.lp-dots { position: absolute; inset: 0; z-index: -1; pointer-events: none; background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1.5px); background-size: 10px 10px; -webkit-mask-image: radial-gradient(52% 44% at 50% 40%, #000, transparent 78%); mask-image: radial-gradient(52% 44% at 50% 40%, #000, transparent 78%); }
+.lp-ascii { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; pointer-events: none; /* a faint scene behind the words, dimmed a little where the headline sits */ -webkit-mask-image: radial-gradient(44% 40% at 50% 46%, rgba(0, 0, 0, 0.3), #000 100%); mask-image: radial-gradient(44% 40% at 50% 46%, rgba(0, 0, 0, 0.3), #000 100%); }
 .lp-name { font-size: clamp(3.8rem, min(14vw, 22vh), 12rem); line-height: 0.92; letter-spacing: -0.07em; font-weight: 500; color: #fff; }
 .lp-sub { margin: clamp(14px, 3.4vh, 36px) auto 0; max-width: 26em; font-size: clamp(1.5rem, min(3.4vw, 5vh), 2.8rem); line-height: 1.14; letter-spacing: -0.04em; font-weight: 400; color: #fff; }
 .lp-sub .dim { color: #85858e; }
