@@ -42,10 +42,6 @@ export function SiteShell({ links, cta, children }: { links: NavLink[]; cta: Nav
       /* the choice just isn't remembered */
     }
   }, []);
-  // Other motion on the page (the hero art) follows the same pause control.
-  useEffect(() => {
-    document.documentElement.dataset.motion = paused ? "paused" : "";
-  }, [paused]);
   // Smooth, inertial scrolling. Off for reduced motion; in-page anchors glide too.
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
