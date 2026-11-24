@@ -1,23 +1,12 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import create, { meta } from "./scene/sea-torii-sunset.js";
+import * as torii from "./scene/sea-torii-sunset.js";
 
-const COLS: number = meta.cols;
-const ROWS: number = meta.rows;
-const FRAME_MS = 1000 / meta.fps;
-const TONE = meta.dots.tone as { gamma: number; floor: number; sat: number };
 const BG = "#09070a";
-const KEY_ORDER: string[] = Object.keys(meta.palette);
 const hexToRgb = (h: string): [number, number, number] => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)) as [number, number, number];
 
-/** A palette colour with its saturation eased by the scene's own `sat`, as a CSS colour. */
-const toneColor = (hex: string) => {
-  const [r, g, b] = hexToRgb(hex);
-  const y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  const m = (v: number) => Math.round(y + (v - y) * TONE.sat);
-  return `rgb(${m(r)},${m(g)},${m(b)})`;
-};
+type SceneModule = { default: () => unknown; meta: { cols: number; rows: number; fps: number; palette: Record<string, string>; dots: { tone: unknown } } };
 
 /**
  * Draws a text scene as a halftone of round dots. The scene (components/scene) returns, for every cell, a block character
@@ -25,7 +14,36 @@ const toneColor = (hex: string) => {
  * colour. Dots of one colour are drawn in one pass, so a 192 x 108 picture costs about fifty fills a frame.
  * `bare` leaves the size to the caller's CSS (the intro fills the screen with it). It stands still for reduced motion, and sleeps while off screen.
  */
-export function AsciiScene({ className, bare = false, maxDpr = 2 }: { className?: string; bare?: boolean; maxDpr?: number }) {
+export function AsciiScene({
+  className,
+  bare = false,
+  maxDpr = 2,
+  scene = torii as unknown as SceneModule,
+  transparent = false,
+  label = "A shrine gate standing in the sea as the sun sets between its posts, with waves rolling in and gulls crossing the sky",
+}: {
+  className?: string;
+  bare?: boolean;
+  maxDpr?: number;
+  /** The scene module to draw (default: the sunset torii). */
+  scene?: SceneModule;
+  /** Clear to transparent instead of painting a dark background, so the page behind shows through. */
+  transparent?: boolean;
+  label?: string;
+}) {
+  const { meta } = scene;
+  const COLS = meta.cols;
+  const ROWS = meta.rows;
+  const FRAME_MS = 1000 / meta.fps;
+  const TONE = meta.dots.tone as { gamma: number; floor: number; sat: number };
+  const KEY_ORDER = Object.keys(meta.palette);
+  /** A palette colour with its saturation eased by the scene's own `sat`, as a CSS colour. */
+  const toneColor = (hex: string) => {
+    const [r, g, b] = hexToRgb(hex);
+    const y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    const m = (v: number) => Math.round(y + (v - y) * TONE.sat);
+    return `rgb(${m(r)},${m(g)},${m(b)})`;
+  };
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -33,8 +51,8 @@ export function AsciiScene({ className, bare = false, maxDpr = 2 }: { className?
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const frameOf = create() as (t: number) => { text: string; color: string };
-    const fills = KEY_ORDER.map((k) => toneColor(meta.palette[k as keyof typeof meta.palette] as string));
+    const frameOf = scene.default() as (t: number) => { text: string; color: string };
+    const fills = KEY_ORDER.map((k) => toneColor(meta.palette[k]));
     const keyIndex = new Map(KEY_ORDER.map((k, i) => [k.charCodeAt(0), i]));
 
     let W = 0;
@@ -48,7 +66,8 @@ export function AsciiScene({ className, bare = false, maxDpr = 2 }: { className?
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
-      const css = canvas.clientWidth;
+      // the picture is as wide as the box needs it to be to cover it (a tall box makes it wider than the box, and CSS crops it)
+      const css = Math.max(canvas.clientWidth, (canvas.clientHeight * COLS) / ROWS);
       if (!css) return;
       W = Math.round(css * dpr);
       H = Math.round((css * ROWS) / COLS * dpr);
@@ -95,7 +114,10 @@ export function AsciiScene({ className, bare = false, maxDpr = 2 }: { className?
       prevC = cl;
       ctx.fillStyle = BG;
       if (full) {
-        ctx.fillRect(0, 0, W, H);
+        if (transparent) ctx.clearRect(0, 0, W, H);
+        else ctx.fillRect(0, 0, W, H);
+      } else if (transparent) {
+        for (let i = 0; i < clear.length; i += 2) ctx.clearRect(clear[i], clear[i + 1], cell, cell);
       } else {
         ctx.beginPath();
         for (let i = 0; i < clear.length; i += 2) ctx.rect(clear[i], clear[i + 1], cell, cell);
@@ -115,7 +137,7 @@ export function AsciiScene({ className, bare = false, maxDpr = 2 }: { className?
       drawn = true;
     };
 
-        const loop = (now: number) => {
+    const loop = (now: number) => {
       raf = requestAnimationFrame(loop);
       if (!visible || !W) return;
       if (!drawn) {
@@ -153,6 +175,7 @@ export function AsciiScene({ className, bare = false, maxDpr = 2 }: { className?
       ro.disconnect();
       io.disconnect();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -160,7 +183,7 @@ export function AsciiScene({ className, bare = false, maxDpr = 2 }: { className?
       ref={ref}
       className={className}
       role="img"
-      aria-label="A shrine gate standing in the sea as the sun sets between its posts, with waves rolling in and gulls crossing the sky"
+      aria-label={label}
       style={bare ? undefined : { display: "block", width: "100%", aspectRatio: `${COLS} / ${ROWS}` }}
     />
   );
