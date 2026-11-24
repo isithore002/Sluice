@@ -101,7 +101,7 @@ export function SiteShell({ links, cta, children }: { links: NavLink[]; cta: Nav
           radius={1.9}
           trail={0.9}
           glow={0.3}
-          fade={0.7}
+          fade={0}
           clickCascade={false}
           paused={paused}
         />
