@@ -90,7 +90,6 @@ body { background: #09090a; }
 .sl-nav { position: sticky; top: 0; z-index: 20; background: rgba(7, 10, 17, 0.58); backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4); box-shadow: 0 1px 0 var(--line); }
 .sl-nav-in { max-width: 1200px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .sl-brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 680; font-stretch: 94%; letter-spacing: -0.01em; font-size: 19px; }
-.sl-brand small { font: 500 11px/1 var(--sans); color: var(--brass); padding: 4px 8px; border-radius: 999px; background: rgba(231, 189, 114, 0.1); box-shadow: inset 0 0 0 1px rgba(231, 189, 114, 0.3); }
 .sl-links { display: flex; align-items: center; gap: 4px; font-size: 14px; color: var(--ink-2); }
 .sl-links a:not(.sl-pill) { padding: 8px 11px; border-radius: 10px; transition: color 0.15s, background 0.15s; }
 .sl-links a:not(.sl-pill):hover { color: var(--ink); background: rgba(255, 255, 255, 0.07); }

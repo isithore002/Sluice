@@ -31,7 +31,7 @@ const MOTION_KEY = "sluice-bg-paused";
  * The frame both pages share, so they look and behave like one product: the drifting grid background (with a control
  * to pause it), sticky nav, footer, the pointer light on cards, and the `js` flag that arms scroll reveals.
  */
-export function SiteShell({ badge, links, cta, children }: { badge?: string; links: NavLink[]; cta: NavLink; children: ReactNode }) {
+export function SiteShell({ links, cta, children }: { links: NavLink[]; cta: NavLink; children: ReactNode }) {
   const [js, setJs] = useState(false);
   const [paused, setPaused] = useState(false);
   useEffect(() => {
@@ -109,7 +109,6 @@ export function SiteShell({ badge, links, cta, children }: { badge?: string; lin
           <Link href="/" className="sl-brand">
             <LogoMark size={26} />
             Sluice
-            {badge && <small>{badge}</small>}
           </Link>
           <div className="sl-links">
             {links.map((l) => (

@@ -102,7 +102,6 @@ export default function Dashboard() {
 
   return (
     <SiteShell
-      badge="live"
       links={[
         { href: "#treasury", label: "Treasury" },
         { href: "#demo", label: "Live demo" },
