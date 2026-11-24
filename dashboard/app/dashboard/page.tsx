@@ -123,7 +123,7 @@ export default function Dashboard() {
           maxDpr={1.25}
           scene={summit as never}
           transparent
-          label="A snowy peak glowing pink above a drifting sea of cloud at sunrise, with a roped line of climbers walking the ridge"
+          label="A snowy peak glowing pink above a drifting sea of cloud at sunrise"
         />
         <header className="dash-head sl-wrap" data-ascii-avoid="0.85">
           <div className="dash-head-main">

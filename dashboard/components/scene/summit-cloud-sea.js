@@ -1,7 +1,7 @@
-/* summit-cloud-sea: a snowy peak standing above a sea of cloud at sunrise, with a rope of climbers on a ridge, hand-built.
+/* summit-cloud-sea: a snowy peak standing above a sea of cloud at sunrise, hand-built.
  * A static scene (dawn sky, rising sun, far peaks, the great peak with lit and
  * shadowed faces, the near snow ridge) is painted once; each frame adds the cloud
- * sea drifting below and the climbers walking the ridge into the cloud. */
+ * sea drifting below. */
 import { fbm, noise2, clamp, lerp, KEYS } from "./kit.js";
 
 const W = 192, H = 108;
@@ -26,9 +26,9 @@ const toHex = (c) => "#" + c.map((v) => Math.round(clamp(v, 0, 255)).toString(16
 
 export const meta = {
   slug: "summit-cloud-sea", name: "Summit Above Clouds", category: "landscapes",
-  note: "A snowy peak glows pink above a drifting sea of cloud at sunrise while a roped line of climbers walks the ridge below.",
-  tags: ["mountain", "sunrise", "snow", "clouds", "climbers", "halftone", "hero", "wallpaper"],
-  cols: W, rows: H, fps: 15, cell: "square", look: "dots",
+  note: "A snowy peak glows pink above a drifting sea of cloud at sunrise.",
+  tags: ["mountain", "sunrise", "snow", "clouds", "halftone", "hero", "wallpaper"],
+  cols: W, rows: H, fps: 30, cell: "square", look: "dots",
   dots: { tone: { gamma: 0.62, floor: 0.03, sat: 0.82 } },
   palette: Object.fromEntries(PAL.map((c, i) => [KEYS[i], toHex(c)])),
 };
@@ -100,11 +100,6 @@ export default function create() {
       put(FX(x), y, c, FORE);
     }
   }
-  // the climbers' path along the crest
-  const path = [];
-  for (let x = W + 8; x >= 92; x -= 0.5) path.push([x, crest(Math.min(W - 1, x))]);
-  const plen = path.length;
-
   // cloud texture, wide and seamlessly wrapping, scrolled each frame
   const tex = new Float32Array(TEXW * TEXH);
   const f = (x, y) => fbm(x / 26, y / 13, 3, 71) * 0.82 + fbm(x / 8, y / 6, 2, 73) * 0.18;
@@ -131,31 +126,18 @@ export default function create() {
       out[i * 3] = lerp(out[i * 3], c[0], a); out[i * 3 + 1] = lerp(out[i * 3 + 1], c[1], a); out[i * 3 + 2] = lerp(out[i * 3 + 2], c[2], a);
       if (lv) adj[i] = lv;
     };
-    // roped climbers walking the crest from the right, over the top and down into the cloud
-    const P = 48, u = (t % P) / P;
-    for (let k = 0; k < 5; k++) {
-      const s = Math.floor((u * 1.3 - k * 0.036) * plen);
-      if (s < 0 || s >= plen) continue;
-      const [x, y] = path[s], bob = Math.sin(t * 4 + k * 1.3) > 0 ? 0 : 1;
-      const cx = Math.round(x), by = Math.round(y) - 1;
-      const jacket = k % 2 === 0 ? C.red : C.ink;
-      add(cx, by, C.ink, 1, -1); add(cx + 1 + bob, by, C.ink, 1, -1); add(cx, by - 1, C.ink, 1, -1); add(cx + 1, by - 1, C.ink, 1, -1);
-      for (let j = 2; j <= 5; j++) { add(cx, by - j, jacket, 1, -1); add(cx + 1, by - j, jacket, 1, -1); }
-      for (let j = 3; j <= 5; j++) add(cx + 2, by - j, C.ink, 1, -1);
-      for (let j = 6; j <= 7; j++) { add(cx, by - j, C.ink, 1, -1); add(cx + 1, by - j, C.ink, 1, -1); }
-      add(cx - 1, by - 3 - bob, C.ink, 1, -1); add(cx - 2, by - 2 - bob, C.ink, 1, -1);
-      if (k < 4) { const s2 = Math.floor((u * 1.3 - (k + 1) * 0.036) * plen); if (s2 >= 0 && s2 < plen) { const [x2, y2] = path[s2]; for (let q = 1; q < 4; q++) add(lerp(cx + 2, x2, q / 4), lerp(by - 3, y2 - 4, q / 4) + 0.5, C.ink, 0.7); } }
-    }
     // the cloud sea, drifting left; lit pink-gold where it billows up, lavender in the hollows
-    const off = Math.floor(t * 2.2);
+    const off = t * 1.5; // cells per second, and not rounded: the texture is sampled between cells, so the drift is continuous
+    const o0 = Math.floor(off), of = off - o0;
     for (let y = CLOUD_TOP - 6; y < H; y++) {
       const ty = y - CLOUD_TOP + 4, row = Math.max(0, Math.min(TEXH - 1, ty)) * TEXW;
       const thr = 0.6 - (y - (CLOUD_TOP - 6)) * 0.016;
       for (let x = 0; x < W; x++) {
         const i = y * W + x, m = mask[i];
         if (m === FORE && x > 112) continue;
-        const tx = (x + off) % TEXW, d = tex[row + tx];
-        const dUp = tex[Math.max(0, ty - 2) * TEXW + tx];
+        const tx = (x + o0) % TEXW, tx1 = (tx + 1) % TEXW, rowUp = Math.max(0, ty - 2) * TEXW;
+        const d = tex[row + tx] * (1 - of) + tex[row + tx1] * of;
+        const dUp = tex[rowUp + tx] * (1 - of) + tex[rowUp + tx1] * of;
         const a = clamp((d - thr) * 9);
         if (a <= 0) continue;
         const light = clamp(0.62 + (d - dUp) * 9 - (y - CLOUD_TOP) / 110 + clamp(1 - Math.abs(x - SUN[0]) / 60) * 0.25);
