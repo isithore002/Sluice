@@ -1,6 +1,6 @@
 /* Dashboard only. Shared pieces (tokens, nav, cards, buttons, tables, chips) live in site.css. */
 
-.dash-head { padding-top: 48px; padding-bottom: 8px; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.9fr); gap: 32px; align-items: end; }
+.dash-head { padding-top: 132px; padding-bottom: 8px; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.9fr); gap: 32px; align-items: end; }
 .dash-head .sl-kicker { display: none; } /* the title already says it */
 .dash-lede { margin-top: 18px; max-width: 700px; color: var(--ink-2); font-size: 17px; line-height: 1.6; }
 .dash-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 22px; }
