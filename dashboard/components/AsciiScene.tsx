@@ -12,7 +12,7 @@ type SceneModule = { default: () => unknown; meta: { cols: number; rows: number;
  * Draws a text scene as a halftone of round dots. The scene (components/scene) returns, for every cell, a block character
  * whose height says how bright it is and a one-letter colour key; here the height becomes the dot's size and the key its
  * colour. Dots of one colour are drawn in one pass, so a 192 x 108 picture costs about fifty fills a frame.
- * `bare` leaves the size to the caller's CSS (the intro fills the screen with it). It stands still for reduced motion, and sleeps while off screen.
+ * Setting data-idle="1" on the canvas puts it to sleep once its first frame is drawn. `bare` leaves the size to the caller's CSS (the intro fills the screen with it). It stands still for reduced motion, and sleeps while off screen.
  */
 export function AsciiScene({
   className,
@@ -145,7 +145,7 @@ export function AsciiScene({
         last = now;
         return;
       }
-      if (reduce) {
+      if (reduce || canvas.dataset.idle === "1") {
         last = now;
         return;
       }
