@@ -1,101 +1,81 @@
-/* The pixel man, the bitmap letters for his speech and the cloud he speaks in. All of it is plain data and pure functions,
+/* The stick man, the bitmap letters for his speech and the cloud he speaks in. All of it is plain data and pure functions,
  * so the canvas code in Intro.tsx only has to place and paint it. Sprite and cloud pixels are in their own small grids. */
 
 export type Px = { x: number; y: number; c: string };
 
-const C = {
-  h: "#2a1620", // hair
-  s: "#f8c8b0", // skin
-  e: "#1a0a14", // eye
-  m: "#9a3a40", // open mouth
-  r: "#e0505a", // scarf
-  c: "#ffe8d0", // coat
-  b: "#7a2420", // belt
-  p: "#5a2a52", // trousers
-  o: "#1a0a14", // boots
-  out: "#1a0a14", // outline
-} as const;
+const INK = "#1a0a14";
 
-export const MAN_W = 10;
-export const MAN_H = 18;
-
-// Head, scarf, coat and belt, facing right. Legs and arms are added per frame.
-const BODY = [
-  "...hhhh...",
-  "..hhhhhh..",
-  "..hhhhss..",
-  "..hhssss..",
-  "..hhsess..",
-  "...hsssss.",
-  "....ssss..", // row 6 is the mouth row
-  "...rrrrr..",
-  "..cccccc..",
-  "..cccccc..",
-  "..cccccc..",
-  "..cccccc..",
-  "..bbbbbb..",
-  "..pppppp..",
-];
-export const MOUTH_ROW = 6;
-export const MOUTH_COL = 5;
+// A stick man on a small grid, facing right: a ring for a head, a line each for the body, arms and legs.
+export const MAN_W = 13;
+export const MAN_H = 22;
+/** Where his mouth is, so the cloud can come out of it. */
+export const MOUTH_COL = 8;
+export const MOUTH_ROW = 4;
 
 export type ManPose = { step: number; walking: boolean; talking: boolean; waving: boolean };
 
-/** The man for one frame, outlined so he reads against a bright sky. */
+/** The stick man for one frame. */
 export function buildMan({ step, walking, talking, waving }: ManPose): Px[] {
-  const g = new Map<string, string>();
-  const set = (x: number, y: number, c: string) => g.set(`${x},${y}`, c);
-  BODY.forEach((row, y) => {
-    for (let x = 0; x < row.length; x++) {
-      const k = row[x];
-      if (k !== ".") set(x, y, C[k as keyof typeof C]);
-    }
-  });
-  if (talking) set(MOUTH_COL, MOUTH_ROW, C.m);
-
-  const phase = walking ? step % 4 : 0;
-  const swing = walking ? [-1, 0, 1, 0][phase] : 0;
-  // back arm
-  for (let y = 9; y <= 11; y++) set(1 + (walking ? -swing : 0), y, C.c);
-  set(1 + (walking ? -swing : 0), 12, C.s);
-  // front arm: swings while walking, waves while talking
-  if (waving) {
-    const up = step % 2 === 0;
-    for (let y = up ? 5 : 6; y <= 9; y++) set(9, y, C.c);
-    set(9, up ? 4 : 5, C.s);
-  } else {
-    for (let y = 9; y <= 11; y++) set(8 + (walking ? swing : 0), y, C.c);
-    set(8 + (walking ? swing : 0), 12, C.s);
-  }
-  // legs
-  const lx = walking ? swing : 0;
-  for (const [x0, off] of [[3, lx], [5, -lx]] as const) {
-    for (let y = 14; y <= 16; y++) {
-      set(x0 + off, y, C.p);
-      set(x0 + off + 1, y, C.p);
-    }
-    set(x0 + off, 17, C.o);
-    set(x0 + off + 1, 17, C.o);
-  }
-
-  const px: Px[] = [];
-  const solid = [...g.keys()]; // a snapshot: the outline is added after it, never while walking it
-  for (const k of solid) {
-    const [x, y] = k.split(",").map(Number);
-    px.push({ x, y, c: g.get(k)! });
-  }
-  const edge = new Set<string>();
-  for (const k of solid) {
-    const [x, y] = k.split(",").map(Number);
-    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-      const nk = `${x + dx},${y + dy}`;
-      if (!g.has(nk) && !edge.has(nk)) {
-        edge.add(nk);
-        px.push({ x: x + dx, y: y + dy, c: C.out });
+  const g = new Set<string>();
+  const dot = (x: number, y: number) => g.add(`${x},${y}`);
+  const line = (x0: number, y0: number, x1: number, y1: number) => {
+    const dx = Math.abs(x1 - x0);
+    const dy = -Math.abs(y1 - y0);
+    const sx = x0 < x1 ? 1 : -1;
+    const sy = y0 < y1 ? 1 : -1;
+    let err = dx + dy;
+    for (;;) {
+      dot(x0, y0);
+      if (x0 === x1 && y0 === y1) break;
+      const e2 = 2 * err;
+      if (e2 >= dy) {
+        err += dy;
+        x0 += sx;
+      }
+      if (e2 <= dx) {
+        err += dx;
+        y0 += sy;
       }
     }
+  };
+
+  // head: a ring, with an eye, and a mouth that opens while he talks
+  for (let y = 0; y <= 6; y++) {
+    for (let x = 3; x <= 9; x++) {
+      const r = Math.hypot(x - 6, y - 3);
+      if (r >= 2.3 && r <= 3.5) dot(x, y);
+    }
   }
-  return px;
+  dot(7, 2);
+  if (talking) {
+    dot(7, MOUTH_ROW);
+    dot(MOUTH_COL, MOUTH_ROW);
+  }
+  // body
+  line(6, 7, 6, 14);
+  // arms
+  const sw = walking ? [-1, 0, 1, 0][step % 4] : 0;
+  line(6, 9, 4 - sw, 13);
+  if (waving) {
+    const up = step % 2 === 0;
+    line(6, 9, 9, 8);
+    line(9, 8, 10, up ? 4 : 5);
+  } else {
+    line(6, 9, 8 + sw, 13);
+  }
+  // legs: they stride while he walks and stand together when he stops
+  const lift = walking && sw === 0 ? (step % 4 === 1 ? 1 : 2) : 0; // which foot is off the ground as the legs pass
+  const left = walking ? 4 + 2 * sw : 4;
+  const right = walking ? 8 - 2 * sw : 8;
+  line(6, 14, left, lift === 1 ? 20 : 21);
+  line(6, 14, right, lift === 2 ? 20 : 21);
+  dot(left + 1, lift === 1 ? 20 : 21);
+  dot(right + 1, lift === 2 ? 20 : 21);
+
+  return [...g].map((k) => {
+    const [x, y] = k.split(",").map(Number);
+    return { x, y, c: INK };
+  });
 }
 
 /** 5 x 7 letters for the speech, plus a chevron for "down". */
@@ -190,4 +170,4 @@ export function cloudCells(mouth: { x: number; y: number }): { cells: CloudCell[
   return { cells, maxD };
 }
 
-export const CLOUD_COLORS = { fill: "#fff6d8", edge: "#1a0a14", ink: "#2a1620", arrow: "#c0606a" };
+export const CLOUD_COLORS = { fill: "#ffffff", edge: "#1a0a14", ink: "#1a0a14", arrow: "#6b6b75" };
