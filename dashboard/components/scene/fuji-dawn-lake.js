@@ -1,7 +1,7 @@
 /* fuji-dawn-lake: a snow capped volcano at dawn over a still lake, hand-built.
  * A static scene (dawn sky, the mountain and its snow, far hills, the pine point,
  * the lake with its mirrored reflection) is painted once; each frame adds the sun,
- * drifting mist, cranes flying, a boat poling across, moving ripple lines and reeds. */
+ * drifting mist, a boat poling across, moving ripple lines and reeds. */
 import { fbm, noise2, clamp, lerp, KEYS } from "./kit.js";
 
 const W = 192, H = 108;
@@ -94,8 +94,8 @@ const PAL = buildPalette(ANCHORS);
 
 export const meta = {
   slug: "fuji-dawn-lake", name: "Fuji Dawn Lake", category: "landscapes",
-  note: "A snow capped volcano glows pink at dawn over a mirror lake, with cranes flying past and a small boat poling across.",
-  tags: ["mountain", "japan", "dawn", "lake", "reflection", "cranes", "halftone", "wallpaper"],
+  note: "A snow capped volcano glows pink at dawn over a mirror lake, with a small boat poling across.",
+  tags: ["mountain", "japan", "dawn", "lake", "reflection", "halftone", "wallpaper"],
   cols: W, rows: H, fps: 15, cell: "square", look: "dots",
   dots: { tone: { gamma: 0.62, floor: 0.03, sat: 0.82 } },
   palette: Object.fromEntries(PAL.map((c, i) => [KEYS[i], toHex(c)])),
@@ -177,7 +177,6 @@ export default function create() {
   const { add } = F;
   const reeds = Array.from({ length: 20 }, (_, i) => ({ x: 150 + i * 2.1 + Math.sin(i * 7.1) * 1.5, h: 5 + ((i * 37) % 9) + clamp((i - 6) / 14) * 6, ph: i * 0.61 }));
   const ripples = Array.from({ length: 30 }, (_, i) => ({ u: ((i * 73) % 97) / 97, ph: ((i * 41) % 53) / 53 }));
-  const cranes = [[0, 0], [11, 4], [21, -2]];
   const DARK = hex("#2a2440"), INK = hex("#110f22");
 
   return (t) => {
@@ -193,19 +192,6 @@ export default function create() {
       const a = clamp((n - 0.45) * 2.4) * 0.55 * Math.sin(((y - 50) / 16) * Math.PI);
       if (a > 0.03) add(x, y, hex("#f0c0c8"), a, MTN);
     }
-    // cranes: three birds crossing left to right, long necks out, slow wingbeats
-    const ct = ((t + 8) % 34) / 34, cx0 = lerp(W + 30, -30, ct), cy0 = 9 + Math.sin(ct * 5) * 2;
-    cranes.forEach(([ox, oy], k) => {
-      const x = Math.round(cx0 + ox), y = Math.round(cy0 + oy + Math.sin(t * 0.9 + k) * 0.8), f = Math.sin(t * 3.2 + k * 1.3);
-      const WH = hex("#fff2ea");
-      for (let j = -2; j <= 3; j++) add(x + j, y, WH, 1);        // body
-      for (let j = 3; j <= 6; j++) add(x - j, y - (j > 5 ? 1 : 0), WH, 1); // neck and head
-      add(x - 7, y - 1, hex("#ffd48a"), 1);
-      add(x + 4, y + 1, DARK, 1); add(x + 5, y + 1, DARK, 0.8); // trailing legs
-      const tip = Math.round(-5 * f);
-      for (let j = 0; j <= 4; j++) add(x + j * 0.5, y + Math.round((tip * j) / 4), j > 2 ? DARK : WH, 1);
-      add(x - 1, y + Math.round(tip / 3), WH, 1);
-    });
     // ripple lines moving toward the shore, longer as they come near
     for (const r of ripples) {
       const p = (r.ph + t * 0.035) % 1, y = Math.round(HOR + 2 + (H - HOR - 6) * Math.pow(p, 1.5));

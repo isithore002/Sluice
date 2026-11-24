@@ -186,7 +186,7 @@ export default function Landing() {
             maxDpr={1.25}
             scene={fujiLake as never}
             transparent
-            label="A snow-capped volcano glowing pink at dawn over a still lake, with cranes flying past and a small boat poling across"
+            label="A snow-capped volcano glowing pink at dawn over a still lake, with a small boat poling across"
           />
           <div>
             <Reveal>
