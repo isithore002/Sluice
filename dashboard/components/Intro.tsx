@@ -28,7 +28,7 @@ const T_TALK = T_WALK + WALK_S + 0.5; // then the cloud pops out of his mouth
 const POP_S = 0.45;
 const TYPE_CPS = 11; // letters per second
 const UNLOCK_AFTER = 0.6; // seconds after the last letter before scrolling is allowed
-const AUTO_START = 2; // the story begins by itself this many seconds after the scene appears
+const AUTO_START = 8; // the story begins on the first click or key press; if nobody does either, it starts by itself after this long
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const smooth = (a: number, b: number, x: number) => {
@@ -48,6 +48,7 @@ export function Intro() {
   const stage = useRef<HTMLDivElement>(null);
   const art = useRef<HTMLDivElement>(null);
   const over = useRef<HTMLCanvasElement>(null);
+  const hint = useRef<HTMLParagraphElement>(null);
   const progress = useRef(0);
   const unlockRef = useRef<() => void>(() => {});
   const fx = useRef<ReturnType<typeof createFootsteps> | null>(null);
@@ -164,12 +165,14 @@ export function Intro() {
     let dirty = true;
     let visible = true;
     let clock = reduce ? 60 : 0; // time since the page opened; it only runs while the page is visible
-    let storyStart: number | null = reduce ? 0 : null; // when the story began: AUTO_START seconds after the scene appeared
+    let storyStart: number | null = reduce ? 0 : null; // when the story began: the first click or key press (or AUTO_START)
     const begin = () => {
       if (storyStart !== null) return;
       storyStart = clock;
-      void fx.current?.resume(); // ask for sound as the walk begins; the browser grants it if the visitor has interacted with the site
+      hint.current?.classList.add("gone");
+      void fx.current?.resume(); // the click is also what lets the browser play the footsteps
     };
+    if (reduce) hint.current?.classList.add("gone");
     let lastStep = -1;
     let last = performance.now();
     let lastP = -1;
@@ -304,9 +307,12 @@ export function Intro() {
       last = performance.now();
     });
     io.observe(st);
+    const startNames = ["pointerdown", "keydown", "touchstart", "click"];
+    for (const n of startNames) window.addEventListener(n, begin, { passive: true });
     layout();
     raf = requestAnimationFrame(loop);
     return () => {
+      for (const n of startNames) window.removeEventListener(n, begin);
       cancelAnimationFrame(raf);
       cancelAnimationFrame(frame);
       ro.disconnect();
@@ -324,6 +330,9 @@ export function Intro() {
           <AsciiScene className="intro-cv" bare maxDpr={1.5} />
           <canvas ref={over} className="intro-cv intro-over" aria-hidden="true" />
         </div>
+        <p ref={hint} className="intro-hint">
+          Click anywhere to start
+        </p>
       </div>
     </section>
   );
