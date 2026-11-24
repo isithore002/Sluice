@@ -122,7 +122,7 @@ export function SiteShell({ links, cta, children }: { links: NavLink[]; cta: Nav
         <div className="sl-nav-in">
           <div className="sl-nav-left">
             <Link href="/" className="sl-brand" aria-label="Sluice, home">
-              <LogoMark size={36} />
+              <LogoMark size={34} />
             </Link>
             <div className="sl-pill-nav">
               {tabs.map((l) => (
