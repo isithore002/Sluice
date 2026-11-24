@@ -135,7 +135,11 @@ export function AsciiScene({ className, bare = false, maxDpr = 2 }: { className?
       draw();
     };
 
-    const ro = new ResizeObserver(resize);
+    let frame = 0;
+    const ro = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(resize);
+    });
     ro.observe(canvas);
     const io = new IntersectionObserver(([e]) => {
       visible = e.isIntersecting;
@@ -146,6 +150,7 @@ export function AsciiScene({ className, bare = false, maxDpr = 2 }: { className?
     raf = requestAnimationFrame(loop);
     return () => {
       cancelAnimationFrame(raf);
+      cancelAnimationFrame(frame);
       ro.disconnect();
       io.disconnect();
     };

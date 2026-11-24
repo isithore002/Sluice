@@ -71,7 +71,11 @@ export function WorkflowGraph({ medianS, batch }: { medianS?: number; batch?: { 
       setEdges(out);
     };
     measure();
-    const ro = new ResizeObserver(measure);
+    let frame = 0;
+    const ro = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(measure);
+    });
     ro.observe(el);
     void document.fonts?.ready.then(measure);
     const io = new IntersectionObserver(
@@ -85,6 +89,7 @@ export function WorkflowGraph({ medianS, batch }: { medianS?: number; batch?: { 
     );
     io.observe(el);
     return () => {
+      cancelAnimationFrame(frame);
       ro.disconnect();
       io.disconnect();
     };

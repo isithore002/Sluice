@@ -322,7 +322,11 @@ export function Intro() {
       draw(clock, p);
     };
 
-    const ro = new ResizeObserver(layout);
+    let frame = 0;
+    const ro = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(layout);
+    });
     ro.observe(cv);
     ro.observe(st);
     const io = new IntersectionObserver(([e]) => {
@@ -334,6 +338,7 @@ export function Intro() {
     raf = requestAnimationFrame(loop);
     return () => {
       cancelAnimationFrame(raf);
+      cancelAnimationFrame(frame);
       ro.disconnect();
       io.disconnect();
     };
