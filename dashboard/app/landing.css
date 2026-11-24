@@ -1,11 +1,13 @@
 /* Landing page only. Shared pieces (tokens, nav, buttons, cards, background) live in site.css. */
 
-/* ---- the intro: the scene fills the screen, then zooms out as the visitor scrolls into the site ---- */
-.intro { position: relative; height: calc((100svh - 58px) * 2.15); margin-bottom: -24svh; }
-.intro-stage { position: sticky; top: 58px; height: calc(100svh - 58px); }
-.intro-art { position: absolute; inset: 0; overflow: hidden; background: #09070a; transform-origin: 50% 50%; will-change: transform, opacity; box-shadow: 0 40px 120px -40px rgba(0, 0, 0, 0.9); }
+/* ---- the intro: the scene fills the screen, then zooms in toward the sun as the visitor scrolls into the site ---- */
+.site .intro { position: relative; height: calc(100svh * 2.15); margin-top: -62px; margin-bottom: -24svh; } /* starts under the nav, which stays hidden until the zoom is nearly done */
+.intro-stage { position: sticky; top: 0; height: 100svh; overflow: hidden; }
+.intro-art { position: absolute; inset: 0; background: #09070a; transform-origin: 50% calc(50% - var(--cell, 8px) * 3); will-change: transform, opacity; } /* zooms in toward the sun */
 .intro-cv { position: absolute; left: 50%; top: 50%; width: calc(var(--cell, 8px) * 192); height: calc(var(--cell, 8px) * 108); transform: translate(-50%, -50%); }
 .intro-over { pointer-events: none; }
+.site .sl-nav { transition: opacity 0.45s ease, transform 0.45s ease; }
+html[data-intro="on"] .sl-nav { opacity: 0; transform: translateY(-100%); pointer-events: none; }
 .intro-skip:focus { position: fixed; left: 16px; top: 70px; z-index: 40; width: auto; height: auto; margin: 0; padding: 10px 16px; clip: auto; border-radius: 999px; background: var(--ink); color: #0a0a0c; }
 
 /* ---- hero band: an opaque stage for the cursor-reactive grid, fading into the page's own drifting grid below ---- */
