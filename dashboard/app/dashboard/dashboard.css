@@ -156,13 +156,13 @@
 .dash-status .upd { color: var(--ink-2); font: 500 13px/1 var(--sans); font-variant-numeric: tabular-nums; }
 .dash-head .dash-lede { max-width: 640px; }
 .dash-jump { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 26px; padding-bottom: 4px; }
-.dash-jump a { display: inline-flex; align-items: center; min-height: 36px; font: 500 13.5px/1 var(--sans); color: var(--ink-2); padding: 0 15px; border-radius: 999px; background: rgba(184, 205, 255, 0.045); box-shadow: inset 0 0 0 1px var(--line); transition: color 0.15s, background 0.15s, box-shadow 0.15s; }
-.dash-jump a:hover { color: var(--ink); background: rgba(127, 178, 255, 0.12); box-shadow: inset 0 0 0 1px rgba(127, 178, 255, 0.4); }
+.dash-jump a { display: inline-flex; align-items: center; min-height: 36px; font: 500 13.5px/1 var(--sans); color: var(--ink-2); padding: 0 15px; border-radius: 999px; background: rgba(255, 255, 255, 0.045); box-shadow: inset 0 0 0 1px var(--line); transition: color 0.15s, background 0.15s, box-shadow 0.15s; }
+.dash-jump a:hover { color: var(--ink); background: rgba(232, 232, 236, 0.12); box-shadow: inset 0 0 0 1px rgba(232, 232, 236, 0.4); }
 @media (max-width: 980px) { .dash-head { grid-template-columns: minmax(0, 1fr); gap: 22px; } .dash-status li { grid-template-columns: 80px minmax(0, 1fr); } }
 
 /* ---- sections: one consistent header, a quiet rule above each ---- */
 .dash .dash-sec.sl-section.tight { padding-top: 0; margin-top: 72px; }
-.dash .dash-sec::before { content: ""; display: block; height: 1px; margin-bottom: 44px; background: linear-gradient(90deg, rgba(127, 178, 255, 0.45), var(--line) 30%, transparent); }
+.dash .dash-sec::before { content: ""; display: block; height: 1px; margin-bottom: 44px; background: linear-gradient(90deg, rgba(232, 232, 236, 0.45), var(--line) 30%, transparent); }
 .dash .dash-sec > .sl-kicker, .dash .dash-sec > .reveal > .sl-kicker { display: none; } /* the heading already says it */
 .dash .dash-sec > .dm-t > .dm-t-head .sl-kicker { display: none; }
 .dash .dash-sec h2 { margin-bottom: 4px; }

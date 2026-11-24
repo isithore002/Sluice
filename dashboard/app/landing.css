@@ -24,7 +24,7 @@
 .qr-clock { font: 600 30px/1 var(--sans); font-stretch: 92%; font-variant-numeric: tabular-nums; color: var(--brass); white-space: nowrap; }
 .qr-clock span { font-size: 15px; color: var(--muted); font-weight: 500; }
 .qr-grid { list-style: none; margin: 20px 0 0; padding: 0; display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: 6px; }
-.qr-cell { position: relative; aspect-ratio: 1; display: grid; place-items: center; border-radius: 9px; font: 500 11.5px/1 var(--sans); font-variant-numeric: tabular-nums; color: var(--muted); background: rgba(184, 205, 255, 0.04); box-shadow: inset 0 0 0 1px var(--line); transition: background-color 0.3s, color 0.3s, box-shadow 0.3s; }
+.qr-cell { position: relative; aspect-ratio: 1; display: grid; place-items: center; border-radius: 9px; font: 500 11.5px/1 var(--sans); font-variant-numeric: tabular-nums; color: var(--muted); background: rgba(255, 255, 255, 0.04); box-shadow: inset 0 0 0 1px var(--line); transition: background-color 0.3s, color 0.3s, box-shadow 0.3s; }
 .qr-cell[data-paid] { color: #2a1c05; background: var(--brass); box-shadow: 0 0 14px -2px rgba(231, 189, 114, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.4); }
 .qr-cell[data-paid="2"] { background: #f3d9a3; } /* a lighter brass: the second callback */
 @media (prefers-reduced-motion: no-preference) {
@@ -73,13 +73,13 @@
 /* ---- proof ---- */
 .lp-proof { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr); gap: 40px; align-items: center; padding: clamp(24px, 5vw, 52px); border-radius: 28px; }
 .lp-proof .sl-cta { margin-top: 28px; }
-.lp-trace { display: grid; gap: 2px; min-width: 0; padding: 8px 18px; border-radius: 16px; background: rgba(5, 8, 14, 0.5); box-shadow: inset 0 0 0 1px var(--line); }
+.lp-trace { display: grid; gap: 2px; min-width: 0; padding: 8px 18px; border-radius: 16px; background: rgba(6, 6, 7, 0.5); box-shadow: inset 0 0 0 1px var(--line); }
 .lp-trace .row { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
 .lp-trace .row:first-child { border-top: 0; }
 .lp-trace .k { color: var(--muted); font-size: 13.5px; }
 .lp-trace .v { color: var(--ink); overflow-wrap: anywhere; font-size: 14.5px; }
 .lp-trace .hash { font: 500 13px/1.4 var(--mono); font-feature-settings: normal; }
-.lp-trace a.hash { border-bottom: 1px solid rgba(184, 205, 255, 0.3); transition: color 0.15s, border-color 0.15s; }
+.lp-trace a.hash { border-bottom: 1px solid rgba(255, 255, 255, 0.3); transition: color 0.15s, border-color 0.15s; }
 .lp-trace a.hash:hover { color: var(--tide); border-color: var(--tide); }
 .lp-trace .sub { display: block; margin-top: 2px; color: var(--muted); font-size: 13px; }
 .lp-trace .paid { color: var(--brass); }
