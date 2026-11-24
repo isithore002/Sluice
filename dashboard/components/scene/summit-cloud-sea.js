@@ -130,7 +130,7 @@ export default function create() {
       if (lv) adj[i] = lv;
     };
     // the cloud sea, drifting left; lit pink-gold where it billows up, lavender in the hollows
-    const off = t * 1.5; // cells per second, and not rounded: the texture is sampled between cells, so the drift is continuous
+    const off = t * 4.5; // cells per second (about 45 px a second on a wide screen), and not rounded: the texture is sampled between cells, so the drift is continuous
     const o0 = Math.floor(off), of = off - o0;
     for (let y = CLOUD_TOP - 6; y < H; y++) {
       const ty = y - CLOUD_TOP + 4, row = Math.max(0, Math.min(TEXH - 1, ty)) * TEXW;
