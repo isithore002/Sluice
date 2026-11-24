@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
-import { AsciiScene } from "../components/AsciiScene";
-import * as fujiLake from "../components/scene/fuji-dawn-lake.js";
 import { Intro } from "../components/Intro";
 import { CountUp, Reveal } from "../components/Motion";
 import { PixelGlyph } from "../components/PixelGlyph";
@@ -177,17 +175,8 @@ export default function Landing() {
       cta={{ href: "/dashboard", label: "Live dashboard" }}
     >
       <main id="top">
-        <Intro />
-
+        <Intro>
         <section className="lp-hero" aria-labelledby="lp-name">
-          <AsciiScene
-            className="lp-ascii"
-            bare
-            maxDpr={1.25}
-            scene={fujiLake as never}
-            transparent
-            label="A snow-capped volcano glowing pink at dawn over a still lake, with a small boat poling across"
-          />
           <div>
             <Reveal>
               <h1 id="lp-name" className="lp-name">
@@ -237,6 +226,7 @@ export default function Landing() {
             </Reveal>
           </div>
         </section>
+        </Intro>
 
         <section id="about" className="lp-about">
           <ScrollWords

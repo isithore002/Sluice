@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { AsciiScene } from "./AsciiScene";
+import * as dawn from "./scene/fuji-dawn-lake.js";
 import { drawFigure, FIGURE_H } from "./intro/figure";
 import { createFootsteps } from "./intro/footsteps";
 import {
@@ -19,7 +20,15 @@ import {
 
 const COLS = 192; // the scene's size, in cells
 const ROWS = 108;
-const ZOOM = 5.5; // how far the picture rushes in, toward the sun, as the visitor scrolls
+// The scroll transition is a match cut between the two scenes, which both have a sun. In order, over the scroll `p` (0 to 1):
+//   0   to 0.46  the camera dives into the sunset's sun until the sun fills the screen, and the screen flushes to its cream
+//   0.46 to 0.62 the cream clears out of the dawn scene's sun, which fills the screen first
+//   0.50 to 0.90 the camera pulls back from that sun to reveal the whole lake
+//   0.84 to 1    the lake dims to its quiet place behind the hero text, which then scrolls in
+const SUN_A = { col: 96, row: 51, r: 8 }; // the sunset's sun, in scene cells
+const SUN_B = { col: 150, row: 50, r: 6.5 }; // the dawn scene's sun
+const P_PEAK = 0.46;
+const REST_OPACITY = 0.22; // how faint the dawn scene is behind the hero
 
 // The story, in seconds from the page opening.
 const T_WALK = 0.9; // the man starts walking in
@@ -42,11 +51,17 @@ const easeInOut = (p: number) => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p 
  * out of his mouth telling them to scroll. As they scroll, the picture zooms in toward the sun and fades, and the site is
  * underneath it. The nav stays out of the way until the zoom is nearly done. The scene is a sticky stage inside a taller
  * section, so the scrolling drives the zoom. Scrolling is held until the stick man has finished speaking (see the lock below).
+ * The hero is passed in as `children`: the pinned stage stays behind it, so the dawn scene becomes the hero's own background.
  */
-export function Intro() {
-  const wrap = useRef<HTMLElement>(null);
+export function Intro({ children }: { children?: ReactNode }) {
+  const wrap = useRef<HTMLDivElement>(null);
   const stage = useRef<HTMLDivElement>(null);
+  const spacer = useRef<HTMLDivElement>(null);
   const art = useRef<HTMLDivElement>(null);
+  const artB = useRef<HTMLDivElement>(null);
+  const flash = useRef<HTMLDivElement>(null);
+  const cvA = useRef<HTMLDivElement>(null);
+  const cvB = useRef<HTMLDivElement>(null);
   const over = useRef<HTMLCanvasElement>(null);
   const hint = useRef<HTMLParagraphElement>(null);
   const progress = useRef(0);
@@ -109,22 +124,75 @@ export function Intro() {
     };
   }, []);
 
-  // Size the picture to cover the stage, and turn scrolling into the zoom.
+  // Size the pictures to cover the stage, and turn scrolling into the transition.
   useEffect(() => {
-    const w = wrap.current;
+    const sp = spacer.current;
     const st = stage.current;
     const a = art.current;
-    if (!w || !st || !a) return;
+    const b = artB.current;
+    const fl = flash.current;
+    if (!sp || !st || !a || !b || !fl) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const size = () => st.style.setProperty("--cell", `${Math.max(st.clientWidth / COLS, st.clientHeight / ROWS)}px`);
+    let cell = 8;
+    let zoomA = 10; // how far each picture is magnified when its sun fills the screen
+    let zoomB = 12;
+    let boxW = 0;
+    let boxH = 0;
+    const size = () => {
+      boxW = st.clientWidth;
+      boxH = st.clientHeight;
+      cell = Math.max(boxW / COLS, boxH / ROWS);
+      st.style.setProperty("--cell", `${cell}px`);
+      const half = Math.hypot(boxW, boxH) / 2;
+      zoomA = (half / (SUN_A.r * cell)) * 1.08;
+      zoomB = (half / (SUN_B.r * cell)) * 1.08;
+      // each picture turns about its own sun
+      a.style.transformOrigin = `${boxW / 2 + (SUN_A.col - COLS / 2) * cell}px ${boxH / 2 + (SUN_A.row - ROWS / 2) * cell}px`;
+      b.style.transformOrigin = `${boxW / 2 + (SUN_B.col - COLS / 2) * cell}px ${boxH / 2 + (SUN_B.row - ROWS / 2) * cell}px`;
+    };
+    /** magnification `s` of a picture about its sun, panned so the sun sits at the middle of the screen when fully magnified */
+    const camera = (sun: { col: number; row: number }, s: number, max: number) => {
+      const k = max > 1 ? (s - 1) / (max - 1) : 0;
+      const tx = -(sun.col - COLS / 2) * cell * k;
+      const ty = -(sun.row - ROWS / 2) * cell * k;
+      return `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px) scale(${s.toFixed(4)})`;
+    };
     const apply = () => {
-      const r = w.getBoundingClientRect();
-      const p = clamp01(-r.top / Math.max(1, w.offsetHeight - st.clientHeight));
+      const r = sp.getBoundingClientRect();
+      const p = clamp01(-r.top / Math.max(1, sp.offsetHeight - st.clientHeight));
       progress.current = p;
-      const e = easeInOut(p);
-      a.style.transform = reduce ? "none" : `scale(${Math.exp(Math.log(ZOOM) * e).toFixed(4)})`;
-      a.style.opacity = String((1 - smooth(0.5, 0.95, p)).toFixed(3));
-      document.documentElement.dataset.intro = p < 0.92 ? "on" : "off";
+      let opA: number;
+      let opB: number;
+      let cream: number;
+      if (reduce) {
+        // no camera: the sunset simply gives way to the dawn
+        a.style.transform = "none";
+        b.style.transform = "none";
+        const x = smooth(0.25, 0.6, p);
+        opA = 1 - x;
+        opB = x * (1 - (1 - REST_OPACITY) * smooth(0.6, 1, p));
+        cream = 0;
+      } else {
+        const ua = clamp01(p / P_PEAK);
+        a.style.transform = camera(SUN_A, Math.exp(Math.log(zoomA) * Math.pow(ua, 1.8)), zoomA);
+        const ub = clamp01((p - 0.5) / 0.4);
+        const eb = 1 - Math.pow(1 - ub, 2.2);
+        b.style.transform = camera(SUN_B, Math.exp(Math.log(zoomB) * (1 - eb)), zoomB);
+        opA = p < P_PEAK ? 1 : 0;
+        opB = p < P_PEAK - 0.02 ? 0 : 1 - (1 - REST_OPACITY) * smooth(0.84, 1, p);
+        cream = p < P_PEAK ? smooth(0.3, P_PEAK, p) : 1 - smooth(0.48, 0.62, p);
+      }
+      a.style.opacity = opA.toFixed(3);
+      b.style.opacity = opB.toFixed(3);
+      fl.style.opacity = cream.toFixed(3);
+      // a picture that cannot be seen sits still, and only the sunset's story needs its stick man
+      const idleA = opA === 0 ? "1" : "0";
+      const idleB = opB === 0 ? "1" : "0";
+      const ca = cvA.current?.querySelector("canvas:not(.intro-over)") as HTMLCanvasElement | null;
+      const cb = cvB.current?.querySelector("canvas") as HTMLCanvasElement | null;
+      if (ca) ca.dataset.idle = idleA;
+      if (cb) cb.dataset.idle = idleB;
+      document.documentElement.dataset.intro = p < 0.985 ? "on" : "off";
     };
     size();
     apply();
@@ -286,6 +354,10 @@ export function Intro() {
       const dt = now - last;
       const p = progress.current;
       const playing = !reduce;
+      if (p >= P_PEAK && !dirty) {
+        last = now;
+        return; // the sunset is out of sight, so there is nothing to animate
+      }
       if (!dirty && p === lastP && (!playing || dt < 16)) return;
       if (playing) clock += Math.min(dt, 250) / 1000;
       if (storyStart === null && clock >= AUTO_START) begin();
@@ -321,19 +393,36 @@ export function Intro() {
   }, []);
 
   return (
-    <section ref={wrap} className="intro" aria-label="Introduction">
+    <div ref={wrap} className="intro">
       <a className="sr-only intro-skip" href="#how" onClick={() => unlockRef.current()}>
         Skip the introduction
       </a>
       <div ref={stage} className="intro-stage">
-        <div ref={art} className="intro-art">
-          <AsciiScene className="intro-cv" bare maxDpr={1.5} />
+        <div ref={artB} className="intro-art b" style={{ opacity: 0 }}>
+          <div ref={cvB} className="intro-cv">
+            <AsciiScene
+              className="intro-fill"
+              bare
+              maxDpr={1.25}
+              scene={dawn as never}
+              transparent
+              label="A snow-capped volcano glowing pink at dawn over a still lake, with a small boat poling across"
+            />
+          </div>
+        </div>
+        <div ref={art} className="intro-art a">
+          <div ref={cvA} className="intro-cv">
+            <AsciiScene className="intro-fill" bare maxDpr={1.5} />
+          </div>
           <canvas ref={over} className="intro-cv intro-over" aria-hidden="true" />
         </div>
+        <div ref={flash} className="intro-flash" aria-hidden="true" />
         <p ref={hint} className="intro-hint">
           Click anywhere to start
         </p>
       </div>
-    </section>
+      <div ref={spacer} className="intro-spacer" aria-hidden="true" />
+      {children}
+    </div>
   );
 }
