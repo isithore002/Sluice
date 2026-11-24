@@ -100,7 +100,6 @@ export function SiteShell({ links, cta, children }: { links: NavLink[]; cta: Nav
 
   return (
     <div className={`site${js ? " js" : ""}`}>
-      <div className="sl-progress" aria-hidden="true" />
       <nav className="sl-nav" aria-label="Main">
         <div className="sl-nav-in">
           <div className="sl-nav-left">
