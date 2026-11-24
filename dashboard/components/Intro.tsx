@@ -1,24 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { AsciiScene } from "./AsciiScene";
+import { drawFigure } from "./intro/figure";
 import { createFootsteps } from "./intro/footsteps";
 import {
-  buildMan,
-  chevronAt,
-  CHEVRON,
   cloudCells,
+  CLOUD_CENTER,
   CLOUD_COLORS,
   CLOUD_H,
   CLOUD_W,
-  MAN_H,
-  MAN_W,
-  MOUTH_COL,
-  MOUTH_ROW,
+  MESSAGE_H,
+  MESSAGE_W,
   SPEECH_CHARS,
-  speechPixels,
-  TEXT_CX,
-  TEXT_Y0,
+  speechLayout,
   type CloudCell,
 } from "./intro/pixelart";
 
@@ -33,7 +28,6 @@ const T_TALK = T_WALK + WALK_S + 0.5; // then the cloud pops out of his mouth
 const POP_S = 0.45;
 const TYPE_CPS = 11; // letters per second
 const UNLOCK_AFTER = 0.6; // seconds after the last letter before scrolling is allowed
-const SOUND_KEY = "sluice-intro-sound";
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const smooth = (a: number, b: number, x: number) => {
@@ -53,11 +47,9 @@ export function Intro() {
   const stage = useRef<HTMLDivElement>(null);
   const art = useRef<HTMLDivElement>(null);
   const over = useRef<HTMLCanvasElement>(null);
-  const soundBtn = useRef<HTMLButtonElement>(null);
   const progress = useRef(0);
   const unlockRef = useRef<() => void>(() => {});
   const fx = useRef<ReturnType<typeof createFootsteps> | null>(null);
-  const [sound, setSound] = useState<"idle" | "on" | "off">("idle");
 
   // Hold the page still until the stick man has said his piece. The wheel, touch and keys are caught before anything else sees
   // them, so neither the browser nor the smooth-scroll library moves the page; `unlock` is called when he finishes (or after a
@@ -96,59 +88,24 @@ export function Intro() {
     return unlock;
   }, []);
 
-  // Footsteps. Browsers allow sound only after the visitor has interacted, so it starts on the first click, tap or key press
-  // (or at once if they already have), and the button lets them turn it off.
+  // Footsteps, always on. Browsers let a page make sound only after the visitor has interacted with it, so the sound switches
+  // on at the first click, tap or key press (or at once if they already have), and stays on.
   useEffect(() => {
     const f = createFootsteps();
     fx.current = f;
-    let stored: string | null = null;
-    try {
-      stored = window.localStorage.getItem(SOUND_KEY);
-    } catch {
-      /* the choice just isn't remembered */
-    }
-    if (stored === "off") {
-      f.setMuted(true);
-      setSound("off");
-      return () => f.close();
-    }
-    const enable = async () => {
-      const ok = await f.resume();
-      if (ok) setSound("on");
-      return ok;
-    };
-    const onGesture = (e: Event) => {
-      if ((e.target as Element | null)?.closest?.(".intro-sound")) return; // the button handles its own clicks
-      void enable().then((ok) => {
-        if (ok) for (const n of ["pointerdown", "keydown", "touchstart"]) window.removeEventListener(n, onGesture);
+    const names = ["pointerdown", "keydown", "touchstart", "click"];
+    const onGesture = () => {
+      void f.resume().then((ok) => {
+        if (ok) for (const n of names) window.removeEventListener(n, onGesture);
       });
     };
-    if (f.mayAutoplay()) void enable();
-    for (const n of ["pointerdown", "keydown", "touchstart"]) window.addEventListener(n, onGesture, { passive: true });
+    if (f.mayAutoplay()) void f.resume();
+    for (const n of names) window.addEventListener(n, onGesture, { passive: true });
     return () => {
-      for (const n of ["pointerdown", "keydown", "touchstart"]) window.removeEventListener(n, onGesture);
+      for (const n of names) window.removeEventListener(n, onGesture);
       f.close();
     };
   }, []);
-
-  const toggleSound = async () => {
-    const f = fx.current;
-    if (!f) return;
-    let next: "idle" | "on" | "off";
-    if (sound === "on") {
-      f.setMuted(true);
-      next = "off";
-    } else {
-      f.setMuted(false);
-      next = (await f.resume()) ? "on" : "idle";
-    }
-    setSound(next);
-    try {
-      window.localStorage.setItem(SOUND_KEY, next === "off" ? "off" : "on");
-    } catch {
-      /* the choice just isn't remembered */
-    }
-  };
 
   // Size the picture to cover the stage, and turn scrolling into the zoom.
   useEffect(() => {
@@ -166,10 +123,6 @@ export function Intro() {
       a.style.transform = reduce ? "none" : `scale(${Math.exp(Math.log(ZOOM) * e).toFixed(4)})`;
       a.style.opacity = String((1 - smooth(0.5, 0.95, p)).toFixed(3));
       document.documentElement.dataset.intro = p < 0.92 ? "on" : "off";
-      if (soundBtn.current) {
-        soundBtn.current.style.opacity = String((1 - smooth(0, 0.12, p)).toFixed(3));
-        soundBtn.current.style.pointerEvents = p > 0.12 ? "none" : "auto";
-      }
     };
     size();
     apply();
@@ -198,8 +151,9 @@ export function Intro() {
     let CW = 0;
     let CH = 0;
     let cell = 0; // one scene cell, in device px
-    let spx = 0; // one pixel of the stick man
-    let bpx = 0; // one pixel of the cloud and its letters
+    let figH = 0; // the stick man's height
+    let bpx = 0; // one pixel of the cloud's shape
+    let tp = 0; // one pixel of the letters
     let visL = 0; // the part of the canvas the stage shows
     let visT = 0;
     let visW = 0;
@@ -208,8 +162,7 @@ export function Intro() {
     let cloud: { key: string; cells: CloudCell[]; maxD: number } | null = null;
     let dirty = true;
     let visible = true;
-    const startPaused = document.documentElement.dataset.motion === "paused";
-    let clock = reduce || startPaused ? 60 : 0; // the story's time; it only runs while the page is visible and not paused. Reduced motion or a saved pause starts at the end
+    let clock = reduce ? 60 : 0; // the story's time; it only runs while the page is visible. Reduced motion starts at the end
     let lastStep = -1;
     let last = performance.now();
     let lastP = -1;
@@ -230,8 +183,9 @@ export function Intro() {
       visW = sw;
       visH = sh;
       cell = CW / COLS;
-      spx = Math.max(2, Math.round(cell * 0.6));
+      figH = Math.round(cell * 15);
       bpx = Math.max(2, Math.round(cell * 0.4));
+      tp = Math.max(2, Math.round(bpx * 0.67));
       walkTop = Math.round(visT + visH - 7 * cell);
       cloud = null;
       dirty = true;
@@ -253,35 +207,43 @@ export function Intro() {
       const seam = Math.max(1, Math.round(cell * 0.45));
       for (let x = Math.round(cell * 6); x < CW; x += Math.round(cell * 11)) rect(x, walkTop + lip, seam, CH - walkTop, "#1a0a14");
 
-      // the stick man walks in from the left, then stands and talks
+      // the stick man walks in from the left, then stands and talks. His stride is tied to the distance he covers, so his feet
+      // never slide, and every footfall (every half turn of the cycle) makes a step sound.
       const walkU = clamp01((t - T_WALK) / WALK_S);
-      const startX = visL - (MAN_W + 2) * spx;
+      const startX = visL - figH * 0.4;
       const stopX = visL + visW * 0.28;
-      const mx = Math.round(startX + (stopX - startX) * walkU);
+      const hipX = startX + (stopX - startX) * walkU;
+      const phase = (Math.PI * 2 * (hipX - startX)) / (figH * 0.85);
+      const tStop = T_WALK + WALK_S;
+      const walkAmt = t < T_WALK ? 0 : t < tStop ? smooth(0, 1, (t - T_WALK) / 0.3) : Math.max(0, 1 - (t - tStop) / 0.4);
       const walking = t >= T_WALK && walkU < 1;
       const talkT = t - T_TALK;
       const typed = talkT > 0.4 ? Math.min(SPEECH_CHARS, Math.floor((talkT - 0.4) * TYPE_CPS)) : 0;
-      const waving = talkT > 0.2;
       const talking = talkT > 0.4 && typed < SPEECH_CHARS && Math.floor(t * 8) % 2 === 0;
-      const step = waving ? Math.floor(t * 2.2) : Math.max(0, Math.floor((t - T_WALK) / 0.17));
-      const my = walkTop + Math.round(cell * 0.9) - MAN_H * spx;
-      if (walking && step !== lastStep) {
-        lastStep = step;
-        if (step % 2 === 0) fx.current?.step(step % 4 === 0); // a boot lands on every other step
+      const stepIdx = Math.floor(phase / Math.PI);
+      if (walking && stepIdx !== lastStep) {
+        lastStep = stepIdx;
+        fx.current?.step(stepIdx % 2 === 0);
       }
       if (typed >= SPEECH_CHARS && talkT > 0.4 + SPEECH_CHARS / TYPE_CPS + UNLOCK_AFTER) unlockRef.current(); // he has said it: let the visitor scroll
-      const man = buildMan({ step, walking, talking, waving });
-      for (const px of man) rect(mx + px.x * spx, my + px.y * spx, spx, spx, px.c);
+      const { mouth } = drawFigure(ctx, {
+        x: Math.round(hipX),
+        ground: walkTop + Math.round(cell * 0.9),
+        height: figH,
+        phase,
+        walk: walkAmt,
+        wave: smooth(0, 1, (talkT - 0.1) / 0.4),
+        talking,
+        t,
+      });
 
       // the cloud, growing out of his mouth; it folds away as soon as the visitor scrolls
       const q = Math.min(clamp01(talkT / POP_S), 1 - clamp01((p - 0.02) / 0.06));
       if (q <= 0) return;
-      const mouthX = mx + (MOUTH_COL + 1.5) * spx;
-      const mouthY = my + (MOUTH_ROW + 0.5) * spx;
-      let ox = Math.round(mouthX + 4 * bpx);
-      const oy = Math.max(Math.round(visT + 10 * d), Math.round(mouthY - (CLOUD_H + 10) * bpx));
+      let ox = Math.round(mouth.x + 3 * bpx);
+      const oy = Math.max(Math.round(visT + 10 * d), Math.round(mouth.y - (CLOUD_H + 8) * bpx));
       ox = Math.min(ox, Math.round(visL + visW - (CLOUD_W + 2) * bpx));
-      const ml = { x: (mouthX - ox) / bpx, y: (mouthY - oy) / bpx };
+      const ml = { x: (mouth.x - ox) / bpx, y: (mouth.y - oy) / bpx };
       const key = `${Math.round(ml.x * 2)},${Math.round(ml.y * 2)},${bpx}`;
       if (!cloud || cloud.key !== key) cloud = { key, ...cloudCells(ml) };
       const bob = Math.round(Math.sin(t * 2.4) * bpx * 0.7);
@@ -291,20 +253,20 @@ export function Intro() {
         for (const c of cloud.cells) if (c.edge === edge && c.d <= reach) ctx.fillRect(ox + c.x * bpx, oy + c.y * bpx + bob, bpx, bpx);
       }
       if (q > 0.9) {
+        // the message is centred on the middle of the cloud's body, both ways, in whole pixels
+        const bx = Math.round(ox + CLOUD_CENTER.x * bpx - (MESSAGE_W * tp) / 2);
+        const by = Math.round(oy + bob + CLOUD_CENTER.y * bpx - (MESSAGE_H * tp) / 2);
+        const { text, chevron } = speechLayout(typed);
         ctx.fillStyle = CLOUD_COLORS.ink;
-        for (const px of speechPixels(TEXT_CX, TEXT_Y0, typed)) ctx.fillRect(ox + px.x * bpx, oy + px.y * bpx + bob, bpx, bpx);
-        if (typed >= SPEECH_CHARS) {
-          const ch = chevronAt(TEXT_CX, TEXT_Y0);
-          const hop = Math.floor(t * 3) % 2;
+        for (const px of text) ctx.fillRect(bx + Math.round(px.x * tp), by + Math.round(px.y * tp), tp, tp);
+        if (chevron.length) {
+          const hop = (Math.floor(t * 3) % 2) * tp;
           ctx.fillStyle = CLOUD_COLORS.arrow;
-          CHEVRON.forEach((row, ry) => {
-            for (let rx = 0; rx < row.length; rx++) if (row[rx] === "#") ctx.fillRect(ox + (ch.x + rx) * bpx, oy + (ch.y + ry + hop) * bpx + bob, bpx, bpx);
-          });
+          for (const px of chevron) ctx.fillRect(bx + Math.round(px.x * tp), by + Math.round(px.y * tp) + hop, tp, tp);
         }
       }
     };
 
-    const paused = () => document.documentElement.dataset.motion === "paused";
     const loop = (now: number) => {
       raf = requestAnimationFrame(loop);
       if (!visible || !CW) {
@@ -313,8 +275,8 @@ export function Intro() {
       }
       const dt = now - last;
       const p = progress.current;
-      const playing = !reduce && !paused();
-      if (!dirty && p === lastP && (!playing || dt < 33)) return;
+      const playing = !reduce;
+      if (!dirty && p === lastP && (!playing || dt < 16)) return;
       if (playing) clock += Math.min(dt, 250) / 1000;
       last = now;
       lastP = p;
@@ -354,17 +316,6 @@ export function Intro() {
           <AsciiScene className="intro-cv" bare maxDpr={1.5} />
           <canvas ref={over} className="intro-cv intro-over" aria-hidden="true" />
         </div>
-        <button ref={soundBtn} type="button" className="intro-sound" onClick={toggleSound} aria-pressed={sound === "on"}>
-          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-            <path d="M2 6h3l4-3v10l-4-3H2z" fill="currentColor" />
-            {sound === "on" ? (
-              <path d="M11 5.5a3.5 3.5 0 0 1 0 5M12.8 3.6a6 6 0 0 1 0 8.8" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-            ) : (
-              <path d="M11.5 6l3 4m0-4l-3 4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-            )}
-          </svg>
-          <span>{sound === "on" ? "Sound on" : sound === "off" ? "Sound off" : "Tap for sound"}</span>
-        </button>
       </div>
     </section>
   );
