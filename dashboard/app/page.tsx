@@ -1,15 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { Intro } from "../components/Intro";
 import { CountUp, Reveal } from "../components/Motion";
+import { PixelGlyph } from "../components/PixelGlyph";
 import { QueueRun } from "../components/QueueRun";
 import { RaceChart } from "../components/RaceChart";
+import { ScrollWords } from "../components/ScrollWords";
 import { SiteShell } from "../components/SiteShell";
-import CursorGrid from "../components/ui/CursorGrid";
-import MagicBento from "../components/ui/MagicBento";
-import PixelCard from "../components/ui/PixelCard";
+import { WorkflowGraph } from "../components/WorkflowGraph";
 import { loadManifest, type Manifest } from "../lib/manifest";
 import "./landing.css";
 
@@ -27,41 +27,18 @@ const OUTSIDER = {
 const short = (h: string, a = 6, b = 4) => `${h.slice(0, a + 2)}…${h.slice(-b)}`;
 const baseTx = (h: string) => `https://sepolia.basescan.org/tx/${h}`;
 
-const STEPS = [
-  {
-    tag: "Event",
-    title: "Something frees liquidity",
-    body: "A borrower repays in a Morpho market we don't control, a deposit lands, or another chain has spare credit.",
-  },
-  {
-    tag: "Reaction",
-    title: "Reactive decides, in about a second",
-    body: "SluiceReactive sees the event on Lasna and tells the vault to pull from Morpho, or the reserve to front the shortfall.",
-  },
-  {
-    tag: "Callback",
-    title: "The queue is paid in order",
-    body: "First come, first served, with partial fills at the head. Missed events heal through retries, and bad debt halts cross-chain fronting.",
-  },
-];
-
-/** The pixel colours for the three flow cards: tide blue, never the warm brass (that is reserved for "paid"). */
-const FLOW_PIXELS = ["#f4f4f5", "#e8e8ec", "#c8c8ce"];
-
 function Tile({ big, label, note, href, linkLabel }: { big: ReactNode; label: string; note?: string; href?: string; linkLabel?: string }) {
   return (
     <div className="lp-tile">
       <div className="lp-tile-big">{big}</div>
       <p className="lp-tile-label">{label}</p>
       {note && <p className="lp-tile-note">{note}</p>}
-      {href && (
-        <a className="lp-tile-link sl-link" href={href}>
-          {linkLabel}
-        </a>
-      )}
+      {href && <span className="lp-tile-link">{linkLabel}</span>}
     </div>
   );
 }
+
+const span = (c?: number, r?: number): CSSProperties => ({ gridColumn: c ? `span ${c}` : undefined, gridRow: r ? `span ${r}` : undefined });
 
 export default function Landing() {
   const [manifest, setManifest] = useState<Manifest | null>(null);
@@ -79,19 +56,20 @@ export default function Landing() {
   const legacy4 = capture(false, 4);
   const native0 = capture(true, 0);
 
-  // The measured claims, as one glass bento. Each tile exists only if its data does.
-  const tiles: { colSpan?: number; rowSpan?: number; content: ReactNode }[] = [];
+  // The measured claims. Each tile exists only if its data does.
+  const tiles: { colSpan?: number; rowSpan?: number; href?: string; content: ReactNode }[] = [];
   if (s && s.flowB.succeeded > 0) {
     tiles.push({
       colSpan: 2,
       rowSpan: 2,
+      href: `${BASE}/dashboard/#latency`,
       content: (
         <Tile
           big={<CountUp to={s.flowB.totalWallMs.median / 1000} decimals={2} suffix=" s" />}
           label="from a Morpho repayment to the queue being paid"
           note={`Median over ${s.flowB.succeeded} of ${s.flowB.attempted} live loops that all settled. 95th percentile ${(s.flowB.totalWallMs.p95 / 1000).toFixed(2)} s. Every loop is traced by its origin transaction hash.`}
-          href={`${BASE}/dashboard/#latency`}
-          linkLabel="See the latency table"
+          href="x"
+          linkLabel="See the latency table →"
         />
       ),
     });
@@ -125,6 +103,7 @@ export default function Landing() {
   if (native4 && legacy4) {
     tiles.push({
       colSpan: 2,
+      href: `${BASE}/dashboard/#replay`,
       content: (
         <Tile
           big={
@@ -134,21 +113,22 @@ export default function Landing() {
           }
           label="of freed liquidity captured by the queue, against a competitor that reacts after 4 s"
           note={`At Omni speed, then the same system slowed by ${legacy4.delayBlocks} Lasna blocks to mimic the legacy network.`}
-          href={`${BASE}/dashboard/#replay`}
-          linkLabel="Replay the race"
+          href="x"
+          linkLabel="Replay the race →"
         />
       ),
     });
   }
   if (lifeline) {
     tiles.push({
+      href: `${BASE}/dashboard/#lifeline`,
       content: (
         <Tile
           big={<>about {lifeline.remote.blacklistToRevivedSecondsApprox} s</>}
           label="to revive a contract Omni silently stopped for debt"
           note="Measured on Lasna and across chains, on probe contracts."
-          href={`${BASE}/dashboard/#lifeline`}
-          linkLabel="See Lifeline"
+          href="x"
+          linkLabel="See Lifeline →"
         />
       ),
     });
@@ -185,6 +165,7 @@ export default function Landing() {
   return (
     <SiteShell
       links={[
+        { href: "#top", label: "Home" },
         { href: "#how", label: "How it works" },
         { href: "#proof-numbers", label: "Measured" },
         { href: "#why", label: "Why Omni" },
@@ -195,29 +176,25 @@ export default function Landing() {
     >
       <main id="top">
         <Intro />
-        <div className="lp-band">
-          <CursorGrid
-            className="lp-grid"
-            cellSize={56}
-            color="#e8e8ec"
-            gridColor="#b4b4bc"
-            gridOpacity={0.04}
-            fillOpacity={0.07}
-            lineWidth={1}
-            radius={170}
-            spotlight={0.5}
-            edgeFade={0}
-            holdTime={350}
-            fadeDuration={900}
-          />
-          <div className="lp-hero sl-wrap">
-            <div className="lp-copy">
-              <h1 className="sl-title lp-title sl-rise">Withdrawal queues that settle themselves.</h1>
-              <p className="lp-lede sl-rise" style={{ animationDelay: "0.12s" }}>
-                When liquidity comes back anywhere (a repayment in a Morpho market we don&apos;t control, or spare credit on another chain), a
-                Reactive contract pays the queue in order within a couple of seconds. No manager. No keeper bot.
+
+        <section className="lp-hero" aria-labelledby="lp-name">
+          <div className="lp-dots" aria-hidden="true" />
+          <div>
+            <Reveal>
+              <h1 id="lp-name" className="lp-name">
+                Sluice
+              </h1>
+            </Reveal>
+            <Reveal delay={90}>
+              <p className="lp-sub">
+                Withdrawal queues that settle <span className="dim">themselves.</span>
               </p>
-              <div className="sl-cta sl-rise" style={{ animationDelay: "0.22s" }}>
+            </Reveal>
+            <Reveal delay={170}>
+              <p className="lp-mono">Event-driven &amp; Keeper-free Liquidity Queues</p>
+            </Reveal>
+            <Reveal delay={240}>
+              <div className="lp-actions">
                 <Link href="/dashboard" className="sl-btn primary">
                   Open the live dashboard
                 </Link>
@@ -225,45 +202,87 @@ export default function Landing() {
                   Read the source
                 </a>
               </div>
-              <div className="sl-chips sl-rise" style={{ animationDelay: "0.3s" }}>
-                <span className="sl-chip base">Base Sepolia</span>
-                <span className="sl-chip lasna">Reactive Lasna</span>
-                <span className="sl-chip uni">Unichain Sepolia</span>
-              </div>
-            </div>
-
-            <div className="lp-stage sl-rise" style={{ animationDelay: "0.2s" }}>
-              {batch?.ok ? (
-                <QueueRun batch={batch} />
-              ) : (
-                <div className="sl-card lp-stage-empty">
-                  <p>Every number on this site comes from live testnet runs. Open the dashboard to see them.</p>
+            </Reveal>
+            <Reveal delay={320}>
+              <div className="lp-powered">
+                <small>Powered by</small>
+                <div className="lp-brands">
+                  <span className="lp-brand" style={{ "--c": "#a27cff" } as CSSProperties}>
+                    <PixelGlyph name="bolt" className="lp-glyph" />
+                    Reactive
+                  </span>
+                  <span className="lp-brand">
+                    <PixelGlyph name="wing" className="lp-glyph" />
+                    Morpho
+                  </span>
+                  <span className="lp-brand">
+                    <PixelGlyph name="disc" className="lp-glyph" />
+                    Base
+                  </span>
+                  <span className="lp-brand" style={{ "--c": "#ff6ea9" } as CSSProperties}>
+                    <PixelGlyph name="diamond" className="lp-glyph" />
+                    Unichain
+                  </span>
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <section id="how" className="sl-section sl-wrap">
-          <Reveal>
-            <h2>Liquidity returns. The queue moves.</h2>
-          </Reveal>
-          <div className="lp-flow">
-            {STEPS.map((st, i) => (
-              <Reveal key={st.title} delay={i * 90}>
-                <PixelCard colors={FLOW_PIXELS} gap={8} speed={22} pixelSize={2.4} glow={0.3} glowColor="#c8c8ce" fade={0.35} intro={false} radius={20} theme="dark" className="lp-pixel">
-                  <div className="lp-pixel-body">
-                    <span className="sl-tag">{st.tag}</span>
-                    <div>
-                      <h3>{st.title}</h3>
-                      <p>{st.body}</p>
-                    </div>
-                  </div>
-                </PixelCard>
-              </Reveal>
-            ))}
+              </div>
+            </Reveal>
           </div>
         </section>
+
+        <section id="about" className="lp-about">
+          <ScrollWords
+            className="lp-statement"
+            parts={[
+              { t: "Sluice is a withdrawal queue that " },
+              { t: "pays lenders in order, ", hl: true },
+              { t: "the moment liquidity returns anywhere, with " },
+              { t: "no manager and no keeper bot.", hl: true },
+            ]}
+          />
+          <div className="lp-aside">
+            <Reveal>
+              <p>
+                When liquidity comes back, a repayment in a Morpho market we don&apos;t control or spare credit on another chain, a Reactive contract pays
+                the queue in order within a couple of seconds.
+              </p>
+            </Reveal>
+            <Reveal delay={120}>
+              <p>
+                Missed events heal through retries, and bad debt halts cross-chain fronting. Every number here comes from live testnet runs, traced by
+                transaction hash.
+              </p>
+            </Reveal>
+          </div>
+        </section>
+
+        <section id="how" className="sl-section sl-wrap">
+          <div className="wf-head">
+            <Reveal>
+              <h2>Liquidity returns. The queue moves.</h2>
+            </Reveal>
+            <span className="wf-label">Protocol workflow</span>
+          </div>
+          <Reveal>
+            <WorkflowGraph medianS={s && s.flowB.succeeded > 0 ? s.flowB.totalWallMs.median / 1000 : undefined} batch={batch?.ok ? { n: batch.n, callbacks: batch.callbacks.length } : undefined} />
+          </Reveal>
+        </section>
+
+        {batch?.ok && (
+          <section id="run" className="sl-section sl-wrap">
+            <div className="lp-run">
+              <Reveal>
+                <h2>Watch one repayment pay the whole queue.</h2>
+                <p className="sl-p">
+                  A recorded run on Base Sepolia, replayed at real speed. Each ticket turns brass at the moment its callback landed, in the order the
+                  lenders joined the queue.
+                </p>
+              </Reveal>
+              <Reveal delay={100}>
+                <QueueRun batch={batch} />
+              </Reveal>
+            </div>
+          </section>
+        )}
 
         {tiles.length > 0 && (
           <section id="proof-numbers" className="sl-section sl-wrap">
@@ -271,33 +290,21 @@ export default function Landing() {
               <h2>What we measured, and what we don&apos;t claim</h2>
               <p className="sl-p">Live testnet loops, traced end to end by the origin transaction hash. Every figure links to the transactions behind it.</p>
             </Reveal>
-            <div className="lp-bento">
-              <MagicBento
-                items={tiles}
-                columns={4}
-                rowHeight={214}
-                gap={14}
-                radius={22}
-                theme="dark"
-                glowColor="#e8e8ec"
-                spotlightRadius={320}
-                enableTilt
-                enableMagnetism
-                enableStars
-                particleCount={18}
-                clickEffect
-                textAutoHide={false}
-                style={
-                  {
-                    "--mb-surface": "linear-gradient(180deg, rgba(255, 255, 255, 0.085) 0%, rgba(255, 255, 255, 0.035) 100%), rgba(16, 16, 18, 0.6)",
-                    "--mb-edge": "rgba(255, 255, 255, 0.1)",
-                    "--mb-highlight": "rgba(255, 255, 255, 0.07)",
-                    "--mb-ink": "#eaeef6",
-                    "--mb-muted": "#a7b1c5",
-                  } as React.CSSProperties
-                }
-              />
-            </div>
+            <Reveal delay={80}>
+              <div className="lp-stats">
+                {tiles.map((t, i) =>
+                  t.href ? (
+                    <a key={i} className="lp-stat" style={span(t.colSpan, t.rowSpan)} href={t.href}>
+                      {t.content}
+                    </a>
+                  ) : (
+                    <div key={i} className="lp-stat" style={span(t.colSpan, t.rowSpan)}>
+                      {t.content}
+                    </div>
+                  ),
+                )}
+              </div>
+            </Reveal>
           </section>
         )}
 
@@ -333,34 +340,15 @@ export default function Landing() {
             <Reveal>
               <h2>Don&apos;t just read it. Replay it.</h2>
             </Reveal>
-            <div className="lp-bento lp-deeper">
-              <MagicBento
-                items={deeper.map((d) => ({
-                  href: d.href,
-                  content: (
+            <Reveal delay={80}>
+              <div className="lp-deeper-grid">
+                {deeper.map((d) => (
+                  <a key={d.href} className="lp-stat" href={d.href}>
                     <Tile big={<span className="lp-deeper-title">{d.title}</span>} label={d.body} />
-                  ),
-                }))}
-                columns={3}
-                rowHeight={176}
-                gap={14}
-                radius={22}
-                theme="dark"
-                glowColor="#e8e8ec"
-                spotlightRadius={300}
-                clickEffect={false}
-                textAutoHide={false}
-                style={
-                  {
-                    "--mb-surface": "linear-gradient(180deg, rgba(255, 255, 255, 0.085) 0%, rgba(255, 255, 255, 0.035) 100%), rgba(16, 16, 18, 0.6)",
-                    "--mb-edge": "rgba(255, 255, 255, 0.1)",
-                    "--mb-highlight": "rgba(255, 255, 255, 0.07)",
-                    "--mb-ink": "#eaeef6",
-                    "--mb-muted": "#a7b1c5",
-                  } as React.CSSProperties
-                }
-              />
-            </div>
+                  </a>
+                ))}
+              </div>
+            </Reveal>
           </section>
         )}
 
