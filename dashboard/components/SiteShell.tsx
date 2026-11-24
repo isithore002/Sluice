@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import { LogoMark } from "./LogoMark";
+import Lenis from "lenis";
 import ShapeGrid from "./ui/ShapeGrid";
 
 export interface NavLink {
@@ -41,6 +42,22 @@ export function SiteShell({ badge, links, cta, children }: { badge?: string; lin
       /* the choice just isn't remembered */
     }
   }, []);
+  // Smooth, inertial scrolling. Off for reduced motion; in-page anchors glide too.
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const lenis = new Lenis({ lerp: 0.09, smoothWheel: true, anchors: { offset: -64 } });
+    let raf = 0;
+    const loop = (t: number) => {
+      lenis.raf(t);
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => {
+      cancelAnimationFrame(raf);
+      lenis.destroy();
+    };
+  }, []);
+
   const togglePaused = () =>
     setPaused((p) => {
       try {
@@ -73,9 +90,9 @@ export function SiteShell({ badge, links, cta, children }: { badge?: string; lin
           lineWidth={1}
           direction="diagonal"
           speed={0.16}
-          lineColor="#131b2a"
-          hoverColor="#7fb2ff"
-          hoverFillColor="#4f8cff"
+          lineColor="#1a1a1d"
+          hoverColor="#e8e8ec"
+          hoverFillColor="#c8c8ce"
           fillOpacity={0.12}
           radius={1.9}
           trail={0.9}
@@ -86,6 +103,7 @@ export function SiteShell({ badge, links, cta, children }: { badge?: string; lin
         />
       </div>
 
+      <div className="sl-progress" aria-hidden="true" />
       <nav className="sl-nav" aria-label="Main">
         <div className="sl-nav-in">
           <Link href="/" className="sl-brand">
