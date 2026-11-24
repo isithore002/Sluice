@@ -62,6 +62,16 @@ export function AsciiScene({
     let last = 0;
     let clock = reduce ? 4 : 2; // scene time, in seconds; it only advances while the scene is playing
     let drawn = false;
+    let scrolling = false; // the scene rests while the page is scrolling, so the scroll has the main thread to itself
+    let scrollTimer = 0;
+    const onScroll = () => {
+      scrolling = true;
+      window.clearTimeout(scrollTimer);
+      scrollTimer = window.setTimeout(() => {
+        scrolling = false;
+        last = performance.now();
+      }, 140);
+    };
     const buckets: number[][] = KEY_ORDER.map(() => []);
 
     const resize = () => {
@@ -145,7 +155,7 @@ export function AsciiScene({
         last = now;
         return;
       }
-      if (reduce || canvas.dataset.idle === "1") {
+      if (reduce || scrolling || canvas.dataset.idle === "1") {
         last = now;
         return;
       }
@@ -167,11 +177,14 @@ export function AsciiScene({
       last = performance.now();
     });
     io.observe(canvas);
+    window.addEventListener("scroll", onScroll, { passive: true });
     resize();
     raf = requestAnimationFrame(loop);
     return () => {
       cancelAnimationFrame(raf);
       cancelAnimationFrame(frame);
+      window.clearTimeout(scrollTimer);
+      window.removeEventListener("scroll", onScroll);
       ro.disconnect();
       io.disconnect();
     };
