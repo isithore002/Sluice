@@ -1,37 +1,38 @@
 /* The bitmap letters for the stick man's speech and the cloud he speaks in. All of it is plain data and pure functions, so the
  * canvas code in Intro.tsx only has to place and paint it. */
 
-/** A bold 6 x 7 font for the speech (W is 7 wide): strokes two pixels thick, so the words read at a glance. */
+/** A small blocky 4 x 5 font for the speech (W is 5 wide). */
 const FONT: Record<string, string[]> = {
-  S: [".####.", "##..##", "##....", ".####.", "....##", "##..##", ".####."],
-  C: [".####.", "##..##", "##....", "##....", "##....", "##..##", ".####."],
-  R: ["#####.", "##..##", "##..##", "#####.", "##.##.", "##..##", "##..##"],
-  O: [".####.", "##..##", "##..##", "##..##", "##..##", "##..##", ".####."],
-  L: ["##....", "##....", "##....", "##....", "##....", "##....", "######"],
-  D: ["#####.", "##..##", "##..##", "##..##", "##..##", "##..##", "#####."],
-  W: ["##...##", "##...##", "##.#.##", "##.#.##", "#######", "###.###", "##...##"],
-  N: ["##..##", "###.##", "######", "######", "##.###", "##..##", "##..##"],
+  S: [".###", "#...", ".##.", "...#", "###."],
+  C: [".###", "#...", "#...", "#...", ".###"],
+  R: ["###.", "#..#", "###.", "#.#.", "#..#"],
+  O: [".##.", "#..#", "#..#", "#..#", ".##."],
+  L: ["#...", "#...", "#...", "#...", "####"],
+  D: ["###.", "#..#", "#..#", "#..#", "###."],
+  W: ["#...#", "#...#", "#.#.#", "#.#.#", ".#.#."],
+  N: ["#..#", "##.#", "#.##", "#..#", "#..#"],
 };
-const CHEVRON = ["##...##", ".##.##.", "..###..", "...#..."];
+const CHEVRON = ["#...#", ".#.#.", "..#.."];
 
 export const SPEECH = ["SCROLL", "DOWN"];
 export const SPEECH_CHARS = SPEECH.join("").length;
-const GLYPH_H = 7;
+const GLYPH_H = 5;
 const LINE_GAP = 2;
 const CHEVRON_GAP = 3; // empty rows between the lines of speech and the chevron
 
 /** Width of a line of speech in pixels: its letters, with one empty column between them. */
 const lineWidth = (s: string) => [...s].reduce((w, ch) => w + FONT[ch][0].length, 0) + (s.length - 1);
 
-/** The whole message (lines, gap and chevron) is this many font pixels wide and tall. */
-export const MESSAGE_W = Math.max(...SPEECH.map(lineWidth), CHEVRON[0].length);
-export const MESSAGE_H = SPEECH.length * GLYPH_H + (SPEECH.length - 1) * LINE_GAP + CHEVRON_GAP + CHEVRON.length;
+/** The lines of speech fill a box this many font pixels wide and tall: that box is what gets centred in the cloud. */
+export const MESSAGE_W = Math.max(...SPEECH.map(lineWidth));
+export const MESSAGE_H = SPEECH.length * GLYPH_H + (SPEECH.length - 1) * LINE_GAP;
 
 export type Dot = { x: number; y: number };
 
 /**
- * The message as lit pixels, measured from the top-left of its own box (MESSAGE_W x MESSAGE_H), with every line centred in
- * that box. `shown` is how many letters have been typed so far; the chevron comes with the last of them.
+ * The message as lit pixels, measured from the top-left of the lines' box (MESSAGE_W x MESSAGE_H), with each line centred in
+ * it. `shown` is how many letters have been typed so far. The chevron sits below the box and arrives with the last letter,
+ * so the words themselves are what sit in the middle of the cloud.
  */
 export function speechLayout(shown: number): { text: Dot[]; chevron: Dot[] } {
   const text: Dot[] = [];
@@ -50,7 +51,7 @@ export function speechLayout(shown: number): { text: Dot[]; chevron: Dot[] } {
   const chevron: Dot[] = [];
   if (shown >= SPEECH_CHARS) {
     const cx = (MESSAGE_W - CHEVRON[0].length) / 2;
-    const cy = SPEECH.length * GLYPH_H + (SPEECH.length - 1) * LINE_GAP + CHEVRON_GAP;
+    const cy = MESSAGE_H + CHEVRON_GAP;
     CHEVRON.forEach((row, ry) => {
       for (let rx = 0; rx < row.length; rx++) if (row[rx] === "#") chevron.push({ x: cx + rx, y: cy + ry });
     });
@@ -60,14 +61,15 @@ export function speechLayout(shown: number): { text: Dot[]; chevron: Dot[] } {
 
 /* ---- the cloud ---- */
 
-const OX = 2; // the cloud's shapes are drawn on a small grid and nudged in from the edge by this much
+const K = 1.1; // the size of the cloud, relative to the base shapes below
+const OX = 2; // the shapes are nudged in from the edge by this much
 const OY = 2;
-export const CLOUD_W = 42;
-export const CLOUD_H = 30;
-/** The middle of the cloud's body, in cloud pixels: the message is centred exactly here. */
-export const CLOUD_CENTER = { x: 19 + OX, y: 13 + OY };
+export const CLOUD_W = 46;
+export const CLOUD_H = 33;
+/** The middle of the cloud's body, in cloud pixels: the words are centred exactly here. */
+export const CLOUD_CENTER = { x: 19 * K + OX, y: 13 * K + OY };
 /** Where the tail of small bubbles leaves the cloud, in cloud pixels. */
-export const TAIL_FROM = { x: 10, y: 26 };
+export const TAIL_FROM = { x: 11, y: 28 };
 
 const CIRCLES: [number, number, number][] = (
   [
@@ -76,11 +78,13 @@ const CIRCLES: [number, number, number][] = (
     [11, 21, 3.5], [19, 23, 4], [27, 21, 3.5], // and the bottom
     [3, 13, 4.5], [35, 13, 4.5], // and the sides
   ] as [number, number, number][]
-).map(([x, y, r]) => [x + OX, y + OY, r]);
-const RECTS: [number, number, number, number][] = [
-  [7 + OX, 3 + OY, 31 + OX, 23 + OY],
-  [2 + OX, 8 + OY, 36 + OX, 18 + OY],
-];
+).map(([x, y, r]) => [x * K + OX, y * K + OY, r * K]);
+const RECTS: [number, number, number, number][] = (
+  [
+    [7, 3, 31, 23],
+    [2, 8, 36, 18],
+  ] as [number, number, number, number][]
+).map(([x0, y0, x1, y1]) => [x0 * K + OX, y0 * K + OY, x1 * K + OX, y1 * K + OY]);
 
 export type CloudCell = { x: number; y: number; edge: boolean; d: number };
 
@@ -92,7 +96,7 @@ export function cloudCells(mouth: { x: number; y: number }): { cells: CloudCell[
   const tail: [number, number, number][] = [0.3, 0.6, 0.85].map((t, i) => [
     TAIL_FROM.x + (mouth.x - TAIL_FROM.x) * t,
     TAIL_FROM.y + (mouth.y - TAIL_FROM.y) * t,
-    [2.8, 2, 1.4][i],
+    [3, 2.2, 1.5][i],
   ]);
   const inside = (x: number, y: number) => {
     const px = x + 0.5;
