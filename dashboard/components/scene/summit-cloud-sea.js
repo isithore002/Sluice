@@ -47,7 +47,7 @@ const CLOUD_TOP = 64, TEXW = W * 3, TEXH = H - CLOUD_TOP + 4;
 export default function create() {
   const rgb = new Float32Array(W * H * 3), mask = new Uint8Array(W * H);
   const put = (x, y, c, m) => { x = Math.round(x); y = Math.round(y); if (x < 0 || y < 0 || x >= W || y >= H) return; const i = y * W + x; rgb[i * 3] = c[0]; rgb[i * 3 + 1] = c[1]; rgb[i * 3 + 2] = c[2]; mask[i] = m; };
-  const SUN = [156, 60], SR = 8;
+  const SUN = [156, 48], SR = 9; // lifted well clear of the cloud tops, which start near row 58
 
   // 1. dawn sky: deep blue overhead, rose then gold toward the horizon
   const stops = [[0, "#3a5a9e"], [0.3, "#5470b0"], [0.55, "#8a88c4"], [0.75, "#d098b0"], [0.9, "#f4b098"], [1, "#ffd490"]];
@@ -55,9 +55,10 @@ export default function create() {
     const v = clamp(y / 66);
     let k = 1; while (k < stops.length - 1 && v > stops[k][0]) k++;
     let c = mix(hex(stops[k - 1][1]), hex(stops[k][1]), (v - stops[k - 1][0]) / (stops[k][0] - stops[k - 1][0]));
-    const d = Math.hypot(x - SUN[0], (y - SUN[1]) * 1.4);
+    const d = Math.hypot(x - SUN[0], (y - SUN[1]) * 1.4); // the glow is a little wider than tall, like a horizon glow
     c = mix(c, C.glow, clamp(1 - (d - SR) / 46) ** 1.6 * 0.75);
-    put(x, y, d < SR ? (d < SR - 1.5 ? C.sun : C.sun2) : c, SKY);
+    const disc = Math.hypot(x - SUN[0], y - SUN[1]); // the sun itself is a true circle
+    put(x, y, disc < SR ? (disc < SR - 1.5 ? C.sun : C.sun2) : c, SKY);
   }
   // 2. far peaks poking through the cloud on the horizon
   for (const [px, ph, pw] of [[18, 50, 16], [40, 55, 12], [176, 54, 14], [120, 57, 10]]) {
