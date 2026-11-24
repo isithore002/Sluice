@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
-import { AsciiBackdrop } from "../components/AsciiBackdrop";
+import { AsciiScene } from "../components/AsciiScene";
+import * as fujiLake from "../components/scene/fuji-dawn-lake.js";
 import { Intro } from "../components/Intro";
 import { CountUp, Reveal } from "../components/Motion";
 import { PixelGlyph } from "../components/PixelGlyph";
@@ -179,7 +180,14 @@ export default function Landing() {
         <Intro />
 
         <section className="lp-hero" aria-labelledby="lp-name">
-          <AsciiBackdrop className="lp-ascii" />
+          <AsciiScene
+            className="lp-ascii"
+            bare
+            maxDpr={1.25}
+            scene={fujiLake as never}
+            transparent
+            label="A snow-capped volcano glowing pink at dawn over a still lake, with cranes flying past and a small boat poling across"
+          />
           <div>
             <Reveal>
               <h1 id="lp-name" className="lp-name">
