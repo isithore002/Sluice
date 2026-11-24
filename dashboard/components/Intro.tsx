@@ -37,7 +37,6 @@ const T_TALK = T_WALK + WALK_S + 0.5; // then the cloud pops out of his mouth
 const POP_S = 0.45;
 const TYPE_CPS = 11; // letters per second
 const UNLOCK_AFTER = 0.6; // seconds after the last letter before scrolling is allowed
-const AUTO_START = 8; // the story begins on the first click or key press; if nobody does either, it starts by itself after this long
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const smooth = (a: number, b: number, x: number) => {
@@ -233,7 +232,7 @@ export function Intro({ children }: { children?: ReactNode }) {
     let dirty = true;
     let visible = true;
     let clock = reduce ? 60 : 0; // time since the page opened; it only runs while the page is visible
-    let storyStart: number | null = reduce ? 0 : null; // when the story began: the first click or key press (or AUTO_START)
+    let storyStart: number | null = reduce ? 0 : null; // when the story began: the first click, tap or key press, and never before
     const begin = () => {
       if (storyStart !== null) return;
       storyStart = clock;
@@ -360,7 +359,6 @@ export function Intro({ children }: { children?: ReactNode }) {
       }
       if (!dirty && p === lastP && (!playing || dt < 16)) return;
       if (playing) clock += Math.min(dt, 250) / 1000;
-      if (storyStart === null && clock >= AUTO_START) begin();
       last = now;
       lastP = p;
       dirty = false;
