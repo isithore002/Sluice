@@ -75,12 +75,22 @@ export function SiteShell({ links, cta, children }: { links: NavLink[]; cta: Nav
       }
       setActive(cur);
     };
+    let raf = 0;
+    const queue = () => {
+      if (!raf) {
+        raf = requestAnimationFrame(() => {
+          raf = 0;
+          spy();
+        });
+      }
+    };
     spy();
-    window.addEventListener("scroll", spy, { passive: true });
-    window.addEventListener("resize", spy);
+    window.addEventListener("scroll", queue, { passive: true });
+    window.addEventListener("resize", queue);
     return () => {
-      window.removeEventListener("scroll", spy);
-      window.removeEventListener("resize", spy);
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", queue);
+      window.removeEventListener("resize", queue);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tabs.map((t) => t.href).join("|")]);

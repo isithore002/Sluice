@@ -57,6 +57,7 @@ function Card({ id, reg, tone, children, className }: { id: string; reg: (id: st
  */
 export function WorkflowGraph({ medianS, batch }: { medianS?: number; batch?: { n: number; callbacks: number } }) {
   const box = useRef<HTMLDivElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
   const nodes = useRef<Record<string, HTMLDivElement | null>>({});
   const [edges, setEdges] = useState<Drawn[]>([]);
   const [drawn, setDrawn] = useState(false);
@@ -96,12 +97,15 @@ export function WorkflowGraph({ medianS, batch }: { medianS?: number; batch?: { 
     void document.fonts?.ready.then(measure);
     const io = new IntersectionObserver(
       ([e]) => {
+        const svg = svgRef.current;
         if (e.isIntersecting) {
           setDrawn(true);
-          io.disconnect();
+          svg?.unpauseAnimations?.();
+        } else {
+          svg?.pauseAnimations?.(); // the moving packets are SVG animations on the main thread: rest them while the graph is off screen
         }
       },
-      { threshold: 0.25 },
+      { threshold: 0.05 },
     );
     io.observe(el);
     return () => {
@@ -114,7 +118,7 @@ export function WorkflowGraph({ medianS, batch }: { medianS?: number; batch?: { 
   return (
     <div className={`wf${drawn ? " drawn" : ""}`}>
       <div ref={box} className="wf-grid">
-        <svg className="wf-svg" aria-hidden="true">
+        <svg ref={svgRef} className="wf-svg" aria-hidden="true">
           {edges.map((e, i) => (
             <g key={e.id}>
               <path className={`wf-path${e.paid ? " paid" : ""}`} d={e.d} pathLength={1} />

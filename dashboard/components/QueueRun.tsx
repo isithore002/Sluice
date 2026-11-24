@@ -53,9 +53,13 @@ export function QueueRun({ batch }: { batch: BatchResult }) {
     cancelAnimationFrame(raf.current);
     setPhase("running");
     const t0 = performance.now();
+    let lastSet = -1e9;
     const step = (now: number) => {
       const ms = now - t0;
-      setT(ms);
+      if (now - lastSet >= 32 || ms >= finalMs + 250) {
+        lastSet = now;
+        setT(ms); // about 30 renders a second, not one per frame: the grid has 40 tiles
+      }
       if (ms < finalMs + 250) raf.current = requestAnimationFrame(step);
       else setPhase("done");
     };
