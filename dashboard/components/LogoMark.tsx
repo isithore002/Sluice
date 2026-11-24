@@ -2,17 +2,6 @@
 
 import { useId } from "react";
 
-/** Lightning-bolt outline in unit space (y up). Shared by the 3D mesh and the flat SVG mark. */
-export const BOLT: [number, number][] = [
-  [0.1, 0.64],
-  [-0.34, -0.04],
-  [-0.04, -0.04],
-  [-0.12, -0.64],
-  [0.34, 0.08],
-  [0.04, 0.08],
-];
-export const BOLT_SCALE = 0.82;
-
 /**
  * The Sluice mark: a rounded tile holding an S-shaped channel (the "S"), with a brass drop at the outlet
  * (brass is this site's colour for "paid"). Greys only, so it sits on the black and grey theme.
