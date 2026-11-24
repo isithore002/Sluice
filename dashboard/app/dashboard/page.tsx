@@ -15,7 +15,9 @@ import { DemoEvidence } from "../../components/demo/DemoEvidence";
 import { TreasuryView } from "../../components/demo/TreasuryView";
 import { RaceReplay } from "../../components/dashboard/RaceReplay";
 import { secs } from "../../components/dashboard/format";
+import { AsciiScene } from "../../components/AsciiScene";
 import { Reveal } from "../../components/Motion";
+import * as mausoleum from "../../components/scene/moonlit-mausoleum.js";
 import { RaceChart } from "../../components/RaceChart";
 import { SiteShell } from "../../components/SiteShell";
 import { loadManifest, type Manifest } from "../../lib/manifest";
@@ -115,6 +117,14 @@ export default function Dashboard() {
       cta={{ href: "/", label: "Home" }}
     >
       <main className="dash">
+        <AsciiScene
+          className="dash-scene"
+          bare
+          maxDpr={1.25}
+          scene={mausoleum as never}
+          transparent
+          label="A white marble mausoleum with a great dome and four minarets under a full moon, mirrored in a long rippling pool"
+        />
         <header className="dash-head sl-wrap" data-ascii-avoid="0.85">
           <div className="dash-head-main">
             <p className="sl-kicker sl-rise">* Live dashboard</p>
