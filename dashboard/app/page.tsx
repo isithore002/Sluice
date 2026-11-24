@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
+import { AsciiScene } from "../components/AsciiScene";
 import { CountUp, Reveal } from "../components/Motion";
 import { QueueRun } from "../components/QueueRun";
 import { RaceChart } from "../components/RaceChart";
@@ -231,16 +232,29 @@ export default function Landing() {
             </div>
 
             <div className="lp-stage sl-rise" style={{ animationDelay: "0.2s" }}>
-              {batch?.ok ? (
-                <QueueRun batch={batch} />
-              ) : (
-                <div className="sl-card lp-stage-empty">
-                  <p>Every number on this site comes from live testnet runs. Open the dashboard to see them.</p>
-                </div>
-              )}
+              <div className="lp-scene">
+                <AsciiScene />
+              </div>
             </div>
           </div>
         </div>
+
+        {batch?.ok && (
+          <section id="run" className="sl-section sl-wrap">
+            <div className="lp-run">
+              <Reveal>
+                <h2>Watch one repayment pay the whole queue.</h2>
+                <p className="sl-p">
+                  A recorded run on Base Sepolia, replayed at real speed. Each ticket turns brass at the moment its callback landed, in the order the
+                  lenders joined the queue.
+                </p>
+              </Reveal>
+              <Reveal delay={100}>
+                <QueueRun batch={batch} />
+              </Reveal>
+            </div>
+          </section>
+        )}
 
         <section id="how" className="sl-section sl-wrap">
           <Reveal>
