@@ -45,7 +45,7 @@ const STEPS = [
 ];
 
 /** The pixel colours for the three flow cards: tide blue, never the warm brass (that is reserved for "paid"). */
-const FLOW_PIXELS = ["#d9e7ff", "#7fb2ff", "#4f8cff"];
+const FLOW_PIXELS = ["#f4f4f5", "#e8e8ec", "#c8c8ce"];
 
 function Tile({ big, label, note, href, linkLabel }: { big: ReactNode; label: string; note?: string; href?: string; linkLabel?: string }) {
   return (
@@ -197,8 +197,8 @@ export default function Landing() {
           <CursorGrid
             className="lp-grid"
             cellSize={56}
-            color="#7fb2ff"
-            gridColor="#a9bbdc"
+            color="#e8e8ec"
+            gridColor="#b4b4bc"
             gridOpacity={0.075}
             fillOpacity={0.07}
             lineWidth={1}
@@ -249,7 +249,7 @@ export default function Landing() {
           <div className="lp-flow">
             {STEPS.map((st, i) => (
               <Reveal key={st.title} delay={i * 90}>
-                <PixelCard colors={FLOW_PIXELS} gap={8} speed={22} pixelSize={2.4} glow={0.3} glowColor="#4f8cff" fade={0.35} intro={false} radius={20} theme="dark" className="lp-pixel">
+                <PixelCard colors={FLOW_PIXELS} gap={8} speed={22} pixelSize={2.4} glow={0.3} glowColor="#c8c8ce" fade={0.35} intro={false} radius={20} theme="dark" className="lp-pixel">
                   <div className="lp-pixel-body">
                     <span className="sl-tag">{st.tag}</span>
                     <div>
@@ -277,16 +277,18 @@ export default function Landing() {
                 gap={14}
                 radius={22}
                 theme="dark"
-                glowColor="#7fb2ff"
+                glowColor="#e8e8ec"
                 spotlightRadius={320}
-                enableTilt={false}
-                enableStars={false}
-                clickEffect={false}
+                enableTilt
+                enableMagnetism
+                enableStars
+                particleCount={18}
+                clickEffect
                 textAutoHide={false}
                 style={
                   {
-                    "--mb-surface": "linear-gradient(180deg, rgba(179, 201, 255, 0.085) 0%, rgba(179, 201, 255, 0.035) 100%), rgba(12, 17, 28, 0.6)",
-                    "--mb-edge": "rgba(184, 205, 255, 0.1)",
+                    "--mb-surface": "linear-gradient(180deg, rgba(255, 255, 255, 0.085) 0%, rgba(255, 255, 255, 0.035) 100%), rgba(16, 16, 18, 0.6)",
+                    "--mb-edge": "rgba(255, 255, 255, 0.1)",
                     "--mb-highlight": "rgba(255, 255, 255, 0.07)",
                     "--mb-ink": "#eaeef6",
                     "--mb-muted": "#a7b1c5",
@@ -342,14 +344,14 @@ export default function Landing() {
                 gap={14}
                 radius={22}
                 theme="dark"
-                glowColor="#7fb2ff"
+                glowColor="#e8e8ec"
                 spotlightRadius={300}
                 clickEffect={false}
                 textAutoHide={false}
                 style={
                   {
-                    "--mb-surface": "linear-gradient(180deg, rgba(179, 201, 255, 0.085) 0%, rgba(179, 201, 255, 0.035) 100%), rgba(12, 17, 28, 0.6)",
-                    "--mb-edge": "rgba(184, 205, 255, 0.1)",
+                    "--mb-surface": "linear-gradient(180deg, rgba(255, 255, 255, 0.085) 0%, rgba(255, 255, 255, 0.035) 100%), rgba(16, 16, 18, 0.6)",
+                    "--mb-edge": "rgba(255, 255, 255, 0.1)",
                     "--mb-highlight": "rgba(255, 255, 255, 0.07)",
                     "--mb-ink": "#eaeef6",
                     "--mb-muted": "#a7b1c5",
