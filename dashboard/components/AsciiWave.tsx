@@ -8,18 +8,12 @@ const DENSITY = " .'`,:;-_~^\"!i|/\\()[]{}<>+=*?lItrcvxzjfLCJYUOZmwqpdbkhao#MW&8
 const FONT = '"Consolas", "Menlo", "DejaVu Sans Mono", monospace';
 const ROWS = WAVE_ART.length;
 const COLS = WAVE_ART[0].length;
-const PAD = 0.05; // spare room above and below the art, so the swell can lift and drop it without clipping
 const CELL_RATIO = 2; // the art was sampled in cells twice as tall as wide, so it keeps the picture's proportions
 
 const weight = (ch: string) => {
   if (ch === ".") return 0.16; // the dark body of the water
   const i = DENSITY.indexOf(ch);
   return 0.38 + 0.62 * Math.min(1, (i < 0 ? 30 : i) / (DENSITY.length - 1));
-};
-
-const smooth = (a: number, b: number, x: number) => {
-  const k = Math.min(1, Math.max(0, (x - a) / (b - a)));
-  return k * k * (3 - 2 * k);
 };
 
 const make = (w: number, h: number) => {
@@ -49,11 +43,6 @@ export function AsciiWave({ className }: { className?: string }) {
     let bright: HTMLCanvasElement;
     let mask: HTMLCanvasElement;
     let spot: HTMLCanvasElement;
-    let frame: HTMLCanvasElement;
-    let fc: CanvasRenderingContext2D;
-    let swell: HTMLCanvasElement;
-    let sc: CanvasRenderingContext2D;
-    let padPx = 0;
     let tc2: CanvasRenderingContext2D;
     let raf = 0;
     let visible = true;
@@ -65,9 +54,7 @@ export function AsciiWave({ className }: { className?: string }) {
       const css = canvas.clientWidth;
       if (!css) return;
       W = Math.round(css * dpr);
-      const artH = Math.round((css * ROWS * CELL_RATIO) / COLS * dpr);
-      padPx = Math.round(artH * PAD);
-      H = artH + 2 * padPx;
+      H = Math.round((css * ROWS * CELL_RATIO) / COLS * dpr);
       canvas.width = W;
       canvas.height = H;
       dim = make(W, H);
@@ -75,18 +62,14 @@ export function AsciiWave({ className }: { className?: string }) {
       mask = make(W, H);
       spot = make(W, H);
       tc2 = spot.getContext("2d")!;
-      frame = make(W, H);
-      fc = frame.getContext("2d")!;
-      swell = make(W, H);
-      sc = swell.getContext("2d")!;
       const cw = W / COLS;
-      const ch = artH / ROWS;
+      const ch = H / ROWS;
       const px = cw / 0.55; // a monospace glyph is about 0.55 em wide
       for (const [layer, grey, scale] of [[dim, 175, 0.62], [bright, 255, 1]] as const) {
         const g = layer.getContext("2d")!;
         g.font = `bold ${px}px ${FONT}`;
         g.textBaseline = "alphabetic";
-        g.setTransform(1, 0, 0, ch / (px * 1.18), 0, padPx);
+        g.setTransform(1, 0, 0, ch / (px * 1.18), 0, 0);
         for (let r = 0; r < ROWS; r++) {
           const line = WAVE_ART[r];
           for (let c = 0; c < COLS; c++) {
@@ -102,9 +85,9 @@ export function AsciiWave({ className }: { className?: string }) {
 
     const draw = (now: number, still: boolean) => {
       if (!W) return;
-      fc.globalCompositeOperation = "source-over";
-      fc.clearRect(0, 0, W, H);
-      fc.drawImage(dim, 0, 0);
+      ctx.globalCompositeOperation = "source-over";
+      ctx.clearRect(0, 0, W, H);
+      ctx.drawImage(dim, 0, 0);
 
       // the bright layer shows through a moving soft band and a pointer glow
       const m = mask.getContext("2d")!;
@@ -134,52 +117,19 @@ export function AsciiWave({ className }: { className?: string }) {
         m.globalCompositeOperation = "source-over";
         m.drawImage(spot, 0, 0);
       }
-      fc.drawImage(mask, 0, 0);
+      ctx.drawImage(mask, 0, 0);
 
       // the reveal on load: the art draws in from the left
       const intro = still ? 1 : Math.min(1, t / 1.6);
       if (intro < 1) {
         const e = 1 - Math.pow(1 - intro, 3);
-        fc.globalCompositeOperation = "destination-in";
-        const gr = fc.createLinearGradient(W * (e * 1.3 - 0.3), 0, W * (e * 1.3), 0);
+        ctx.globalCompositeOperation = "destination-in";
+        const gr = ctx.createLinearGradient(W * (e * 1.3 - 0.3), 0, W * (e * 1.3), 0);
         gr.addColorStop(0, "rgba(0,0,0,1)");
         gr.addColorStop(1, "rgba(0,0,0,0)");
-        fc.fillStyle = gr;
-        fc.fillRect(0, 0, W, H);
-        fc.globalCompositeOperation = "source-over";
-      }
-
-      ctx.globalCompositeOperation = "source-over";
-      ctx.clearRect(0, 0, W, H);
-      if (still) {
-        ctx.drawImage(frame, 0, 0);
-        return;
-      }
-
-      // The water moves in two passes. First each thin column is lifted and dropped by a swell that travels along the sea
-      // (a long slow wave plus a shorter one riding on it); the crest above only sways. Then each thin row is nudged sideways,
-      // so the stripes of the water shear and ripple the way a rolling sea does.
-      const ease = Math.min(1, t / 2.2);
-      const TAU = Math.PI * 2;
-      const colW = Math.max(2, Math.round(W / 260));
-      const ampY = H * 0.016 * ease;
-      for (let x = 0; x < W; x += colW) {
-        const u = x / W;
-        const sea = 0.45 + 0.55 * smooth(0.3, 0.75, u); // the open sea on the right rolls more than the crest on the left
-        const dy =
-          ampY *
-          (sea * (Math.sin(TAU * (u * 1.7 - t / 6.5)) + 0.45 * Math.sin(TAU * (u * 4.3 - t / 3.6) + 1.7)) +
-            0.35 * (1 - sea) * Math.sin(TAU * (t / 8 + u * 0.9)));
-        sc.clearRect(x, 0, colW, H);
-        sc.drawImage(frame, x, 0, colW, H, x, Math.round(dy), colW, H);
-      }
-      const bandH = Math.max(2, Math.round(H / 120));
-      const ampX = W * 0.0042 * ease;
-      for (let y = 0; y < H; y += bandH) {
-        const v = y / H;
-        const lowSea = smooth(0.3, 0.8, v);
-        const dx = ampX * (0.25 + 0.75 * lowSea) * (Math.sin(TAU * (v * 6 - t / 5)) + 0.5 * Math.sin(TAU * (v * 13 - t / 2.8) + 0.8));
-        ctx.drawImage(swell, 0, y, W, bandH, Math.round(dx), y, W, bandH);
+        ctx.fillStyle = gr;
+        ctx.fillRect(0, 0, W, H);
+        ctx.globalCompositeOperation = "source-over";
       }
     };
 
@@ -243,7 +193,7 @@ export function AsciiWave({ className }: { className?: string }) {
       className={className}
       role="img"
       aria-label="A great wave about to break, drawn in text characters, with a small mountain in the distance"
-      style={{ display: "block", width: "100%", aspectRatio: `${COLS} / ${ROWS * CELL_RATIO * (1 + 2 * PAD)}` }}
+      style={{ display: "block", width: "100%", aspectRatio: `${COLS} / ${ROWS * CELL_RATIO}` }}
     />
   );
 }
