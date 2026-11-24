@@ -15,7 +15,8 @@ Everything needed for the DoraHacks submission and the demo video. Numbers and h
 | One-liner | When liquidity comes back anywhere (a Morpho repayment or spare credit on another chain), a Reactive contract pays the withdrawal queue in order within seconds. No manager, no bot. |
 | Repository | https://github.com/isithore002/Sluice (public, MIT) |
 | Demo video | *record it (section 3), then paste the link* |
-| Live dashboard | *host `dashboard/out` (see BUILD_GUIDE phase E), then paste the link. The site root is the landing page; the live state is at `<your-host>/dashboard/`* |
+| Live site | https://sluice-eight.vercel.app (the landing page and its measured numbers) |
+| Live dashboard | https://sluice-eight.vercel.app/dashboard/ (live state read from the chains; deployed with `npm run deploy` in `dashboard/`) |
 | Suggested tags | Crypto / Web3, DeFi, Infra / API, Cross-chain, Base, Unichain, Reactive Network |
 
 ### Short description (for the build page)

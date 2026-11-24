@@ -10,6 +10,8 @@
   <img alt="Contracts verified on Sourcify" src="https://img.shields.io/badge/contracts-verified%20on%20Sourcify-success">
 </p>
 
+<p align="center"><b><a href="https://sluice-eight.vercel.app">Live site</a></b> · <a href="https://sluice-eight.vercel.app/dashboard/">Live dashboard</a> · <a href="#try-it-yourself">Try it yourself</a> · <a href="#results">Results</a></p>
+
 <p align="center"><img src="docs/img/workflow.jpg" alt="Sluice's protocol workflow: a lender's withdrawal request, a Morpho repayment, Reactive deciding, and the Sluice queue paying in order" width="860"></p>
 
 When a lending vault runs out of free cash, withdrawals queue up. Today someone (a manager, a keeper bot) has to notice when cash comes back and pay the queue, and in a crunch whoever runs the fastest bot grabs freed liquidity first. Sluice replaces that operator with a Reactive contract. It watches every place liquidity can come back from and pays the queue **first come, first served, within seconds**. Liquidity comes back from:
@@ -31,6 +33,7 @@ Built for the [Reactive Omni Buildathon](https://dorahacks.io/hackathon/reactive
 
 | I want to… | Go to |
 |---|---|
+| **Open the site** | [sluice-eight.vercel.app](https://sluice-eight.vercel.app) is the story and its measured numbers. [The live dashboard](https://sluice-eight.vercel.app/dashboard/) reads the contracts on all three chains. |
 | **See it work without trusting us** | [Try it yourself](#try-it-yourself): three `cast` commands from a throwaway wallet, or the dashboard's wallet buttons. Reactive pays the queue about two seconds later, and the payout is sent by Reactive's signer, not by us. |
 | **See the numbers** | [Results](#results): 104 live loops, a 60-round latency race, a keeper-bot baseline, and the loop that failed, with its transaction hashes |
 | **Read the contracts** | [`src/`](src/), then [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) |
@@ -419,6 +422,8 @@ Every loop is traced by its origin transaction hash, which every callback carrie
 
 One static site with two pages. Nothing runs on a server: both pages read public RPCs and the files in `results/` and `deployments/`.
 
+The site is live at **[sluice-eight.vercel.app](https://sluice-eight.vercel.app)**, with the dashboard at **[/dashboard/](https://sluice-eight.vercel.app/dashboard/)**.
+
 - **`/` is the story.** The site opens on a full-screen pixel-art scene, a torii gate at sunset drawn as a halftone of dots. Click anywhere and a pixel stick figure walks in and asks you to scroll. Scrolling then plays a match cut: the camera dives into the sunset's sun, flushes cream, and pulls back out of the sun in a second scene (Fuji at dawn over a lake), which stays pinned, faint, behind the rest of the page. Below it are the hero, the protocol workflow graph, a replay of the 40-withdrawal run, the measured numbers (read from `results/summary.json`), the latency race chart, and the outsider test.
 - **`/dashboard/` is the evidence.** The live state of the contracts on all three chains: treasury, queue and Reactive's recent callbacks, the lender and borrower *Live demo*, the latency tables, the cross-chain loops, the race replay, the Lifeline probes and a contracts table. A third scene (a summit above the clouds) sits faintly behind it.
 
@@ -432,6 +437,16 @@ npm run build        # static site in dashboard/out, hostable anywhere
 ```
 
 Both commands first run `npm run sync`, which copies the deployment addresses and measurement results into `public/data/manifest.json`, so the site always shows the files in this repository. To host under a sub-path, set `NEXT_PUBLIC_BASE_PATH` (for example `/Sluice`) when you build.
+
+**Deploying.** The live site runs on Vercel, uploaded with the Vercel CLI as a finished static export. We build locally and upload `out/` because the build step reads `../results` and `../deployments`, which sit outside the `dashboard/` folder. [`vercel.json`](dashboard/vercel.json) sets the trailing-slash behaviour and two security headers.
+
+```shell
+npm i -g vercel && vercel login      # once
+cd dashboard
+VERCEL_SCOPE=<your-team> npm run deploy
+```
+
+[`scripts/deploy-vercel.sh`](dashboard/scripts/deploy-vercel.sh) builds, stages `out/` with `vercel.json` in a folder git ignores (`DEPLOY_DIR`, default `.deploy/`), links the project the first time and runs `vercel deploy --prod`. It needs no environment variables: the site holds no secrets, and every wallet transaction is signed in the visitor's browser. Setting `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` before the build adds mobile-wallet support.
 
 The site makes sound only after you interact with it: browsers don't allow a page to play audio before the first click, tap or key press, so the intro waits for one. Only the dashboard's *Live demo* and *One-click repay* shortcut send anything, and each transaction is signed by the visitor's own wallet (a lender and a borrower, two separate wallets).
 

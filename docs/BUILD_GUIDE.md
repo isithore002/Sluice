@@ -267,7 +267,7 @@ npx tsx src/readme.ts    # regenerates the README's results and address sections
 cd dashboard && npm install && npm run build     # static site in dashboard/out
 ```
 
-Host `dashboard/out` anywhere static (Vercel, GitHub Pages). On Vercel, set the project's root directory to `dashboard`.
+Host `dashboard/out` anywhere static (Vercel, GitHub Pages). To deploy to Vercel with its CLI, run `npm run deploy` in `dashboard/` (set `VERCEL_SCOPE` to your team): it builds, stages `out/` and runs `vercel deploy --prod`. We upload the finished export rather than letting Vercel build, because the build step reads `../results` and `../deployments`, outside the `dashboard/` folder.
 
 Optional: set `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` before building (a free project id from [Reown Cloud](https://cloud.reown.com); on Vercel, add it to the project's environment variables). It adds WalletConnect, for mobile wallets and QR codes, to the wallet list of the *Live demo* and *One-click repay* shortcut (under *Deep dive*)s. Without it, browser-extension wallets (MetaMask, Phantom, Coinbase Wallet, Rabby) still work.
 
