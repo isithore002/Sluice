@@ -24,7 +24,7 @@ const ROWS = 108;
 //   0   to 0.46  the camera dives into the sunset's sun until the sun fills the screen, and the screen flushes to its cream
 //   0.46 to 0.62 the cream clears out of the dawn scene's sun, which fills the screen first
 //   0.50 to 0.90 the camera pulls back from that sun to reveal the whole lake
-//   0.84 to 1    the lake dims to its quiet place behind the hero text, which then scrolls in
+//   0.66 to 0.92 the lake dims to its quiet place behind the hero, which starts rising into view during the pull-back
 const SUN_A = { col: 96, row: 51, r: 8 }; // the sunset's sun, in scene cells
 const SUN_B = { col: 150, row: 50, r: 6.5 }; // the dawn scene's sun
 const P_PEAK = 0.46;
@@ -170,7 +170,7 @@ export function Intro({ children }: { children?: ReactNode }) {
         b.style.transform = "none";
         const x = smooth(0.25, 0.6, p);
         opA = 1 - x;
-        opB = x * (1 - (1 - REST_OPACITY) * smooth(0.6, 1, p));
+        opB = x * (1 - (1 - REST_OPACITY) * smooth(0.6, 0.92, p));
         cream = 0;
       } else {
         const ua = clamp01(p / P_PEAK);
@@ -179,7 +179,7 @@ export function Intro({ children }: { children?: ReactNode }) {
         const eb = 1 - Math.pow(1 - ub, 2.2);
         b.style.transform = camera(SUN_B, Math.exp(Math.log(zoomB) * (1 - eb)), zoomB);
         opA = p < P_PEAK ? 1 : 0;
-        opB = p < P_PEAK - 0.02 ? 0 : 1 - (1 - REST_OPACITY) * smooth(0.84, 1, p);
+        opB = p < P_PEAK - 0.02 ? 0 : 1 - (1 - REST_OPACITY) * smooth(0.66, 0.92, p);
         cream = p < P_PEAK ? smooth(0.3, P_PEAK, p) : 1 - smooth(0.48, 0.62, p);
       }
       a.style.opacity = opA.toFixed(3);
@@ -192,7 +192,7 @@ export function Intro({ children }: { children?: ReactNode }) {
       const cb = cvB.current?.querySelector("canvas") as HTMLCanvasElement | null;
       if (ca) ca.dataset.idle = idleA;
       if (cb) cb.dataset.idle = idleB;
-      document.documentElement.dataset.intro = p < 0.985 ? "on" : "off";
+      document.documentElement.dataset.intro = p < 0.8 ? "on" : "off"; // the hero is on screen by now
     };
     size();
     apply();
