@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { AsciiScene } from "./AsciiScene";
-import { drawFigure } from "./intro/figure";
+import { drawFigure, FIGURE_H } from "./intro/figure";
 import { createFootsteps } from "./intro/footsteps";
 import {
   cloudCells,
@@ -28,6 +28,7 @@ const T_TALK = T_WALK + WALK_S + 0.5; // then the cloud pops out of his mouth
 const POP_S = 0.45;
 const TYPE_CPS = 11; // letters per second
 const UNLOCK_AFTER = 0.6; // seconds after the last letter before scrolling is allowed
+const AUTO_START = 4; // the story begins on the first click; if nobody clicks it starts by itself after this long
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const smooth = (a: number, b: number, x: number) => {
@@ -47,6 +48,7 @@ export function Intro() {
   const stage = useRef<HTMLDivElement>(null);
   const art = useRef<HTMLDivElement>(null);
   const over = useRef<HTMLCanvasElement>(null);
+  const hint = useRef<HTMLParagraphElement>(null);
   const progress = useRef(0);
   const unlockRef = useRef<() => void>(() => {});
   const fx = useRef<ReturnType<typeof createFootsteps> | null>(null);
@@ -73,7 +75,7 @@ export function Intro() {
     window.addEventListener("wheel", block, { passive: false, capture: true });
     window.addEventListener("touchmove", block, { passive: false, capture: true });
     window.addEventListener("keydown", onKey);
-    const safety = window.setTimeout(() => unlock(), 18000);
+    const safety = window.setTimeout(() => unlock(), 30000);
     function unlock() {
       if (!on) return;
       on = false;
@@ -151,7 +153,7 @@ export function Intro() {
     let CW = 0;
     let CH = 0;
     let cell = 0; // one scene cell, in device px
-    let figH = 0; // the stick man's height
+    let pitch = 0; // one sprite pixel of the stick man (he is FIGURE_H of them tall)
     let bpx = 0; // one pixel of the cloud's shape
     let tp = 0; // one pixel of the letters
     let visL = 0; // the part of the canvas the stage shows
@@ -162,7 +164,14 @@ export function Intro() {
     let cloud: { key: string; cells: CloudCell[]; maxD: number } | null = null;
     let dirty = true;
     let visible = true;
-    let clock = reduce ? 60 : 0; // the story's time; it only runs while the page is visible. Reduced motion starts at the end
+    let clock = reduce ? 60 : 0; // time since the page opened; it only runs while the page is visible
+    let storyStart: number | null = reduce ? 0 : null; // when the story began: on the first click or key press, or by itself after AUTO_START
+    const begin = () => {
+      if (storyStart !== null) return;
+      storyStart = clock;
+      hint.current?.classList.add("gone");
+    };
+    if (reduce) hint.current?.classList.add("gone");
     let lastStep = -1;
     let last = performance.now();
     let lastP = -1;
@@ -183,7 +192,7 @@ export function Intro() {
       visW = sw;
       visH = sh;
       cell = CW / COLS;
-      figH = Math.round(cell * 15);
+      pitch = Math.max(2, Math.round(cell * 0.5));
       bpx = Math.max(2, Math.round(cell * 0.4));
       tp = Math.max(2, Math.round(bpx * 0.67));
       walkTop = Math.round(visT + visH - 7 * cell);
@@ -210,10 +219,10 @@ export function Intro() {
       // the stick man walks in from the left, then stands and talks. His stride is tied to the distance he covers, so his feet
       // never slide, and every footfall (every half turn of the cycle) makes a step sound.
       const walkU = clamp01((t - T_WALK) / WALK_S);
-      const startX = visL - figH * 0.4;
+      const startX = visL - 10 * pitch;
       const stopX = visL + visW * 0.28;
       const hipX = startX + (stopX - startX) * walkU;
-      const phase = (Math.PI * 2 * (hipX - startX)) / (figH * 0.85);
+      const phase = (Math.PI * 2 * (hipX - startX)) / (FIGURE_H * pitch * 0.8);
       const tStop = T_WALK + WALK_S;
       const walkAmt = t < T_WALK ? 0 : t < tStop ? smooth(0, 1, (t - T_WALK) / 0.3) : Math.max(0, 1 - (t - tStop) / 0.4);
       const walking = t >= T_WALK && walkU < 1;
@@ -229,7 +238,7 @@ export function Intro() {
       const { mouth } = drawFigure(ctx, {
         x: Math.round(hipX),
         ground: walkTop + Math.round(cell * 0.9),
-        height: figH,
+        pitch,
         phase,
         walk: walkAmt,
         wave: smooth(0, 1, (talkT - 0.1) / 0.4),
@@ -278,10 +287,11 @@ export function Intro() {
       const playing = !reduce;
       if (!dirty && p === lastP && (!playing || dt < 16)) return;
       if (playing) clock += Math.min(dt, 250) / 1000;
+      if (storyStart === null && clock >= AUTO_START) begin();
       last = now;
       lastP = p;
       dirty = false;
-      draw(clock, p);
+      draw(storyStart === null ? -1 : clock - storyStart, p);
     };
 
     let frame = 0;
@@ -296,9 +306,12 @@ export function Intro() {
       last = performance.now();
     });
     io.observe(st);
+    const startNames = ["pointerdown", "keydown", "touchstart", "click"];
+    for (const n of startNames) window.addEventListener(n, begin, { passive: true });
     layout();
     raf = requestAnimationFrame(loop);
     return () => {
+      for (const n of startNames) window.removeEventListener(n, begin);
       cancelAnimationFrame(raf);
       cancelAnimationFrame(frame);
       ro.disconnect();
@@ -316,6 +329,9 @@ export function Intro() {
           <AsciiScene className="intro-cv" bare maxDpr={1.5} />
           <canvas ref={over} className="intro-cv intro-over" aria-hidden="true" />
         </div>
+        <p ref={hint} className="intro-hint">
+          Click anywhere to start, with sound
+        </p>
       </div>
     </section>
   );

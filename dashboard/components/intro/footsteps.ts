@@ -45,7 +45,7 @@ export function createFootsteps() {
       if (muted || !ctx || ctx.state !== "running" || !noise) return;
       const t = ctx.currentTime;
       const out = ctx.createGain();
-      out.gain.value = 0.5;
+      out.gain.value = 0.9;
       out.connect(ctx.destination);
 
       const knock = ctx.createOscillator();
@@ -54,7 +54,7 @@ export function createFootsteps() {
       knock.frequency.setValueAtTime(alt ? 150 : 128, t);
       knock.frequency.exponentialRampToValueAtTime(52, t + 0.1);
       kg.gain.setValueAtTime(0.0001, t);
-      kg.gain.exponentialRampToValueAtTime(0.42, t + 0.006);
+      kg.gain.exponentialRampToValueAtTime(0.85, t + 0.006);
       kg.gain.exponentialRampToValueAtTime(0.0001, t + 0.13);
       knock.connect(kg).connect(out);
       knock.start(t);
@@ -67,7 +67,7 @@ export function createFootsteps() {
       bp.frequency.value = alt ? 1500 : 1200;
       bp.Q.value = 0.9;
       const sg = ctx.createGain();
-      sg.gain.setValueAtTime(0.2, t);
+      sg.gain.setValueAtTime(0.4, t);
       sg.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
       scuff.connect(bp).connect(sg).connect(out);
       scuff.start(t);
