@@ -16,13 +16,30 @@ const EDGES: EdgeDef[] = [
 
 type Drawn = { id: string; d: string; label: string; lx: number; ly: number; anchor: "middle" | "start"; paid: boolean };
 
-const point = (r: DOMRect, c: DOMRect, side: Side): [number, number] => {
-  const l = r.left - c.left;
-  const t = r.top - c.top;
-  if (side === "r") return [l + r.width, t + r.height / 2];
-  if (side === "l") return [l, t + r.height / 2];
-  if (side === "b") return [l + r.width / 2, t + r.height];
-  return [l + r.width / 2, t];
+type Box = { l: number; t: number; w: number; h: number };
+
+/**
+ * A card's box inside the graph, from layout positions (offsetLeft and offsetTop), which ignore transforms. The graph fades and
+ * scales in as it scrolls into view, and on-screen rectangles would include that scale while the lines are drawn in the
+ * graph's own unscaled space, leaving the line ends short of the cards.
+ */
+const boxIn = (el: HTMLElement, root: HTMLElement): Box => {
+  let l = 0;
+  let t = 0;
+  let cur: HTMLElement | null = el;
+  while (cur && cur !== root) {
+    l += cur.offsetLeft;
+    t += cur.offsetTop;
+    cur = cur.offsetParent as HTMLElement | null;
+  }
+  return { l, t, w: el.offsetWidth, h: el.offsetHeight };
+};
+
+const point = (r: Box, side: Side): [number, number] => {
+  if (side === "r") return [r.l + r.w, r.t + r.h / 2];
+  if (side === "l") return [r.l, r.t + r.h / 2];
+  if (side === "b") return [r.l + r.w / 2, r.t + r.h];
+  return [r.l + r.w / 2, r.t];
 };
 
 function Card({ id, reg, tone, children, className }: { id: string; reg: (id: string, el: HTMLDivElement | null) => void; tone: string; children: ReactNode; className?: string }) {
@@ -53,14 +70,13 @@ export function WorkflowGraph({ medianS, batch }: { medianS?: number; batch?: { 
     const el = box.current;
     if (!el) return;
     const measure = () => {
-      const c = el.getBoundingClientRect();
       const out: Drawn[] = [];
       for (const e of EDGES) {
         const a = nodes.current[e.from];
         const b = nodes.current[e.to];
         if (!a || !b) continue;
-        const [x0, y0] = point(a.getBoundingClientRect(), c, e.fs);
-        const [x1, y1] = point(b.getBoundingClientRect(), c, e.ts);
+        const [x0, y0] = point(boxIn(a, el), e.fs);
+        const [x1, y1] = point(boxIn(b, el), e.ts);
         if (e.fs === "r" || e.fs === "l") {
           const dx = (x1 - x0) * 0.5;
           out.push({ id: e.id, d: `M${x0} ${y0} C${x0 + dx} ${y0} ${x1 - dx} ${y1} ${x1} ${y1}`, label: e.label, lx: (x0 + x1) / 2, ly: (y0 + y1) / 2 - 12, anchor: "middle", paid: !!e.paid });
