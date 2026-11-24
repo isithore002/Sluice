@@ -23,7 +23,7 @@ const toneColor = (hex: string) => {
  * Draws a text scene as a halftone of round dots. The scene (components/scene) returns, for every cell, a block character
  * whose height says how bright it is and a one-letter colour key; here the height becomes the dot's size and the key its
  * colour. Dots of one colour are drawn in one pass, so a 192 x 108 picture costs about fifty fills a frame.
- * `bare` leaves the size to the caller's CSS (the intro fills the screen with it). It stands still for reduced motion or when the nav's "Pause motion" is on, and sleeps while off screen.
+ * `bare` leaves the size to the caller's CSS (the intro fills the screen with it). It stands still for reduced motion, and sleeps while off screen.
  */
 export function AsciiScene({ className, bare = false, maxDpr = 2 }: { className?: string; bare?: boolean; maxDpr?: number }) {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -115,8 +115,7 @@ export function AsciiScene({ className, bare = false, maxDpr = 2 }: { className?
       drawn = true;
     };
 
-    const paused = () => document.documentElement.dataset.motion === "paused";
-    const loop = (now: number) => {
+        const loop = (now: number) => {
       raf = requestAnimationFrame(loop);
       if (!visible || !W) return;
       if (!drawn) {
@@ -124,7 +123,7 @@ export function AsciiScene({ className, bare = false, maxDpr = 2 }: { className?
         last = now;
         return;
       }
-      if (reduce || paused()) {
+      if (reduce) {
         last = now;
         return;
       }

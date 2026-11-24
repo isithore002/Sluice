@@ -11,7 +11,6 @@ export interface NavLink {
 }
 
 const GITHUB = "https://github.com/isithore002/Sluice";
-const MOTION_KEY = "sluice-bg-paused";
 
 function Tab({ l, active }: { l: NavLink; active: boolean }) {
   const cls = `sl-tab${active ? " on" : ""}`;
@@ -36,23 +35,17 @@ function Tab({ l, active }: { l: NavLink; active: boolean }) {
  */
 export function SiteShell({ links, cta, children }: { links: NavLink[]; cta: NavLink; children: ReactNode }) {
   const [js, setJs] = useState(false);
-  const [paused, setPaused] = useState(false);
   const tabs = links.filter((l) => !l.href.startsWith("http"));
   const [active, setActive] = useState(tabs[0]?.href ?? "");
 
   useEffect(() => {
     setJs(true);
     try {
-      setPaused(window.localStorage.getItem(MOTION_KEY) === "1");
+      window.localStorage.removeItem("sluice-bg-paused"); // the old pause switch is gone, so a saved "paused" must not linger
     } catch {
-      /* the choice just isn't remembered */
+      /* nothing to clear */
     }
   }, []);
-
-  // Other motion on the page (the intro scene) follows the same pause control.
-  useEffect(() => {
-    document.documentElement.dataset.motion = paused ? "paused" : "";
-  }, [paused]);
 
   // Smooth, inertial scrolling. Off for reduced motion; in-page anchors glide too.
   useEffect(() => {
@@ -92,16 +85,6 @@ export function SiteShell({ links, cta, children }: { links: NavLink[]; cta: Nav
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tabs.map((t) => t.href).join("|")]);
 
-  const togglePaused = () =>
-    setPaused((p) => {
-      try {
-        window.localStorage.setItem(MOTION_KEY, p ? "0" : "1");
-      } catch {
-        /* the choice just isn't remembered */
-      }
-      return !p;
-    });
-
   // Cards follow the pointer with a soft spotlight.
   useEffect(() => {
     const onMove = (e: PointerEvent) => {
@@ -131,11 +114,6 @@ export function SiteShell({ links, cta, children }: { links: NavLink[]; cta: Nav
             </div>
           </div>
           <div className="sl-nav-right">
-            <button type="button" className="sl-motion" onClick={togglePaused} aria-pressed={paused} aria-label={paused ? "Play motion" : "Pause motion"} title={paused ? "Play motion" : "Pause motion"}>
-              <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-                {paused ? <path d="M3 1.8v8.4L10 6z" fill="currentColor" /> : <path d="M2.5 1.5h2.5v9H2.5zM7 1.5h2.5v9H7z" fill="currentColor" />}
-              </svg>
-            </button>
             <a className="sl-ghost" href={GITHUB} target="_blank" rel="noreferrer">
               <svg width="17" height="17" viewBox="0 0 16 16" aria-hidden="true">
                 <path
