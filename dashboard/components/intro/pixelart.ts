@@ -3,7 +3,8 @@
 
 export type Px = { x: number; y: number; c: string };
 
-const INK = "#1a0a14";
+const INK = "#120609";
+const FACE = "#fff6d8";
 
 // A stick man on a small grid, facing right: a ring for a head, a line each for the body, arms and legs.
 export const MAN_W = 13;
@@ -14,10 +15,10 @@ export const MOUTH_ROW = 4;
 
 export type ManPose = { step: number; walking: boolean; talking: boolean; waving: boolean };
 
-/** The stick man for one frame. */
+/** The stick man for one frame: solid dark lines and a solid head, with a light eye and mouth. */
 export function buildMan({ step, walking, talking, waving }: ManPose): Px[] {
-  const g = new Set<string>();
-  const dot = (x: number, y: number) => g.add(`${x},${y}`);
+  const g = new Map<string, string>();
+  const dot = (x: number, y: number, c: string = INK) => g.set(`${x},${y}`, c);
   const line = (x0: number, y0: number, x1: number, y1: number) => {
     const dx = Math.abs(x1 - x0);
     const dy = -Math.abs(y1 - y0);
@@ -39,17 +40,14 @@ export function buildMan({ step, walking, talking, waving }: ManPose): Px[] {
     }
   };
 
-  // head: a ring, with an eye, and a mouth that opens while he talks
+  // head: a solid disc, with a light eye and a mouth that opens while he talks
   for (let y = 0; y <= 6; y++) {
-    for (let x = 3; x <= 9; x++) {
-      const r = Math.hypot(x - 6, y - 3);
-      if (r >= 2.3 && r <= 3.5) dot(x, y);
-    }
+    for (let x = 3; x <= 9; x++) if (Math.hypot(x - 6, y - 3) <= 3.4) dot(x, y);
   }
-  dot(7, 2);
+  dot(7, 2, FACE);
   if (talking) {
-    dot(7, MOUTH_ROW);
-    dot(MOUTH_COL, MOUTH_ROW);
+    dot(7, MOUTH_ROW, FACE);
+    dot(MOUTH_COL, MOUTH_ROW, FACE);
   }
   // body
   line(6, 7, 6, 14);
@@ -72,67 +70,85 @@ export function buildMan({ step, walking, talking, waving }: ManPose): Px[] {
   dot(left + 1, lift === 1 ? 20 : 21);
   dot(right + 1, lift === 2 ? 20 : 21);
 
-  return [...g].map((k) => {
+  return [...g].map(([k, c]) => {
     const [x, y] = k.split(",").map(Number);
-    return { x, y, c: INK };
+    return { x, y, c };
   });
 }
 
-/** 5 x 7 letters for the speech, plus a chevron for "down". */
+/** A blocky 4 x 5 font for the speech (W is 5 wide), plus a chevron for "down". */
 const FONT: Record<string, string[]> = {
-  S: [".####", "#....", "#....", ".###.", "....#", "....#", "####."],
-  C: [".###.", "#...#", "#....", "#....", "#....", "#...#", ".###."],
-  R: ["####.", "#...#", "#...#", "####.", "#.#..", "#..#.", "#...#"],
-  O: [".###.", "#...#", "#...#", "#...#", "#...#", "#...#", ".###."],
-  L: ["#....", "#....", "#....", "#....", "#....", "#....", "#####"],
-  D: ["####.", "#...#", "#...#", "#...#", "#...#", "#...#", "####."],
-  W: ["#...#", "#...#", "#...#", "#.#.#", "#.#.#", "##.##", "#...#"],
-  N: ["#...#", "##..#", "##..#", "#.#.#", "#..##", "#..##", "#...#"],
+  S: [".###", "#...", ".##.", "...#", "###."],
+  C: [".###", "#...", "#...", "#...", ".###"],
+  R: ["###.", "#..#", "###.", "#.#.", "#..#"],
+  O: [".##.", "#..#", "#..#", "#..#", ".##."],
+  L: ["#...", "#...", "#...", "#...", "####"],
+  D: ["###.", "#..#", "#..#", "#..#", "###."],
+  W: ["#...#", "#...#", "#.#.#", "#.#.#", ".#.#."],
+  N: ["#..#", "##.#", "#.##", "#..#", "#..#"],
 };
-export const CHEVRON = ["#.....#", ".#...#.", "..#.#..", "...#..."];
+export const CHEVRON = ["#...#", ".#.#.", "..#.."];
 
 export const SPEECH = ["SCROLL", "DOWN"];
 export const SPEECH_CHARS = SPEECH.join("").length;
+const GLYPH_H = 5;
+const LINE_GAP = 2;
+const CHEVRON_GAP = 2; // empty rows between the lines of speech and the chevron
 
-export const textWidth = (s: string) => s.length * 6 - 1;
+/** Width of a line of speech in pixels: its letters, with one empty column between them. */
+export const textWidth = (s: string) => [...s].reduce((w, ch) => w + FONT[ch][0].length, 0) + (s.length - 1);
 
-/** The lit pixels of the speech lines, centred on `cx`, starting at row `y0`, for the first `shown` letters. */
+/** Height of the whole message: the lines, then a gap and the chevron. */
+export const MESSAGE_H = SPEECH.length * GLYPH_H + (SPEECH.length - 1) * LINE_GAP + CHEVRON_GAP + CHEVRON.length;
+
+/** The lit pixels of the speech lines, each line centred on `cx`, starting at row `y0`, for the first `shown` letters. */
 export function speechPixels(cx: number, y0: number, shown: number): { x: number; y: number }[] {
   const out: { x: number; y: number }[] = [];
   let n = 0;
   SPEECH.forEach((line, li) => {
-    const x0 = Math.round(cx - textWidth(line) / 2);
-    const y = y0 + li * 9;
-    for (let i = 0; i < line.length; i++) {
+    let x = Math.round(cx - textWidth(line) / 2);
+    const y = y0 + li * (GLYPH_H + LINE_GAP);
+    for (const ch of line) {
       if (n++ >= shown) return;
-      FONT[line[i]].forEach((row, ry) => {
-        for (let rx = 0; rx < row.length; rx++) if (row[rx] === "#") out.push({ x: x0 + i * 6 + rx, y: y + ry });
+      FONT[ch].forEach((row, ry) => {
+        for (let rx = 0; rx < row.length; rx++) if (row[rx] === "#") out.push({ x: x + rx, y: y + ry });
       });
+      x += FONT[ch][0].length + 1;
     }
   });
   return out;
 }
 
-/** Where the chevron sits (top-left), for a cloud centred on `cx`, below the two lines that start at `y0`. */
-export const chevronAt = (cx: number, y0: number) => ({ x: Math.round(cx - CHEVRON[0].length / 2), y: y0 + 9 * SPEECH.length + 1 });
+/** Where the chevron sits (top-left), centred on `cx`, below the lines that start at `y0`. */
+export const chevronAt = (cx: number, y0: number) => ({
+  x: Math.round(cx - CHEVRON[0].length / 2),
+  y: y0 + SPEECH.length * GLYPH_H + (SPEECH.length - 1) * LINE_GAP + CHEVRON_GAP,
+});
 
 /* ---- the cloud ---- */
 
-export const CLOUD_W = 52;
-export const CLOUD_H = 38;
-/** The cloud's text is centred on this column and starts on this row. */
-export const TEXT_CX = 26;
-export const TEXT_Y0 = 6;
+const OX = 2; // the cloud's shapes are drawn on a small grid and nudged in from the edge by this much
+const OY = 2;
+export const CLOUD_W = 48;
+export const CLOUD_H = 35;
+/** The message is centred on this column and starts on this row, so it sits in the middle of the cloud. */
+export const TEXT_CX = 22 + OX;
+export const TEXT_Y0 = Math.floor(14 + OY - MESSAGE_H / 2);
 /** Where the tail of small bubbles leaves the cloud, in cloud pixels. */
-export const TAIL_FROM = { x: 12, y: 35 };
+export const TAIL_FROM = { x: 12, y: 31 };
 
-const CIRCLES: [number, number, number][] = [
-  [10, 11, 6], [41, 11, 6], [10, 25, 6], [41, 25, 6], // the corners
-  [17, 5, 5], [26, 3, 6], [35, 5, 5], // bumps along the top
-  [16, 31, 5], [26, 33, 5.5], [36, 31, 5], // and the bottom
-  [5, 18, 6], [46, 18, 6], // and the sides
+const CIRCLES: [number, number, number][] = (
+  [
+    [8, 9, 5], [36, 9, 5], [8, 19, 5], [36, 19, 5], // the corners
+    [14, 4, 4], [22, 2.5, 4.5], [30, 4, 4], // bumps along the top
+    [13, 24, 4], [22, 26, 4.5], [31, 24, 4], // and the bottom
+    [4, 14, 5], [40, 14, 5], // and the sides
+  ] as [number, number, number][]
+).map(([x, y, r]) => [x + OX, y + OY, r]);
+const RECTS: [number, number, number, number][] = [
+  [8 + OX, 4 + OY, 36 + OX, 24 + OY],
+  [3 + OX, 9 + OY, 41 + OX, 19 + OY],
 ];
-const RECTS: [number, number, number, number][] = [[10, 5, 41, 31], [4, 11, 47, 25]];
 
 export type CloudCell = { x: number; y: number; edge: boolean; d: number };
 
@@ -144,7 +160,7 @@ export function cloudCells(mouth: { x: number; y: number }): { cells: CloudCell[
   const tail: [number, number, number][] = [0.3, 0.6, 0.85].map((t, i) => [
     TAIL_FROM.x + (mouth.x - TAIL_FROM.x) * t,
     TAIL_FROM.y + (mouth.y - TAIL_FROM.y) * t,
-    [3.6, 2.5, 1.7][i],
+    [3.2, 2.3, 1.6][i],
   ]);
   const inside = (x: number, y: number) => {
     const px = x + 0.5;
