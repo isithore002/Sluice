@@ -134,7 +134,7 @@ export function WorkflowGraph({ medianS, batch }: { medianS?: number; batch?: { 
           <div className="wf-step">Step 01</div>
         </div>
 
-        <div className="wf-col">
+        <div className="wf-col mid">
           <span className="wf-edge-m">Liquidity returns</span>
           <Card id="morpho" reg={reg} tone="#c8c8ce">
             <div className="wf-top">

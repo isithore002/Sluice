@@ -77,12 +77,15 @@ html:not([data-intro="off"]) .site:has(.intro) .sl-nav { opacity: 0; transform: 
 .wf-packet { fill: #fff; }
 .wf-packet.paid { fill: var(--brass); }
 .wf-edge-m { display: none; margin: 4px 0 2px 18px; font: 400 11px/1 var(--mono); letter-spacing: 0.04em; color: #8b8b95; }
+/* more room between the stacked cards, so the lines (and their labels) between them are easy to see */
+.wf-col.mid { gap: 64px; }
 @media (min-width: 961px) and (max-height: 820px) {
   .wf-card { padding: 12px 15px; }
   .wf-card h3 { font-size: 16px; }
   .wf-card p, .wf-card ul { font-size: 11.5px; line-height: 1.42; }
   .wf-top { margin-bottom: 8px; }
   .wf-col { gap: 20px; }
+  .wf-col.mid { gap: 46px; }
   .wf-code { font-size: 9.5px; padding: 7px 10px; margin-top: 8px; }
   .wf-mark { font-size: 17px; }
   .wf-ico { width: 30px; height: 30px; }
@@ -90,7 +93,7 @@ html:not([data-intro="off"]) .site:has(.intro) .sl-nav { opacity: 0; transform: 
 @media (max-width: 960px) {
   .wf { margin-top: 44px; }
   .wf-grid { grid-template-columns: 1fr; row-gap: 14px; }
-  .wf-col { gap: 14px; }
+  .wf-col, .wf-col.mid { gap: 14px; }
   .wf-svg { display: none; }
   .wf-edge-m { display: block; }
   .wf-edge-m::before { content: "↓ "; }
