@@ -1,9 +1,9 @@
 /* Landing page only. Shared pieces (tokens, nav, buttons, cards, background) live in site.css. */
 
-/* ---- the intro: two pictures stacked on one pinned stage. Scrolling cuts from the sunset's sun to the dawn's sun, and the dawn
-   then stays pinned, faint, behind the hero that scrolls over it ---- */
+/* ---- the intro: two pictures stacked on one stage fixed to the screen. Scrolling cuts from the sunset's sun to the dawn's sun, and
+   the dawn then stays, faint, behind the whole page as it scrolls over it ---- */
 .site .intro { position: relative; }
-.intro-stage { position: sticky; top: 0; z-index: 0; height: 100svh; margin-bottom: -100svh; overflow: hidden; background: #050506; }
+.intro-stage { position: fixed; inset: 0; z-index: -1; height: 100svh; overflow: hidden; background: #050506; } /* pinned to the screen, under every section: the dawn scene is the whole page's background */
 .intro-spacer { height: 250svh; } /* the scroll the transition plays over: 100svh for the stage, 150svh of travel */
 .intro-art { position: absolute; inset: 0; will-change: transform, opacity; }
 .intro-art.a { background: #09070a; }
@@ -69,7 +69,7 @@ html:not([data-intro="off"]) .site:has(.intro) .sl-nav { opacity: 0; transform: 
 .wf-card li::before { content: ""; position: absolute; left: 0; top: 0.5em; width: 5px; height: 5px; background: var(--c); }
 .wf-code { margin-top: 10px; padding: 9px 12px; border-radius: 9px; background: rgba(255, 255, 255, 0.04); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07); font: 400 10.5px/1.65 var(--mono); color: #8b8b95; white-space: pre-wrap; overflow-wrap: anywhere; }
 .wf-code b { font-weight: 500; color: var(--brass); }
-.wf-step { display: flex; align-items: center; gap: 14px; margin: 12px 0 0 18px; font: 400 10px/1 var(--mono); letter-spacing: 0.22em; text-transform: uppercase; color: #52525b; }
+.wf-step { display: flex; align-items: center; gap: 14px; margin: 12px 0 0 18px; font: 400 10px/1 var(--mono); letter-spacing: 0.22em; text-transform: uppercase; color: #8a8a94; }
 .wf-step::before { content: ""; width: 34px; height: 1px; background: currentColor; }
 .wf-step.end { justify-content: flex-end; margin: 12px 18px 0 0; }
 .wf-step.end::before { display: none; }
