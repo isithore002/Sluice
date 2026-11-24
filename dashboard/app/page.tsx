@@ -200,12 +200,12 @@ export default function Landing() {
             cellSize={56}
             color="#e8e8ec"
             gridColor="#b4b4bc"
-            gridOpacity={0.075}
+            gridOpacity={0.04}
             fillOpacity={0.07}
             lineWidth={1}
             radius={170}
             spotlight={0.5}
-            edgeFade={0.1}
+            edgeFade={0}
             holdTime={350}
             fadeDuration={900}
           />
