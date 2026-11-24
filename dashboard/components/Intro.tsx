@@ -23,7 +23,7 @@ import {
 
 const COLS = 192; // the scene's size, in cells
 const ROWS = 108;
-const NAV = 58; // the sticky nav above the intro, in px
+const ZOOM = 5.5; // how far the picture rushes in, toward the sun, as the visitor scrolls
 
 // The story, in seconds from the page opening.
 const T_WALK = 0.9; // the man starts walking in
@@ -40,9 +40,10 @@ const smooth = (a: number, b: number, x: number) => {
 const easeInOut = (p: number) => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2);
 
 /**
- * The first thing a visitor sees: the sunset scene fills the screen, a pixel man walks in along a boardwalk and a cloud pops
- * out of his mouth telling them to scroll. As they scroll, the picture zooms out and fades, and the site is underneath it.
- * The scene is a sticky stage inside a taller section, so the scrolling drives the zoom; nothing here blocks the page.
+ * The first thing a visitor sees: the sunset scene fills the screen, a stick man walks in along a boardwalk and a cloud pops
+ * out of his mouth telling them to scroll. As they scroll, the picture zooms in toward the sun and fades, and the site is
+ * underneath it. The nav stays out of the way until the zoom is nearly done. The scene is a sticky stage inside a taller
+ * section, so the scrolling drives the zoom; nothing here blocks the page.
  */
 export function Intro() {
   const wrap = useRef<HTMLElement>(null);
@@ -51,7 +52,7 @@ export function Intro() {
   const over = useRef<HTMLCanvasElement>(null);
   const progress = useRef(0);
 
-  // Size the picture to cover the stage, and turn scrolling into the zoom-out.
+  // Size the picture to cover the stage, and turn scrolling into the zoom.
   useEffect(() => {
     const w = wrap.current;
     const st = stage.current;
@@ -61,12 +62,12 @@ export function Intro() {
     const size = () => st.style.setProperty("--cell", `${Math.max(st.clientWidth / COLS, st.clientHeight / ROWS)}px`);
     const apply = () => {
       const r = w.getBoundingClientRect();
-      const p = clamp01((NAV - r.top) / Math.max(1, w.offsetHeight - st.clientHeight));
+      const p = clamp01(-r.top / Math.max(1, w.offsetHeight - st.clientHeight));
       progress.current = p;
       const e = easeInOut(p);
-      a.style.transform = reduce ? "none" : `scale(${(1 - 0.6 * e).toFixed(4)})`;
-      a.style.borderRadius = reduce ? "0" : `${(e * 44).toFixed(1)}px`;
-      a.style.opacity = String((1 - smooth(0.6, 1, p)).toFixed(3));
+      a.style.transform = reduce ? "none" : `scale(${Math.exp(Math.log(ZOOM) * e).toFixed(4)})`;
+      a.style.opacity = String((1 - smooth(0.5, 0.95, p)).toFixed(3));
+      document.documentElement.dataset.intro = p < 0.92 ? "on" : "off";
     };
     size();
     apply();
@@ -79,6 +80,7 @@ export function Intro() {
     return () => {
       window.removeEventListener("scroll", apply);
       window.removeEventListener("resize", onResize);
+      delete document.documentElement.dataset.intro;
     };
   }, []);
 
@@ -94,7 +96,7 @@ export function Intro() {
     let CW = 0;
     let CH = 0;
     let cell = 0; // one scene cell, in device px
-    let spx = 0; // one pixel of the man
+    let spx = 0; // one pixel of the stick man
     let bpx = 0; // one pixel of the cloud and its letters
     let visL = 0; // the part of the canvas the stage shows
     let visT = 0;
@@ -124,8 +126,8 @@ export function Intro() {
       visW = sw;
       visH = sh;
       cell = CW / COLS;
-      spx = Math.max(2, Math.round(cell * 1.5));
-      bpx = Math.max(2, Math.round(cell * 0.6));
+      spx = Math.max(2, Math.round(cell * 0.6));
+      bpx = Math.max(2, Math.round(cell * 0.4));
       walkTop = Math.round(visT + visH - 7 * cell);
       cloud = null;
       dirty = true;
@@ -147,7 +149,7 @@ export function Intro() {
       const seam = Math.max(1, Math.round(cell * 0.45));
       for (let x = Math.round(cell * 6); x < CW; x += Math.round(cell * 11)) rect(x, walkTop + lip, seam, CH - walkTop, "#1a0a14");
 
-      // the man walks in from the left, then stands and talks
+      // the stick man walks in from the left, then stands and talks
       const walkU = clamp01((t - T_WALK) / WALK_S);
       const startX = visL - (MAN_W + 2) * spx;
       const stopX = visL + visW * 0.28;
@@ -158,13 +160,16 @@ export function Intro() {
       const waving = talkT > 0.2;
       const talking = talkT > 0.4 && typed < SPEECH_CHARS && Math.floor(t * 8) % 2 === 0;
       const step = waving ? Math.floor(t * 2.2) : Math.max(0, Math.floor((t - T_WALK) / 0.17));
-      const my = walkTop + Math.round(cell * 1.1) - MAN_H * spx;
-      for (const px of buildMan({ step, walking, talking, waving })) rect(mx + px.x * spx, my + px.y * spx, spx, spx, px.c);
+      const my = walkTop + Math.round(cell * 0.9) - MAN_H * spx;
+      const man = buildMan({ step, walking, talking, waving });
+      const halo = Math.max(1, Math.round(spx * 0.4)); // a light edge, so the thin dark lines read against the dark rocks
+      for (const px of man) rect(mx + px.x * spx - halo, my + px.y * spx - halo, spx + 2 * halo, spx + 2 * halo, "rgba(255, 246, 216, 0.85)");
+      for (const px of man) rect(mx + px.x * spx, my + px.y * spx, spx, spx, px.c);
 
       // the cloud, growing out of his mouth; it folds away as soon as the visitor scrolls
       const q = Math.min(clamp01(talkT / POP_S), 1 - clamp01((p - 0.02) / 0.06));
       if (q <= 0) return;
-      const mouthX = mx + (MOUTH_COL + 1) * spx;
+      const mouthX = mx + (MOUTH_COL + 1.5) * spx;
       const mouthY = my + (MOUTH_ROW + 0.5) * spx;
       let ox = Math.round(mouthX + 4 * bpx);
       const oy = Math.max(Math.round(visT + 10 * d), Math.round(mouthY - (CLOUD_H + 10) * bpx));
