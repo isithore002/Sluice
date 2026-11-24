@@ -9,25 +9,20 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@fontsource-variable/bricolage-grotesque": "5.3.0",
     "@fontsource-variable/inter": "^5.3.0",
     "@fontsource-variable/jetbrains-mono": "5.3.0",
-    "@hugeicons/core-free-icons": "4.4.0",
-    "@hugeicons/react": "1.1.10",
     "@rainbow-me/rainbowkit": "2.2.11",
     "@tanstack/react-query": "5.106.1",
     "lenis": "1.3.28",
     "next": "^15.5.29",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "three": "^0.187.0",
     "viem": "^2.58.1",
     "wagmi": "2.19.5"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",
     "@types/react": "^19.3.0",
-    "@types/three": "^0.187.0",
     "typescript": "^6.0.3"
   }
 }
