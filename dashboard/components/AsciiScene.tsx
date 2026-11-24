@@ -23,9 +23,9 @@ const toneColor = (hex: string) => {
  * Draws a text scene as a halftone of round dots. The scene (components/scene) returns, for every cell, a block character
  * whose height says how bright it is and a one-letter colour key; here the height becomes the dot's size and the key its
  * colour. Dots of one colour are drawn in one pass, so a 192 x 108 picture costs about fifty fills a frame.
- * It stands still for reduced motion or when the nav's "Pause motion" is on, and sleeps while off screen.
+ * `bare` leaves the size to the caller's CSS (the intro fills the screen with it). It stands still for reduced motion or when the nav's "Pause motion" is on, and sleeps while off screen.
  */
-export function AsciiScene({ className }: { className?: string }) {
+export function AsciiScene({ className, bare = false, maxDpr = 2 }: { className?: string; bare?: boolean; maxDpr?: number }) {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export function AsciiScene({ className }: { className?: string }) {
     const buckets: number[][] = KEY_ORDER.map(() => []);
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
       const css = canvas.clientWidth;
       if (!css) return;
       W = Math.round(css * dpr);
@@ -157,7 +157,7 @@ export function AsciiScene({ className }: { className?: string }) {
       className={className}
       role="img"
       aria-label="A shrine gate standing in the sea as the sun sets between its posts, with waves rolling in and gulls crossing the sky"
-      style={{ display: "block", width: "100%", aspectRatio: `${COLS} / ${ROWS}` }}
+      style={bare ? undefined : { display: "block", width: "100%", aspectRatio: `${COLS} / ${ROWS}` }}
     />
   );
 }
