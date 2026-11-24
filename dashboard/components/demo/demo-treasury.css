@@ -39,7 +39,7 @@
 
 .dm-t-counts { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
 .dm-t-stat { display: grid; gap: 4px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: rgba(10, 12, 20, 0.6); align-content: start; }
-.dm-t-stat-l { color: var(--muted); font: 11px var(--mono); text-transform: uppercase; letter-spacing: 0.06em; }
+.dm-t-stat-l { color: var(--muted); font: 500 13px var(--sans); }
 .dm-t-stat-v { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .dm-t-stat-s { color: var(--ink-2); font-size: 12.5px; line-height: 1.45; }
 

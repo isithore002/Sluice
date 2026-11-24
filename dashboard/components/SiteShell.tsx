@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
-import { AsciiField } from "./AsciiField";
 import { LogoMark } from "./LogoMark";
+import ShapeGrid from "./ui/ShapeGrid";
 
 export interface NavLink {
   href: string;
@@ -24,13 +24,32 @@ function NavItem({ l }: { l: NavLink }) {
   return <Link href={l.href}>{l.label}</Link>;
 }
 
+const MOTION_KEY = "sluice-bg-paused";
+
 /**
- * The frame both pages share, so they look and behave like one product: glyph-field background, sticky nav,
- * footer, the pointer spotlight on cards, and the `js` flag that arms scroll-reveal animations.
+ * The frame both pages share, so they look and behave like one product: the drifting grid background (with a control
+ * to pause it), sticky nav, footer, the pointer light on cards, and the `js` flag that arms scroll reveals.
  */
 export function SiteShell({ badge, links, cta, children }: { badge?: string; links: NavLink[]; cta: NavLink; children: ReactNode }) {
   const [js, setJs] = useState(false);
-  useEffect(() => setJs(true), []);
+  const [paused, setPaused] = useState(false);
+  useEffect(() => {
+    setJs(true);
+    try {
+      setPaused(window.localStorage.getItem(MOTION_KEY) === "1");
+    } catch {
+      /* the choice just isn't remembered */
+    }
+  }, []);
+  const togglePaused = () =>
+    setPaused((p) => {
+      try {
+        window.localStorage.setItem(MOTION_KEY, p ? "0" : "1");
+      } catch {
+        /* the choice just isn't remembered */
+      }
+      return !p;
+    });
 
   // Cards follow the pointer with a soft spotlight.
   useEffect(() => {
@@ -47,7 +66,25 @@ export function SiteShell({ badge, links, cta, children }: { badge?: string; lin
 
   return (
     <div className={`site${js ? " js" : ""}`}>
-      <AsciiField className="sl-ascii" />
+      <div className="sl-bg" aria-hidden="true">
+        <ShapeGrid
+          shape="square"
+          cellSize={56}
+          lineWidth={1}
+          direction="diagonal"
+          speed={0.16}
+          lineColor="#131b2a"
+          hoverColor="#7fb2ff"
+          hoverFillColor="#4f8cff"
+          fillOpacity={0.12}
+          radius={1.9}
+          trail={0.9}
+          glow={0.3}
+          fade={0.7}
+          clickCascade={false}
+          paused={paused}
+        />
+      </div>
 
       <nav className="sl-nav" aria-label="Main">
         <div className="sl-nav-in">
@@ -60,6 +97,12 @@ export function SiteShell({ badge, links, cta, children }: { badge?: string; lin
             {links.map((l) => (
               <NavItem key={l.href + l.label} l={l} />
             ))}
+            <button type="button" className="sl-motion" onClick={togglePaused} aria-pressed={paused} aria-label={paused ? "Play background motion" : "Pause background motion"}>
+              <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+                {paused ? <path d="M3 1.8v8.4L10 6z" fill="currentColor" /> : <path d="M2.5 1.5h2.5v9H2.5zM7 1.5h2.5v9H7z" fill="currentColor" />}
+              </svg>
+              <span>{paused ? "Play motion" : "Pause motion"}</span>
+            </button>
             <Link href={cta.href} className="sl-pill">
               {cta.label}
             </Link>
@@ -70,7 +113,7 @@ export function SiteShell({ badge, links, cta, children }: { badge?: string; lin
       {children}
 
       <footer className="sl-foot-bar sl-wrap">
-        <p>Built for the Reactive Omni Buildathon · Every Second Counts track · testnet demo, staged by us</p>
+        <p>Built for the Reactive Omni Buildathon, Every Second Counts track. A testnet demo, staged by us.</p>
         <p className="sl-fine">Sluice is an independent hackathon project built on Reactive Omni. The mark shown belongs to Reactive Network.</p>
         <nav aria-label="Footer">
           <Link href="/">Home</Link>

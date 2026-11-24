@@ -30,7 +30,7 @@
 
 /* ---- before you start ---- */
 .dm-start-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px; margin-top: 4px; }
-.dm-start-sub { margin: 0 0 8px; font: 600 12px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.dm-start-sub { margin: 0 0 8px; font: 500 13px/1.2 var(--sans); color: var(--muted); }
 .dm-start-list { margin: 0; padding-left: 18px; display: grid; gap: 8px; color: var(--ink-2); font-size: 14px; }
 .dm-start-list b { color: var(--ink); }
 .dm-story { margin: 0; padding: 0; list-style: none; counter-reset: story; display: grid; gap: 8px; font-size: 14px; color: var(--ink-2); }
@@ -53,7 +53,7 @@
 .dm-step.active, .dm-step.error { border-color: rgba(140, 165, 255, 0.7); background: rgba(40, 55, 110, 0.22); box-shadow: 0 0 0 1px rgba(120, 150, 255, 0.2), 0 12px 44px rgba(88, 130, 255, 0.18); }
 .dm-step.busy { border-color: rgba(140, 165, 255, 0.5); }
 .dm-step.error { border-color: rgba(245, 158, 11, 0.6); }
-.dm-next { display: inline-block; margin-bottom: 4px; padding: 3px 8px; border-radius: 999px; font: 600 11px/1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: #05060a; background: var(--ink); }
+.dm-next { display: inline-block; margin-bottom: 4px; padding: 3px 8px; border-radius: 999px; font: 600 12px/1 var(--sans); color: #07101f; background: var(--brass); }
 .dm-step.error .dm-next { background: #fbbf24; }
 .dm-step.active .dm-num { background: var(--ink); color: #05060a; border-color: transparent; }
 
