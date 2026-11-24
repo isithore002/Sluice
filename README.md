@@ -1,6 +1,16 @@
-# Sluice
+<h1 align="center">Sluice</h1>
 
-**Withdrawal queues that settle themselves.**
+<p align="center"><b>Withdrawal queues that settle themselves.</b></p>
+
+<p align="center">
+  <a href="https://github.com/isithore002/Sluice/actions/workflows/test.yml"><img alt="CI" src="https://github.com/isithore002/Sluice/actions/workflows/test.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+  <img alt="Track: Every Second Counts" src="https://img.shields.io/badge/track-Every%20Second%20Counts-black">
+  <img alt="Networks: Reactive Lasna, Base Sepolia, Unichain Sepolia" src="https://img.shields.io/badge/testnets-Lasna%20%C2%B7%20Base%20Sepolia%20%C2%B7%20Unichain%20Sepolia-informational">
+  <img alt="Contracts verified on Sourcify" src="https://img.shields.io/badge/contracts-verified%20on%20Sourcify-success">
+</p>
+
+<p align="center"><img src="docs/img/workflow.jpg" alt="Sluice's protocol workflow: a lender's withdrawal request, a Morpho repayment, Reactive deciding, and the Sluice queue paying in order" width="860"></p>
 
 When a lending vault runs out of free cash, withdrawals queue up. Today someone (a manager, a keeper bot) has to notice when cash comes back and pay the queue, and in a crunch whoever runs the fastest bot grabs freed liquidity first. Sluice replaces that operator with a Reactive contract. It watches every place liquidity can come back from and pays the queue **first come, first served, within seconds**. Liquidity comes back from:
 
@@ -16,6 +26,19 @@ Built for the [Reactive Omni Buildathon](https://dorahacks.io/hackathon/reactive
 | Protocol integrated | Morpho Blue (the live deployment on Base Sepolia, `0xBBBB…FFCb`) |
 | Tests | 90 passing, against **Morpho's real bytecode** and **the real Omni system contracts** |
 | Results | Live on testnet: **one repayment paid 40 queued withdrawals** in two callbacks (25 + 15, first come first served, 2.97 s); 104/104 flow B loops; flow C **32 of 32 completed** (31 timed, [why](#the-cross-chain-loop-that-is-not-in-the-numbers)); a 60-round latency race. See [Results](#results) |
+
+### Check it in two minutes
+
+| I want to… | Go to |
+|---|---|
+| **See it work without trusting us** | [Try it yourself](#try-it-yourself): three `cast` commands from a throwaway wallet, or the dashboard's wallet buttons. Reactive pays the queue about two seconds later, and the payout is sent by Reactive's signer, not by us. |
+| **See the numbers** | [Results](#results): 104 live loops, a 60-round latency race, a keeper-bot baseline, and the loop that failed, with its transaction hashes |
+| **Read the contracts** | [`src/`](src/), then [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) |
+| **Check what is deployed** | [Deployed contracts](#deployed-contracts): every address, source-verified on Sourcify with an exact match |
+| **Run the tests** | [Quick start](#quick-start): `forge test`, against Morpho's real bytecode and the real Omni system contracts |
+| **Run the dashboard** | [Landing page and dashboard](#landing-page-and-dashboard) |
+
+**Contents:** [The problem](#the-problem) · [How it works](#how-it-works) · [Lifeline](#lifeline-a-queue-that-never-silently-stops) · [Against a polling keeper](#against-a-polling-keeper) · [Why Reactive, and why Omni](#why-reactive-and-why-omni) · [Results](#results) · [Deployed contracts](#deployed-contracts) · [Try it yourself](#try-it-yourself) · [Repository layout](#repository-layout) · [Quick start](#quick-start) · [Limitations](#limitations-and-claims-we-dont-make) · [Security](#security-and-status) · [License and credits](#license-and-credits)
 
 ---
 
@@ -101,6 +124,14 @@ It also happened to us: on 2026-11-23 a long measurement run drained `SluiceReac
 
 - A competitor bot (another lender in the same market) tries to withdraw freed liquidity *C* seconds after each repayment.
 - We measure the share the queue captures with Sluice at native Omni speed, and with the *same contracts* slowed by `delayBlocks = 6` to reproduce the legacy network's ~7 s blocks. The legacy network itself no longer exists (Lasna and Reactive Mainnet both moved to the Omni fork in October 2026), so this is the only way to compare today.
+
+### What is different here
+
+- **It reacts to a protocol it doesn't control.** A vault can't hook Morpho. Sluice watches a Morpho Blue market's `Repay` event from another chain and pays its own queue because of it.
+- **Cross-chain without a bridge.** A relayer reserve pays the user in one hop, and the sibling vault reimburses it only after the payout is confirmed, for exactly what was sent.
+- **It finishes what it starts.** When one repayment frees cash for more than a callback may pay, Reactive schedules the next batch itself (40 withdrawals, 2 callbacks, no human in between).
+- **It repairs its own failure mode.** Omni silently halts a contract that falls into debt, so Lifeline watches for that and pays the debt. We hit that failure ourselves, and the write-up is in this README.
+- **It measures itself against the obvious objection.** A latency race against competitor bots, and a keeper-bot baseline whose honest reading is "roughly level at 250 ms polling", not "faster".
 
 ## Results
 
@@ -259,8 +290,9 @@ Anyone can also trigger a real Sluice settlement with one transaction, with noth
 
 **One click:** the dashboard's *One-click repay* shortcut (under *Deep dive*) does it from your browser wallet. The helper it uses is demo scaffolding for convenience, not part of Sluice. Its *Connect wallet* button opens a wallet list (RainbowKit, on wagmi) with MetaMask, Phantom, Coinbase Wallet, Rabby and any other installed wallet, then switches the wallet to Base Sepolia (Phantom needs Testnet Mode on: Settings → Developer Settings → Testnet Mode). The panel calls [`0x8bAcfF9D6d55801f25368170411BD2A2b5095C11`](https://sepolia.basescan.org/address/0x8bAcfF9D6d55801f25368170411BD2A2b5095C11) (source verified), which mints 10 demo mUSD and repays them on the borrower's behalf in a single transaction, so you confirm one transaction instead of three. We tested the one-click path end to end with a brand-new wallet we created: [its transaction](https://sepolia.basescan.org/tx/0x82db92a8e94825d7258c693593ac2661dedf69a7ae4ae276817fb106b6826236) was settled by [this callback](https://sepolia.basescan.org/tx/0xc106ab4c6212ae2d0ec64e3aff5fe815d9d90d185b0555348e7a0a16172af5fb), sent by Reactive's signer ([`results/oneclick-ui-test.json`](results/oneclick-ui-test.json); the test drove the panel's earlier connect button with an injected wallet provider in place of a MetaMask popup).
 
-**From a terminal**, the same three steps with `cast`:
 
+
+**From a terminal**, the same three steps with `cast`:
 
 **You need:** a throwaway testnet key with a little Base Sepolia ETH for gas (a fraction of a cent), and [Foundry](https://book.getfoundry.sh/)'s `cast`.
 
@@ -298,6 +330,17 @@ Your wallet sends only the repayment. The queued withdrawal belongs to Alice (ab
 
 ---
 
+## The site
+
+<p align="center"><img src="docs/img/intro.jpg" alt="The landing page opens on a pixel-art torii gate at sunset, with a stick figure saying SCROLL DOWN" width="760"></p>
+<p align="center"><sub>The landing page opens on a pixel-art scene. Click, and a stick figure walks in; scrolling cuts from this sun to the dawn lake behind the rest of the page.</sub></p>
+
+<p align="center"><img src="docs/img/hero.jpg" alt="The hero over the dawn lake scene" width="380"> <img src="docs/img/measured.jpg" alt="The measured numbers section" width="380"></p>
+<p align="center"><sub>The hero over the dawn scene, and the measured numbers. Every figure links to the transactions behind it.</sub></p>
+
+<p align="center"><img src="docs/img/dashboard.jpg" alt="The live dashboard over a summit-above-clouds scene" width="760"></p>
+<p align="center"><sub>The live dashboard: contract state read from public RPCs, with every measurement linked to its transactions.</sub></p>
+
 ## Repository layout
 
 | Path | What's there |
@@ -307,7 +350,10 @@ Your wallet sends only the repayment. The queued withdrawal belongs to Alice (ab
 | [`test/`](test/) | 90 tests: vault, reserve, sibling, reactive (through the Omni pipeline), end to end, stateful invariants, Lifeline |
 | [`script/`](script/), [`scripts/deploy.sh`](scripts/deploy.sh) | 9-step deployment across the three chains |
 | [`harness/`](harness/) | `status`, `flowB`, `flowC`, `race`, `summary` (TypeScript + viem) |
-| [`dashboard/`](dashboard/) | Landing page (three.js) at `/` and live dashboard at `/dashboard/` (Next.js static export; reads the chains directly, and its *Live demo* and *One-click repay* shortcut (under *Deep dive*)s connect your wallet through wagmi and RainbowKit) |
+| [`dashboard/`](dashboard/) | The website: a landing page at `/` and the live dashboard at `/dashboard/` (Next.js static export; reads the chains directly; the *Live demo* and *One-click repay* shortcut connect your wallet through wagmi and RainbowKit). See [Landing page and dashboard](#landing-page-and-dashboard) |
+| [`results/`](results/) | Every measured run as JSON, with the transaction hash of each hop, plus [`SUMMARY.md`](results/SUMMARY.md) and the record of failures and discarded runs |
+| [`deployments/`](deployments/), [`broadcast/`](broadcast/) | Deployed addresses, and every deployment transaction |
+| [`.github/workflows/`](.github/workflows/test.yml) | CI: `forge fmt --check`, `forge build --sizes`, `forge test`, and Slither |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Full spec: verified addresses, every function and event, flows, failure modes |
 | [`docs/BUILD_GUIDE.md`](docs/BUILD_GUIDE.md) | Step-by-step guide from an empty machine to a running deployment |
 | [`docs/OMNI_FIELD_NOTES.md`](docs/OMNI_FIELD_NOTES.md) | What we verified directly on Lasna and Base Sepolia, and how |
@@ -323,6 +369,8 @@ cd Sluice
 forge build
 forge test          # 90 tests, no network needed
 ```
+
+The dependencies under [`lib/`](lib/) are git submodules, so clone with `--recurse-submodules` (or run `git submodule update --init --recursive`).
 
 ### How the tests work
 
@@ -340,6 +388,16 @@ scripts/deploy.sh         # 9 steps: Base market → Uni token → Lasna reactiv
 ```
 
 The wallet needs Base Sepolia ETH, Unichain Sepolia ETH and Lasna lREACT. The scripts fund each callback contract on its chain's callback proxy and fund the reactive contract with lREACT.
+
+| `.env` variable | What it is |
+|---|---|
+| `PRIVATE_KEY` | The deployer key, for a **testnet-only** wallet. It is read from `.env`, which git ignores. |
+| `BASE_SEPOLIA_RPC`, `UNICHAIN_SEPOLIA_RPC`, `LASNA_RPC` | RPC URLs. Public endpoints work for deploys. Use provider URLs for the latency harness, because public RPCs rate-limit fast polling. |
+| `*_CHAIN_ID` | The three chain ids (84532, 1301, 5318007) |
+| `SYSTEM_CONTRACT`, `BASE_SEPOLIA_CALLBACK_PROXY`, `UNICHAIN_SEPOLIA_CALLBACK_PROXY` | The Omni system contract and the two callback proxies |
+| `MORPHO` | Morpho Blue on Base Sepolia |
+
+[`.env.example`](.env.example) has all of them with the verified values.
 
 ### Measure
 
@@ -359,13 +417,27 @@ Every loop is traced by its origin transaction hash, which every callback carrie
 
 ### Landing page and dashboard
 
-One static site with two pages: a landing page at `/` (a three.js logo over an animated glyph background; its numbers are read from `results/summary.json`) and the live dashboard at `/dashboard/`, which reads the chains directly. Only its *Live demo* and *One-click repay* shortcut (under *Deep dive*)s send anything, and each transaction is signed by the visitor's own wallet (a lender and a borrower, two separate wallets).
+One static site with two pages. Nothing runs on a server: both pages read public RPCs and the files in `results/` and `deployments/`.
+
+- **`/` is the story.** The site opens on a full-screen pixel-art scene, a torii gate at sunset drawn as a halftone of dots. Click anywhere and a pixel stick figure walks in and asks you to scroll. Scrolling then plays a match cut: the camera dives into the sunset's sun, flushes cream, and pulls back out of the sun in a second scene (Fuji at dawn over a lake), which stays pinned, faint, behind the rest of the page. Below it are the hero, the protocol workflow graph, a replay of the 40-withdrawal run, the measured numbers (read from `results/summary.json`), the latency race chart, and the outsider test.
+- **`/dashboard/` is the evidence.** The live state of the contracts on all three chains: treasury, queue and Reactive's recent callbacks, the lender and borrower *Live demo*, the latency tables, the cross-chain loops, the race replay, the Lifeline probes and a contracts table. A third scene (a summit above the clouds) sits faintly behind it.
+
+The scenes are text-mode art: each scene function returns one block character and one colour key per cell, and a small canvas renderer turns that into dots. They run at 15 to 30 frames a second, stand still under `prefers-reduced-motion`, and sleep while off screen. Smooth scrolling uses [Lenis](https://lenis.darkroom.engineering). Type is [Inter](https://rsms.me/inter/), with [JetBrains Mono](https://www.jetbrains.com/lp/mono/) for hashes and labels.
 
 ```shell
-cd dashboard && npm install && npm run build    # static site in dashboard/out
+cd dashboard
+npm install
+npm run dev          # http://localhost:3000 (syncs results and deployments first)
+npm run build        # static site in dashboard/out, hostable anywhere
 ```
 
+Both commands first run `npm run sync`, which copies the deployment addresses and measurement results into `public/data/manifest.json`, so the site always shows the files in this repository. To host under a sub-path, set `NEXT_PUBLIC_BASE_PATH` (for example `/Sluice`) when you build.
+
+The site makes sound only after you interact with it: browsers don't allow a page to play audio before the first click, tap or key press, so the intro waits for one. Only the dashboard's *Live demo* and *One-click repay* shortcut send anything, and each transaction is signed by the visitor's own wallet (a lender and a borrower, two separate wallets).
+
 Wallets connect through wagmi and RainbowKit. Browser-extension wallets (MetaMask, Phantom, Coinbase Wallet, Rabby, any EIP-6963 wallet) work as is. Mobile wallets over WalletConnect appear only if `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` is set at build time (a free project id from [Reown Cloud](https://cloud.reown.com)).
+
+The dashboard's public RPC (`sepolia.base.org`) rate-limits now and then, and some live numbers can be slow or blank until it recovers. Set provider URLs for steadier reads.
 
 ## Limitations and claims we don't make
 
@@ -379,6 +451,14 @@ Wallets connect through wagmi and RainbowKit. Browser-extension wallets (MetaMas
 - **A late `front` isn't capped by the current shortfall.** `RelayerReserve.front()` sends the lesser of the requested amount and its balance. If the queue was already paid by the time a delayed callback lands, the reserve still sends the requested amount to the vault, where it sits as idle cash, and the Unichain credit is later reimbursed for it. No lender loses funds, but capital moves that wasn't needed. Capping by the vault's current `shortfall()` is a known hardening we have not deployed, for the same reason.
 - **Live settlement depends on Reactive delivering the callback.** On 2026-11-23 the Base and Unichain callback proxies rejected Reactive's signer with `NotAuthorized()`, so every callback reverted before reaching the vault (see [`results/demo-edge-tests.json`](results/demo-edge-tests.json); the dashboard shows the state live). We checked the cause on-chain afterwards: Reactive rotated its callback signer. The 2026-11-19 callbacks were sent by `0xF7E8…1DDb`, which is no longer an operator on either proxy; today's are sent by `0xF9F6…14B0`, which is, and delivery works again (a Flow B loop paid the queue 769 ms after the repayment). The dashboard now recognizes both signers. While delivery is rejected SluiceReactive retries with backoff and the vault's permissionless `poke()` can pay the queue by hand, but a settlement cannot complete.
 
-## License
+## Security and status
+
+- **Testnet only, and not audited.** Everything here runs on Reactive Lasna, Base Sepolia and Unichain Sepolia, with open-mint demo tokens. Don't put real funds in these contracts. We ran Slither and wrote down our reading of each of its 72 findings in [`docs/SLITHER_TRIAGE.md`](docs/SLITHER_TRIAGE.md); that is our own review, not an audit.
+- **Keys.** The only secret the project needs is a testnet deployer key, kept in `.env`, which git ignores along with the harness's local wallet files. Use throwaway wallets, and never paste a key into an issue or a pull request.
+- **Reporting a problem.** Open an issue on the repository. The contracts are testnet demos, so there is no bounty and no production deployment to protect.
+
+## License and credits
 
 [MIT](LICENSE). Built during the Reactive Omni Buildathon (Nov 5 – Dec 5, 2026). Dependencies keep their own licenses.
+
+Built on [Reactive Network](https://reactive.network) (Omni, `reactive-lib-omni`, `reactive-test-lib`), [Morpho Blue](https://github.com/morpho-org/morpho-blue), [OpenZeppelin Contracts](https://github.com/OpenZeppelin/openzeppelin-contracts) and [Foundry](https://book.getfoundry.sh/), deployed on Base and Unichain. The site uses [Next.js](https://nextjs.org), [wagmi](https://wagmi.sh), [viem](https://viem.sh), [RainbowKit](https://www.rainbowkit.com) and [Lenis](https://lenis.darkroom.engineering). Sluice is an independent hackathon project. The Reactive mark and the Morpho and Unichain names belong to their owners.
