@@ -107,7 +107,7 @@ html:not([data-intro="off"]) .site:has(.intro) .sl-nav { opacity: 0; transform: 
 }
 
 /* ---- the recorded run ---- */
-.qr { --cols: 10; padding: 22px 22px 18px; border-radius: 24px; background: var(--glass), var(--glass-solid); box-shadow: var(--glass-edge), var(--glass-shadow); backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4); }
+.qr { --cols: 10; padding: 22px 22px 18px; border-radius: 24px; background: var(--glass), var(--glass-solid); box-shadow: var(--glass-edge), var(--glass-shadow); }
 .qr-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
 .qr-title { font: 650 19px/1.25 var(--sans); font-stretch: 94%; letter-spacing: -0.01em; color: var(--ink); }
 .qr-sub { margin-top: 4px; font-size: 13px; color: var(--muted); }
