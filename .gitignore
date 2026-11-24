@@ -13,3 +13,7 @@ out/
 # Node (harness, dashboard)
 node_modules/
 .next/
+
+# Vercel staging folder (dashboard/scripts/deploy-vercel.sh)
+/.deploy/
+.vercel
