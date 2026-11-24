@@ -1,7 +1,7 @@
 /* Dashboard only. Shared pieces (tokens, nav, cards, buttons, tables, chips) live in site.css. */
 
-/* the moonlit scene behind the whole page, as faint as the dawn scene behind the landing page */
-.dash-scene { position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0%; /* anchored to the top, so the dome and the moon are never cropped; a wide window trims the pool at the bottom instead */ pointer-events: none; opacity: 0.22; }
+/* the summit above the clouds, behind the whole page, as faint as the dawn scene behind the landing page */
+.dash-scene { position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0%; /* anchored to the top, so the summit is never cropped; a wide window trims the cloud sea at the bottom instead */ pointer-events: none; opacity: 0.22; }
 
 .dash-head { padding-top: 132px; padding-bottom: 8px; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.9fr); gap: 32px; align-items: end; }
 .dash-head .sl-kicker { display: none; } /* the title already says it */
