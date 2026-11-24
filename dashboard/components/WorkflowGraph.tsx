@@ -131,7 +131,7 @@ export function WorkflowGraph({ medianS, batch }: { medianS?: number; batch?: { 
               <li>Joins the queue, first come first served</li>
             </ul>
           </Card>
-          <div className="wf-step">Step 01</div>
+          <div className="wf-step">Entry · Queued</div>
         </div>
 
         <div className="wf-col mid">
@@ -208,7 +208,7 @@ export function WorkflowGraph({ medianS, batch }: { medianS?: number; batch?: { 
               <li>Every step carries a transaction hash</li>
             </ul>
           </Card>
-          <div className="wf-step end">Final</div>
+          <div className="wf-step end">Exit · Settled</div>
         </div>
       </div>
     </div>
