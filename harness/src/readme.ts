@@ -184,8 +184,9 @@ Anyone can also trigger a real Sluice settlement with one transaction, with noth
 ${TRY ? `
 **One click:** the dashboard's *One-click repay* shortcut (under *Deep dive*) does it from your browser wallet. The helper it uses is demo scaffolding for convenience, not part of Sluice. Its *Connect wallet* button opens a wallet list (RainbowKit, on wagmi) with MetaMask, Phantom, Coinbase Wallet, Rabby and any other installed wallet, then switches the wallet to Base Sepolia (Phantom needs Testnet Mode on: Settings → Developer Settings → Testnet Mode). The panel calls ${a(BASE, TRY.oneClickRepay)} (source verified), which mints 10 demo mUSD and repays them on the borrower's behalf in a single transaction, so you confirm one transaction instead of three.${OC ? ` We tested the one-click path end to end with a brand-new wallet we created: [its transaction](${OC.links.visitorSettle}) was settled by [this callback](${OC.links.reactiveCallback}), sent by Reactive's signer ([\`results/oneclick-ui-test.json\`](results/oneclick-ui-test.json); the test drove the panel's earlier connect button with an injected wallet provider in place of a MetaMask popup).` : ""}
 
-**From a terminal**, the same three steps with \`cast\`:
 ` : ""}
+
+**From a terminal**, the same three steps with \`cast\`:
 
 **You need:** a throwaway testnet key with a little Base Sepolia ETH for gas (a fraction of a cent), and [Foundry](https://book.getfoundry.sh/)'s \`cast\`.
 
