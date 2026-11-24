@@ -10,7 +10,10 @@
 .intro-hint.gone { opacity: 0; animation: none; }
 @keyframes intro-hint { 50% { box-shadow: inset 0 0 0 1px rgba(255, 246, 216, 0.7); } }
 html.intro-locked { overflow: hidden; scrollbar-gutter: stable; } /* the page waits until the stick man has spoken */
-html[data-intro="on"] .sl-nav { /* the nav stays out of the way until the zoom is nearly done */ opacity: 0; transform: translateY(-100%); pointer-events: none; }
+/* The nav stays hidden until the zoom is nearly done. It starts hidden (before any script runs, so a refresh never flashes it)
+   and the intro switches it on by setting data-intro="off" when the visitor has scrolled through. */
+html:not([data-intro="off"]) .site:has(.intro) .sl-nav { opacity: 0; transform: translateY(-100%); pointer-events: none; }
+@media (scripting: none) { html:not([data-intro="off"]) .site:has(.intro) .sl-nav { opacity: 1; transform: none; pointer-events: auto; } }
 .intro-skip:focus { position: fixed; left: 16px; top: 70px; z-index: 40; width: auto; height: auto; margin: 0; padding: 10px 16px; clip: auto; border-radius: 999px; background: var(--ink); color: #0a0a0c; }
 
 /* ---- hero: the name, huge and centred ---- */
