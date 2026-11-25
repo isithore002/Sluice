@@ -24,6 +24,46 @@ const OUTSIDER = {
   signer: "0xF7E866D726658F6C3F14B8EE537fe268a4D91DDb",
   paidTo: "0x1e96935e093051368a3e2F4acBF6380EB5e4Db9A",
 };
+/**
+ * Outside facts the page leans on. Each one was read on the linked page, and the wording and figures are the page's own:
+ * CoinDesk (Apr 20, 2026): "$292 million exploit"; DeFi TVL "from $99.497 billion to $86.286 billion", a "$13.21 billion decline";
+ * "Aave has lost $8.45 billion in deposits over the past 48 hours". Sentora (Nov 6, 2025): an Euler vault "reportedly reached 100%
+ * utilization", which "functionally freezes withdrawals for any remaining lenders"; "spiking borrow rates above 20% APY".
+ * Reactive (Nov 4, 2026): "On the previous version of Reactive Network, blocks came every ~7 seconds", and Omni has "~1s blocks and
+ * instant finality". ethereum.org: ERC-7540 "extends the ERC-4626 Tokenized Vault Standard by adding support for asynchronous
+ * deposit and redemption flows".
+ */
+const REACTIVE_POST = "https://blog.reactive.network/reactive-omni-buildathon-thirty-days-to-find-out-what-one-second-buys/";
+const CONTEXT = [
+  {
+    stat: "$13.21B",
+    hook: "When the exit door is small, everyone runs at once.",
+    body: "In the 48 hours after the $292 million KelpDAO exploit, total value locked across DeFi fell from $99.5B to $86.3B. Aave alone lost $8.45B of deposits.",
+    source: "CoinDesk, Apr 20, 2026",
+    href: "https://www.coindesk.com/markets/2026/04/20/defi-tvl-drops-more-than-usd13-billion-in-two-days-following-kelp-dao-hack",
+  },
+  {
+    stat: "100%",
+    hook: "Fully lent out means frozen.",
+    body: "In Sentora's review of the November 2025 stress, an Euler vault reportedly hit 100% utilization, which “functionally freezes withdrawals for any remaining lenders”. Borrow rates on the stressed tokens spiked above 20% APY.",
+    source: "Sentora Research, Nov 6, 2025",
+    href: "https://sentora.com/research/articles/defi-s-november-liquidity-crunch-causes-and-impacts",
+  },
+  {
+    stat: "7 s → 1 s",
+    hook: "Seven seconds is a long time to be in line.",
+    body: "Reactive's earlier network produced a block about every 7 seconds. Reactive Omni runs on CometBFT with “~1s blocks and instant finality”. Our latency race measures what that gap is worth.",
+    source: "Reactive Network, Nov 4, 2026",
+    href: REACTIVE_POST,
+  },
+  {
+    stat: "ERC-7540",
+    hook: "Async vaults are a standard. Sluice makes the queue settle itself.",
+    body: "ERC-7540 “extends the ERC-4626 Tokenized Vault Standard by adding support for asynchronous deposit and redemption flows”: request first, claim later. Sluice is built in that style (not a full ERC-7540 implementation), and nothing has to be called to pay its queue.",
+    source: "ethereum.org, ERC-7540",
+    href: "https://ethereum.org/developers/docs/standards/tokens/erc-7540/",
+  },
+];
 const short = (h: string, a = 6, b = 4) => `${h.slice(0, a + 2)}…${h.slice(-b)}`;
 const baseTx = (h: string) => `https://sepolia.basescan.org/tx/${h}`;
 
@@ -67,7 +107,7 @@ export default function Landing() {
         <Tile
           big={<CountUp to={s.flowB.totalWallMs.median / 1000} decimals={2} suffix=" s" />}
           label="from a Morpho repayment to the queue being paid"
-          note={`Median over ${s.flowB.succeeded} of ${s.flowB.attempted} live loops that all settled. 95th percentile ${(s.flowB.totalWallMs.p95 / 1000).toFixed(2)} s. Every loop is traced by its origin transaction hash.`}
+          note={`Median over ${s.flowB.succeeded} of ${s.flowB.attempted} live loops that all settled. 95th percentile ${(s.flowB.totalWallMs.p95 / 1000).toFixed(2)}\u00a0s. Every loop is traced by its origin transaction hash.`}
           href="x"
           linkLabel="See the latency table →"
         />
@@ -147,12 +187,12 @@ export default function Landing() {
   const deeper = [
     race.length > 0 && {
       href: `${BASE}/dashboard/#replay`,
-      title: "Replay the latency race",
+      title: "Race the bot, round by round",
       body: "Pick any recorded round and watch the repayment, Omni's reaction, the queue payout and the competitor on one timeline.",
     },
     batch?.ok && {
       href: `${BASE}/dashboard/#batch`,
-      title: `One repayment, ${batch.n} withdrawals`,
+      title: `Watch ${batch.n} lenders get paid`,
       body: `A callback pays at most ${batch.cap}. Reactive scheduled the next batch by itself, and everyone was paid in order.`,
     },
     caseStudy && {
@@ -232,32 +272,56 @@ export default function Landing() {
           <ScrollWords
             className="lp-statement"
             parts={[
-              { t: "Sluice is a withdrawal queue that " },
-              { t: "pays lenders in order, ", hl: true },
-              { t: "the moment liquidity returns anywhere, with " },
-              { t: "no manager and no keeper bot.", hl: true },
+              { t: "The cash comes back. " },
+              { t: "The queue pays itself: ", hl: true },
+              { t: "first come, first served, in about " },
+              { t: `${s && s.flowB.succeeded > 0 ? (s.flowB.totalWallMs.median / 1000).toFixed(1) : "1.3"} seconds,`, hl: true },
+              { t: "with no manager and no keeper bot." },
             ]}
           />
           <div className="lp-aside">
             <Reveal>
               <p>
-                When liquidity comes back, a repayment in a Morpho market we don&apos;t control or spare credit on another chain, a Reactive contract pays
-                the queue in order within a couple of seconds.
+                A lender in a fully lent-out pool doesn&apos;t get paid when they ask. They get paid when someone notices the cash is back. Sluice removes the
+                someone.
               </p>
             </Reveal>
             <Reveal delay={120}>
               <p>
-                Missed events heal through retries, and bad debt halts cross-chain fronting. Every number here comes from live testnet runs, traced by
-                transaction hash.
+                A Reactive contract watches a Morpho market we don&apos;t control, and spare credit on another chain, and pays the queue the moment liquidity returns.
+                Missed events heal through retries, and bad debt halts cross-chain fronting.
               </p>
             </Reveal>
           </div>
         </section>
 
+        <section id="context" className="sl-section sl-wrap">
+          <Reveal>
+            <h2>When everyone wants out, the queue is the product.</h2>
+            <p className="sl-p">Withdrawals freeze when a pool is fully lent out. Here is what the public record says about it, and why seconds matter.</p>
+          </Reveal>
+          <Reveal delay={80}>
+            <div className="lp-ctx">
+              {CONTEXT.map((x) => (
+                <a key={x.href} className="lp-ctx-card" href={x.href} target="_blank" rel="noreferrer">
+                  <span className="lp-ctx-stat">{x.stat}</span>
+                  <span className="lp-ctx-hook">{x.hook}</span>
+                  <span className="lp-ctx-body">{x.body}</span>
+                  <span className="lp-ctx-src">
+                    {x.source} <span aria-hidden="true">↗</span>
+                    <span className="sr-only"> (opens in a new tab)</span>
+                  </span>
+                </a>
+              ))}
+            </div>
+            <p className="sl-note lp-ctx-note">Figures and quotes are as those pages state them. Everything measured below comes from our own live testnet runs.</p>
+          </Reveal>
+        </section>
+
         <section id="how" className="sl-section sl-wrap">
           <div className="wf-head">
             <Reveal>
-              <h2>Liquidity returns. The queue moves.</h2>
+              <h2>Liquidity returns. The queue moves. Nobody has to.</h2>
             </Reveal>
             <span className="wf-label">Protocol workflow</span>
           </div>
@@ -270,10 +334,10 @@ export default function Landing() {
           <section id="run" className="sl-section sl-wrap">
             <div className="lp-run">
               <Reveal>
-                <h2>Watch one repayment pay the whole queue.</h2>
+                <h2>One repayment. Forty lenders. Paid in order.</h2>
                 <p className="sl-p">
-                  A recorded run on Base Sepolia, replayed at real speed. Each ticket turns brass at the moment its callback landed, in the order the
-                  lenders joined the queue.
+                  Forty wallets queued for cash that was fully borrowed out. Then a single repayment on Morpho paid every one of them, first come first served, and
+                  nobody called anything. This is that run on Base Sepolia, replayed at real speed: each ticket turns brass the moment its callback landed.
                 </p>
               </Reveal>
               <Reveal delay={100}>
@@ -286,8 +350,11 @@ export default function Landing() {
         {tiles.length > 0 && (
           <section id="proof-numbers" className="sl-section sl-wrap">
             <Reveal>
-              <h2>What we measured, and what we don&apos;t claim</h2>
-              <p className="sl-p">Live testnet loops, traced end to end by the origin transaction hash. Every figure links to the transactions behind it.</p>
+              <h2>Real runs. Real hashes. Honest limits.</h2>
+              <p className="sl-p">
+                Every figure is a live testnet loop, traced end to end by its origin transaction hash. Open the tiles that link out to see the records. And read the last
+                tile: it says what we did not prove.
+              </p>
             </Reveal>
             <Reveal delay={80}>
               <div className="lp-stats">
@@ -313,7 +380,7 @@ export default function Landing() {
               <Reveal>
                 <h2>Freed liquidity is contested.</h2>
                 <p className="sl-p">
-                  A competitor bot tries to grab it a few seconds after each repayment. At Omni speed the queue gets there first. The same
+                  A competitor bot reaches for it a few seconds after each repayment. At Omni speed the queue gets there first. The same
                   system slowed to legacy-like speed does not.
                 </p>
                 <ul className="lp-points">
@@ -322,7 +389,7 @@ export default function Landing() {
                       <b>{Math.round(native0.meanCapture * 100)}%</b> captured against a same-block competitor. Nothing reactive beats a bot that acts in the same block, and we don&apos;t claim to.
                     </li>
                   )}
-                  <li>The legacy network no longer exists (Lasna and Reactive Mainnet moved to Omni in October 2026), so the legacy-like rows reproduce its roughly 7 s blocks on Omni, using Reactive&apos;s own figure.</li>
+                  <li>The legacy network no longer exists (Lasna and Reactive Mainnet moved to Omni in October 2026), so the legacy-like rows reproduce its roughly 7 s blocks on Omni, using <a className="sl-link" href={REACTIVE_POST} target="_blank" rel="noreferrer">Reactive&apos;s own figure</a>.</li>
                 </ul>
               </Reveal>
               <Reveal delay={100}>
@@ -337,7 +404,7 @@ export default function Landing() {
         {deeper.length > 0 && (
           <section className="sl-section tight sl-wrap">
             <Reveal>
-              <h2>Don&apos;t just read it. Replay it.</h2>
+              <h2>Don&apos;t trust the chart. Replay the race.</h2>
             </Reveal>
             <Reveal delay={80}>
               <div className="lp-deeper-grid">
@@ -357,9 +424,8 @@ export default function Landing() {
               <div>
                 <h2>Don&apos;t take our word for it.</h2>
                 <p className="sl-p">
-                  A fresh wallet we created for this test, which had never touched these contracts, repaid 10 mUSD in the Morpho market. The settlement that paid the queue
-                  was sent by Reactive&apos;s signer, not by us. Open it, or better, try it yourself: repay part of the loan from your own wallet, and watch the
-                  queue settle itself in about two seconds.
+                  A brand-new wallet that had never touched these contracts repaid 10 mUSD in the Morpho market. Reactive&apos;s signer, not us, paid the queue. Open the
+                  transactions, or better, try it with your own wallet: repay part of the loan and watch the queue settle itself in about two seconds.
                 </p>
                 <div className="sl-cta">
                   <Link href="/dashboard#demo" className="sl-btn primary">
