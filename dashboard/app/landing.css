@@ -63,7 +63,7 @@ html:not([data-intro="off"]) .site:has(.intro) .sl-nav { opacity: 0; transform: 
 @media (max-width: 1100px) { .lp-ctx { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 620px) { .lp-ctx { grid-template-columns: 1fr; } }
 
-/* ---- the workflow graph ---- 
+/* ---- the workflow graph ---- */
 .wf-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
 .wf-label { display: inline-flex; align-items: center; gap: 14px; font: 500 11px/1 var(--mono); letter-spacing: 0.22em; text-transform: uppercase; color: var(--brass); }
 .wf-label::before { content: ""; width: 48px; height: 1px; background: currentColor; }
