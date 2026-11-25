@@ -190,6 +190,8 @@ export interface Manifest {
   batch: BatchResult | null;
   caseStudy: CaseStudy | null;
   lifeline?: LifelineEvidence | null;
+  /** Keeper-bot baseline: who paid the queue first, per run and polling interval. */
+  keeperRuns?: { file: string; run: number; pollMs: number; rounds: number; keeper: number; reactive: number }[];
   demoRun: DemoRun | null;
 }
 

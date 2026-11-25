@@ -82,7 +82,21 @@ if (summary?.flowB && existsSync(results)) {
     .map((r) => r.wallMs.total);
 }
 
-const manifest = { generatedAt: new Date().toISOString(), deployed, addresses, summary, raceReplay, batch, caseStudy, demoRun, lifeline };
+// The keeper-bot baseline: who paid the queue first, per run and polling interval (the winner is read from the settlement's trace id).
+const keeperRuns = [];
+if (existsSync(results)) {
+  const files = readdirSync(results).filter((f) => /^keeper-.*\.json$/.test(f)).sort();
+  for (const [i, f] of files.entries()) {
+    const rounds = readJson(resolve(results, f)) ?? [];
+    const run = i + 1;
+    for (const pollMs of [...new Set(rounds.map((r) => r.pollMs))].sort((a, b) => b - a)) {
+      const rs = rounds.filter((r) => r.pollMs === pollMs && (r.winner === "keeper" || r.winner === "reactive"));
+      keeperRuns.push({ file: f, run, pollMs, rounds: rs.length, keeper: rs.filter((r) => r.winner === "keeper").length, reactive: rs.filter((r) => r.winner === "reactive").length });
+    }
+  }
+}
+
+const manifest = { generatedAt: new Date().toISOString(), deployed, addresses, summary, raceReplay, batch, caseStudy, demoRun, lifeline, keeperRuns };
 writeFileSync(resolve(outDir, "manifest.json"), JSON.stringify(manifest, null, 2));
 console.log(
   `dashboard data: deployed=${deployed}, summary=${summary ? "yes" : "no"}, replay=${raceReplay ? raceReplay.rounds.length + " rounds" : "no"}, batch=${batch ? batch.n + " withdrawals" : "no"}, caseStudy=${caseStudy ? "yes" : "no"}`,
