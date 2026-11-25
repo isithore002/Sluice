@@ -80,6 +80,24 @@ function Tile({ big, label, note, href, linkLabel, visual }: { big: ReactNode; l
   );
 }
 
+/** One keeper-baseline run: how many rounds Reactive paid first, and how many the polling keeper did. */
+function KeeperBar({ k }: { k: { run: number; pollMs: number; rounds: number; keeper: number; reactive: number } }) {
+  const label = `Polls every ${k.pollMs >= 1000 ? `${k.pollMs / 1000} s` : `${k.pollMs} ms`}${k.pollMs < 1000 ? ` (run ${k.run})` : ""}`;
+  return (
+    <div className="lp-cap">
+      <div className="lp-cap-l">
+        <span>{label}</span>
+        <span>
+          Reactive <b>{k.reactive}</b> · keeper <b>{k.keeper}</b>
+        </span>
+      </div>
+      <div className="lp-cap-bar lp-kp-bar" role="img" aria-label={`${label}: Reactive paid first in ${k.reactive} of ${k.rounds} rounds, the keeper in ${k.keeper}`}>
+        <span style={{ width: `${(k.reactive / k.rounds) * 100}%` }} />
+      </div>
+    </div>
+  );
+}
+
 /** A two-colour bar: the share the queue captured (brass) against the share the competitor took. */
 function CaptureBar({ label, queue }: { label: string; queue: number }) {
   const q = Math.max(0, Math.min(1, queue));
@@ -110,6 +128,7 @@ export default function Landing() {
   const batch = manifest?.batch ?? null;
   const caseStudy = manifest?.caseStudy ?? null;
   const lifeline = manifest?.lifeline ?? null;
+  const keeper = manifest?.keeperRuns ?? [];
   const race = s?.race ?? [];
   const capture = (native: boolean, delay: number) => race.find((c) => (c.delayBlocks === 0) === native && c.competitorDelayS === delay);
   const native4 = capture(true, 4);
@@ -204,7 +223,16 @@ export default function Landing() {
     colSpan: 3,
     content: (
       <Tile
-        visual={native0 ? <CaptureBar label="Against a competitor firing at once" queue={native0.meanCapture} /> : undefined}
+        visual={
+          keeper.length > 0 ? (
+            <>
+              <div className="lp-kp-t">Who paid first, against a keeper bot</div>
+              {keeper.map((k) => (
+                <KeeperBar key={k.file + k.pollMs} k={k} />
+              ))}
+            </>
+          ) : undefined
+        }
         big="Not faster than every bot"
         label="What this does not claim"
         note={`A bot acting in the same block still wins${native0 ? ` (the queue captured ${Math.round(native0.meanCapture * 100)}% against one)` : ""}, and a fast polling keeper is roughly level with Reactive. Sluice removes the bot and the operator, not the race.`}
