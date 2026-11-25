@@ -321,28 +321,7 @@ export function RaceChart({ cells, table = true }: { cells: RaceCell[]; table?: 
 function Readout({ series, active, acts, hidden }: { series: { key: Key; label: string; short: string; color: string; points: RaceCell[] }[]; active: number; acts: Record<Key, number>; hidden: Record<Key, boolean> }) {
   const rows = series.map((s) => ({ s, c: s.points.find((p) => p.competitorDelayS === active) })).filter((r) => r.c) as { s: (typeof series)[number]; c: RaceCell }[];
   const axisMax = Math.max(10, ...rows.map((r) => r.c.sluiceActedMs.max / 1000 + 0.6), active + LAND_MS / 1000 + 0.6);
-  const [laneW, setLaneW] = useState(560);
-  const laneRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = laneRef.current;
-    if (!el) return;
-    let raf = 0;
-    const ro = new ResizeObserver(([e]) => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        if (e.contentRect.width > 0) setLaneW(Math.max(280, Math.round(e.contentRect.width)));
-      });
-    });
-    ro.observe(el);
-    return () => {
-      cancelAnimationFrame(raf);
-      ro.disconnect();
-    };
-  }, []);
-  const LL = 92, LR = 12;
-  const tx = (s: number) => LL + (s / axisMax) * (laneW - LL - LR);
-  const rowH = 34, LT = 30;
-  const LH = LT + rows.length * rowH + 28;
+  const pos = (t: number) => Math.max(0, Math.min(100, (t / axisMax) * 100));
 
   return (
     <div className="rc-read">
@@ -380,40 +359,55 @@ function Readout({ series, active, acts, hidden }: { series: { key: Key; label: 
         })}
       </div>
 
-      <div className="rc-lane" ref={laneRef}>
-        <div className="rc-lane-t">Who got there first, with the competitor firing {active} s after the repayment</div>
-        <svg width={laneW} height={LH} viewBox={`0 0 ${laneW} ${LH}`} role="img" aria-label={`Timeline in seconds after the repayment. The competitor fires at ${active} seconds. ${rows.map((r) => `${r.s.short}: the queue acted between ${(r.c.sluiceActedMs.min / 1000).toFixed(1)} and ${(r.c.sluiceActedMs.max / 1000).toFixed(1)} seconds.`).join(" ")}`}>
-          {Array.from({ length: Math.floor(axisMax / 2) + 1 }, (_, i) => i * 2).map((t) => (
-            <g key={t}>
-              <line x1={tx(t)} x2={tx(t)} y1={LT - 6} y2={LT + rows.length * rowH} stroke="var(--grid)" strokeWidth={1} />
-              <text x={tx(t)} y={LH - 8} textAnchor="middle" fontSize="11" fill="var(--muted)">
-                {t} s
-              </text>
-            </g>
-          ))}
-          {/* the competitor: when it fires, and roughly when its transaction lands */}
-          <rect x={tx(active)} y={LT - 6} width={Math.max(0, tx(active + LAND_MS / 1000) - tx(active))} height={rows.length * rowH + 6} fill="var(--ink)" opacity={0.1} />
-          <line x1={tx(active)} x2={tx(active)} y1={LT - 10} y2={LT + rows.length * rowH} stroke="var(--ink)" strokeWidth={1.6} />
-          <text x={tx(active) + (tx(active) > laneW * 0.62 ? -6 : 6)} y={LT - 14} textAnchor={tx(active) > laneW * 0.62 ? "end" : "start"} fontSize="11.5" fill="var(--ink)">
-            competitor fires
-          </text>
-          {rows.map(({ s, c }, i) => {
-            const cy = LT + i * rowH + rowH / 2 - 3;
+      <div className="rc-lane">
+        <div className="rc-lane-t">The race at {active} s: who got there first</div>
+        <div className="rc-track">
+          <div className="rc-guide" style={{ left: `${pos(active + LAND_MS / 1000)}%` }}>
+            <span>competitor&apos;s transaction lands</span>
+          </div>
+
+          <div className="rc-row">
+            <div className="rc-name">Competitor bot</div>
+            <div className="rc-lane-bar">
+              <span className="rc-fire" style={{ left: `${pos(active)}%` }} title={`fires at ${active} s`} />
+              <span className="rc-land" style={{ left: `${pos(active)}%`, width: `${pos(active + LAND_MS / 1000) - pos(active)}%` }} />
+              <span className="rc-tag" style={{ left: `${pos(active + LAND_MS / 1000) + 1}%` }}>fires at {active} s</span>
+            </div>
+            <div className="rc-res" />
+          </div>
+
+          {rows.map(({ s, c }) => {
             const m = c.sluiceActedMs;
+            const v = verdict(c);
             return (
-              <g key={s.key} opacity={hidden[s.key] ? 0.3 : 1}>
-                <text x={LL - 10} y={cy + 4} textAnchor="end" fontSize="12" fill="var(--ink-2)">
+              <div key={s.key} className="rc-row" data-hidden={hidden[s.key]}>
+                <div className="rc-name">
+                  <span className="swatch" style={{ background: s.color }} />
                   {s.short}
-                </text>
-                <rect x={tx(m.min / 1000)} y={cy - 6} width={Math.max(3, tx(m.max / 1000) - tx(m.min / 1000))} height={12} rx={6} fill={s.color} opacity={0.38} />
-                <rect x={tx(m.median / 1000) - 2} y={cy - 9} width={4} height={18} rx={2} fill={s.color} />
-              </g>
+                </div>
+                <div className="rc-lane-bar">
+                  <span className="rc-range" style={{ left: `${pos(m.min / 1000)}%`, width: `${Math.max(1.2, pos(m.max / 1000) - pos(m.min / 1000))}%`, background: s.color }} />
+                  <span className="rc-med" style={{ left: `${pos(m.median / 1000)}%`, background: s.color }} />
+                  <span className="rc-tag" style={{ left: `${Math.min(80, pos(m.max / 1000) + 1.5)}%` }}>
+                    acts at {sec(m.median, 1)}
+                  </span>
+                </div>
+                <div className={`rc-res rc-chip ${v.tone}`}>{v.tone === "win" ? "Queue wins" : v.tone === "lose" ? "Bot wins" : `Queue ${pct(c.meanCapture)}`}</div>
+              </div>
             );
           })}
-        </svg>
+
+          <div className="rc-axis" aria-hidden="true">
+            {Array.from({ length: Math.floor(axisMax / 2) + 1 }, (_, i) => i * 2).map((t) => (
+              <span key={t} style={{ left: `${pos(t)}%` }}>
+                {t} s
+              </span>
+            ))}
+          </div>
+        </div>
         <p className="rc-note">
-          Each bar is how long the queue took to act, fastest to slowest round, with the bold tick at the median. The shaded strip is about when the competitor&apos;s own
-          transaction lands (roughly 1.2 to 1.4 s after it fires, on a public RPC). The queue wins a round when it acts before that strip ends.
+          Each coloured bar runs from the fastest to the slowest round in which the queue acted, with a tick at the median. The white strip is when the competitor&apos;s own
+          transaction would land (about 1.3 s after it fires, on a public RPC). The queue wins when its bar ends before the strip does.
         </p>
       </div>
     </div>
