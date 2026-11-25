@@ -98,8 +98,9 @@ export function RaceChart({ cells, table = true }: { cells: RaceCell[]; table?: 
   const H = narrow ? 250 : 320;
   const L = 44, R = narrow ? 84 : 118, T = 26, B = 44;
   const xMin = Math.min(...delays), xMax = Math.max(...delays);
-  const x = (d: number) => (xMax === xMin ? L + (W - L - R) / 2 : L + ((d - xMin) / (xMax - xMin)) * (W - L - R));
-  const y = (p: number) => T + (1 - p) * (H - T - B);
+  const PX = 16, PY = 9; // the data sits inside the frame, so the points at 0 s, 0% and 100% are never drawn on its edges
+  const x = (d: number) => (xMax === xMin ? L + (W - L - R) / 2 : L + PX + ((d - xMin) / (xMax - xMin)) * (W - L - R - 2 * PX));
+  const y = (p: number) => T + PY + (1 - p) * (H - T - B - 2 * PY);
 
   const nearest = (clientX: number, svg: SVGSVGElement) => {
     const px = clientX - svg.getBoundingClientRect().left;
