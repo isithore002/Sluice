@@ -264,7 +264,7 @@ export default function Dashboard() {
                   Share captured by the queue, at Omni speed vs the same system slowed to legacy-like speed.
                 </p>
                 <div className="sl-card">
-                  <RaceChart cells={race} />
+                  <RaceChart cells={race} table={false} />
                   <div className="sl-scroll dash-gap">
                     <table className="sl-table">
                       <thead>
