@@ -60,6 +60,26 @@ function save(vault: string, a: string, s: Saved | null) {
   }
 }
 
+// Progress through the four steps of THIS run. The steps used to be derived only from the chain, so a wallet that already held
+// mUSD and an allowance skipped straight to step 3. A run now starts at step 1 and moves on only when the lender does each step.
+const runKey = (vault: string, a: string) => `sluice-demo-lender-run-${vault.toLowerCase()}-${a.toLowerCase()}`;
+function loadRun(vault: string, a: string): number | null {
+  try {
+    const raw = window.localStorage.getItem(runKey(vault, a));
+    const n = raw === null ? NaN : Number(raw);
+    return Number.isInteger(n) && n >= 0 && n <= 3 ? n : null;
+  } catch {
+    return null;
+  }
+}
+function saveRun(vault: string, a: string, n: number) {
+  try {
+    window.localStorage.setItem(runKey(vault, a), String(n));
+  } catch {
+    /* the page just won't remember it */
+  }
+}
+
 // "Start over" must stick: a ticket the lender has dismissed is never found again by the on-chain lookup below.
 const dismissKey = (vault: string, a: string) => `${storeKey(vault, a)}-dismissed`;
 function dismissedId(vault: string, a: string): bigint {
@@ -155,6 +175,7 @@ function LenderSteps({ address, addresses, remember }: { address: Address; addre
   const [amountStr, setAmountStr] = useState("10");
   const [reads, setReads] = useState<Reads | null>(null);
   const [saved, setSaved] = useState<Saved | null>(() => load(vault, address));
+  const [runStage, setRunStage] = useState<number | null>(() => loadRun(vault, address));
   const [settled, setSettled] = useState<Settled | null>(null);
   const [busy, setBusy] = useState<number | null>(null);
   const [err, setErr] = useState<{ step: number; msg: string } | null>(null);
@@ -248,6 +269,12 @@ function LenderSteps({ address, addresses, remember }: { address: Address; addre
       remember(address);
       try {
         await fn();
+        const next = Math.min(3, step + 1);
+        setRunStage((prev) => {
+          const n = Math.max(prev ?? 0, next);
+          saveRun(vault, address, n);
+          return n;
+        });
       } catch (e) {
         setErr({ step, msg: errText(e) });
       } finally {
@@ -255,7 +282,7 @@ function LenderSteps({ address, addresses, remember }: { address: Address; addre
         setTick((t) => t + 1);
       }
     },
-    [address, remember],
+    [address, remember, vault],
   );
 
   /** Sends one transaction and waits until it is mined; throws if it reverted. */
@@ -303,6 +330,8 @@ function LenderSteps({ address, addresses, remember }: { address: Address; addre
   function startOver() {
     if (saved?.kind === "ticket") dismiss(vault, address, saved.id);
     save(vault, address, null);
+    saveRun(vault, address, 0);
+    setRunStage(0);
     looked.current = null;
     setSaved(null);
     setSettled(null);
@@ -319,10 +348,11 @@ function LenderSteps({ address, addresses, remember }: { address: Address; addre
     );
   }
 
-  // Which step is next, from what the chain says (so a reload resumes where the lender left off).
+  // Which step is next: the run's own progress (kept in this browser, so a reload resumes). A wallet that already holds mUSD, an
+  // allowance or a deposit still starts at step 1; only "Start over" and the lender's own actions move the run.
   const hasPosition = reads.shares > 0n;
   const withdrawn = saved !== null;
-  const stage = withdrawn ? 4 : hasPosition ? 3 : amount > 0n && reads.allowance >= amount && reads.bal >= amount ? 2 : amount > 0n && reads.bal >= amount ? 1 : 0;
+  const stage = withdrawn ? 4 : (runStage ?? 0);
   // An amount outside 1..100 can't be minted, approved or deposited: those steps wait until it is valid.
   const needsAmount = amount === 0n && stage < 3;
   const stateOf = (i: number): StepState =>

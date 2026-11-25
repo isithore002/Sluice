@@ -94,6 +94,26 @@ interface Timeline {
 // minutes (the public Lasna RPC is searched back about 290 blocks, so older repayments couldn't be followed anyway).
 const REMEMBER_MS = 4 * 60_000;
 const repayKey = (morpho: string, who: string) => `sluice-demo-borrower-repay-${morpho.toLowerCase()}-${who.toLowerCase()}`;
+// Progress through the collateral steps (mint, approve, supply) of THIS run. They used to be derived only from balances, so a borrower
+// who already held enough collateral skipped to "Borrow". A run now starts at step 1; "Borrow again" starts a new one. Steps 4-6
+// still follow the real loan on Morpho, because an open loan is a fact, not something to ask for again.
+const runKey = (morpho: string, who: string) => `sluice-demo-borrower-run-${morpho.toLowerCase()}-${who.toLowerCase()}`;
+function loadRun(morpho: string, who: string): number {
+  try {
+    const n = Number(window.localStorage.getItem(runKey(morpho, who)));
+    return Number.isInteger(n) && n >= 0 && n <= 3 ? n : 0;
+  } catch {
+    return 0;
+  }
+}
+function saveRun(morpho: string, who: string, n: number) {
+  try {
+    window.localStorage.setItem(runKey(morpho, who), String(n));
+  } catch {
+    /* the page just won't remember it */
+  }
+}
+
 function loadRepay(morpho: string, who: string): Timeline | null {
   try {
     const raw = window.localStorage.getItem(repayKey(morpho, who));
@@ -124,6 +144,7 @@ function BorrowerSteps({ who, addresses, onAct }: { who: Address; addresses: Rec
   const [timeline, setTimeline] = useState<Timeline | null>(() => loadRepay(addresses.morpho, who));
   const [repaid, setRepaid] = useState(() => loadRepay(addresses.morpho, who) !== null);
   const [readFails, setReadFails] = useState(0);
+  const [runStage, setRunStage] = useState(() => loadRun(addresses.morpho, who));
   const alive = useRef(true);
 
   const params = marketParams(addresses);
@@ -184,9 +205,12 @@ function BorrowerSteps({ who, addresses, onAct }: { who: Address; addresses: Rec
   const maxBorrow = maxBorrowFor(data.posCollateral);
 
   const d4 = hasDebt || repaid;
-  const d3 = d4 || (target > 0n && needCol === 0n);
-  const d2 = d3 || (target > 0n && data.allowCol >= needCol);
-  const d1 = d2 || (target > 0n && data.walletCol >= needCol);
+  const d3 = d4 || runStage >= 3;
+  const d2 = d3 || runStage >= 2;
+  const d1 = d2 || runStage >= 1;
+  // A run that needs no extra collateral (it already sits in the market) still walks through the steps with a token amount:
+  // Morpho rejects a zero supply, so the step uses 1 unit at minimum.
+  const colAmount = needCol > 0n ? needCol : 1n;
   const d5 = repaid || (hasDebt && data.allowUsd >= data.debt);
   const d6 = repaid && !hasDebt;
   const done = [d1, d2, d3, d4, d5, d6];
@@ -209,6 +233,13 @@ function BorrowerSteps({ who, addresses, onAct }: { who: Address; addresses: Rec
       setTxs((t) => ({ ...t, [n]: hash }));
       const rc = await clients.base.waitForTransactionReceipt({ hash, pollingInterval: 300, timeout: 120_000 });
       if (rc.status !== "success") throw new Error("The transaction reverted.");
+      if (n <= 3) {
+        setRunStage((prev) => {
+          const next = Math.max(prev, n);
+          saveRun(addresses.morpho, who, next);
+          return next;
+        });
+      }
       await reload();
       return { hash, rc };
     } catch (e) {
@@ -223,10 +254,10 @@ function BorrowerSteps({ who, addresses, onAct }: { who: Address; addresses: Rec
 
   const mint = () =>
     send(1, () =>
-      write({ address: colToken, abi: tokenAbi, functionName: "mint", args: [who, needCol > data.walletCol ? needCol - data.walletCol : 1n] }),
+      write({ address: colToken, abi: tokenAbi, functionName: "mint", args: [who, colAmount > data.walletCol ? colAmount - data.walletCol : 1n] }),
     );
-  const approveCol = () => send(2, () => write({ address: colToken, abi: tokenAbi, functionName: "approve", args: [morpho, needCol] }));
-  const supply = () => send(3, () => write({ address: morpho, abi: morphoWriteAbi, functionName: "supplyCollateral", args: [params, needCol, who, "0x"] }));
+  const approveCol = () => send(2, () => write({ address: colToken, abi: tokenAbi, functionName: "approve", args: [morpho, colAmount] }));
+  const supply = () => send(3, () => write({ address: morpho, abi: morphoWriteAbi, functionName: "supplyCollateral", args: [params, colAmount, who, "0x"] }));
   const borrow = async () => {
     if (target > maxBorrow) {
       setFailed({ n: 4, msg: `With ${col(data.posCollateral)} collateral you can borrow at most ${usd(maxBorrow)} mUSD.` });
@@ -260,6 +291,8 @@ function BorrowerSteps({ who, addresses, onAct }: { who: Address; addresses: Rec
   };
 
   const startOver = () => {
+    saveRun(addresses.morpho, who, 0);
+    setRunStage(0);
     saveRepay(addresses.morpho, who, null);
     setRepaid(false);
     setTimeline(null);
