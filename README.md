@@ -10,7 +10,7 @@
   <img alt="Contracts verified on Sourcify" src="https://img.shields.io/badge/contracts-verified%20on%20Sourcify-success">
 </p>
 
-<p align="center"><b><a href="https://sluice-eight.vercel.app">Live site</a></b> · <a href="https://sluice-eight.vercel.app/dashboard/">Live dashboard</a> · <a href="#try-it-yourself">Try it yourself</a> · <a href="#results">Results</a></p>
+<p align="center"><b><a href="https://sluice-eight.vercel.app">Live site</a></b> · <a href="#try-it-yourself">Try it yourself</a> · <a href="#results">Results</a></p>
 
 <p align="center"><img src="docs/img/workflow.jpg" alt="Sluice's protocol workflow: a lender's withdrawal request, a Morpho repayment, Reactive deciding, and the Sluice queue paying in order" width="860"></p>
 
@@ -33,7 +33,7 @@ Built for the [Reactive Omni Buildathon](https://dorahacks.io/hackathon/reactive
 
 | I want to… | Go to |
 |---|---|
-| **Open the site** | [sluice-eight.vercel.app](https://sluice-eight.vercel.app) is the story and its measured numbers. [The live dashboard](https://sluice-eight.vercel.app/dashboard/) reads the contracts on all three chains. |
+| **Open the site** | [sluice-eight.vercel.app](https://sluice-eight.vercel.app) is the story and its measured numbers. Its dashboard section reads the contracts on all three chains (run it locally: see [Landing page and dashboard](#landing-page-and-dashboard)). |
 | **See it work without trusting us** | [Try it yourself](#try-it-yourself): three `cast` commands from a throwaway wallet, or the dashboard's wallet buttons. Reactive pays the queue about two seconds later, and the payout is sent by Reactive's signer, not by us. |
 | **See the numbers** | [Results](#results): 104 live loops, a 60-round latency race, a keeper-bot baseline, and the loop that failed, with its transaction hashes |
 | **Read the contracts** | [`src/`](src/), then [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) |
@@ -57,23 +57,40 @@ The figures below are as the linked pages state them. Everything we measured our
 
 ## How it works
 
+```mermaid
+flowchart LR
+  subgraph BASE["Base Sepolia"]
+    direction TB
+    MORPHO["<b>Morpho Blue</b><br/>third party<br/>our isolated market"]
+    VAULT["<b>SluiceVault</b><br/>FIFO queue, partial fills<br/>reservation rule<br/><code>pullFromMorpho()</code>"]
+    RESERVE["<b>RelayerReserve</b><br/><code>front(fill)</code>"]
+  end
+
+  subgraph LASNA["Reactive Lasna"]
+    REACTIVE["<b>SluiceReactive</b><br/>absolute caches, per-fill stages<br/>Cron10 retries<br/>bad-debt halt, delay mode"]
+  end
+
+  subgraph UNI["Unichain Sepolia"]
+    SIBLING["<b>SiblingVault</b><br/>surplus above a safety buffer<br/>becomes credit<br/><code>reimburse(fill, sent)</code>"]
+  end
+
+  MORPHO -- "Repay event" --> REACTIVE
+  VAULT -- "StateUpdated" --> REACTIVE
+  RESERVE -- "Fronted" --> REACTIVE
+  SIBLING -- "credit" --> REACTIVE
+  REACTIVE == "pull (flow B)" ==> VAULT
+  REACTIVE == "(1) front: pays the user in one hop" ==> RESERVE
+  REACTIVE == "(2) reimburse: only after Fronted,<br/>for exactly what was sent" ==> SIBLING
+
+  classDef ours fill:#14141a,stroke:#8a8a92,color:#f4f4f5
+  classDef third fill:#1c1c22,stroke:#5a5a62,color:#c8c8ce,stroke-dasharray: 4 3
+  classDef rx fill:#1a1630,stroke:#a27cff,color:#f4f4f5
+  class VAULT,RESERVE,SIBLING ours
+  class MORPHO third
+  class REACTIVE rx
 ```
- Base Sepolia                        Reactive Lasna                       Unichain Sepolia
-┌───────────────────────────┐      ┌──────────────────────────────┐      ┌─────────────────────────┐
-│ Morpho Blue (third party) │─────▶│                              │      │                         │
-│   our isolated market     │Repay │        SluiceReactive        │◀─────│ SiblingVault            │
-│                           │      │                              │credit│  surplus above a safety │
-│ SluiceVault               │─────▶│  absolute caches, per-fill   │      │  buffer → credit        │
-│   FIFO queue, partial     │state │  stages, Cron10 retries,     │      │                         │
-│   fills, reservation rule │      │  bad-debt halt, delay mode   │──2──▶│ reimburse(fill, sent)   │
-│   pullFromMorpho() ◀──────┼──────│                              │      └─────────────────────────┘
-│                           │      │                              │
-│ RelayerReserve            │─────▶│                              │
-│   front(fill) ◀───────1───┼──────│                              │
-└───────────────────────────┘Front-└──────────────────────────────┘
-                              ed      1 = front pays the user in one hop
-                                      2 = reimburse only after Fronted, for exactly what was sent
-```
+
+Thin arrows are events that Reactive watches. Thick arrows are the callbacks Reactive sends (delivered by Reactive's signer, not by us). The (1) and (2) mark the cross-chain order: the user is paid first, and the relayer is reimbursed only after that payout is confirmed.
 
 Three liquidity sources, three flows:
 
@@ -426,7 +443,7 @@ Every loop is traced by its origin transaction hash, which every callback carrie
 
 One static site with two pages. Nothing runs on a server: both pages read public RPCs and the files in `results/` and `deployments/`.
 
-The site is live at **[sluice-eight.vercel.app](https://sluice-eight.vercel.app)**, with the dashboard at **[/dashboard/](https://sluice-eight.vercel.app/dashboard/)**.
+The site is live at **[sluice-eight.vercel.app](https://sluice-eight.vercel.app)**.
 
 - **`/` is the story.** The site opens on a full-screen pixel-art scene, a torii gate at sunset drawn as a halftone of dots. Click anywhere and a pixel stick figure walks in and asks you to scroll. Scrolling then plays a match cut: the camera dives into the sunset's sun, flushes cream, and pulls back out of the sun in a second scene (Fuji at dawn over a lake), which stays pinned, faint, behind the rest of the page. Below it are the hero, the protocol workflow graph, a replay of the 40-withdrawal run, the measured numbers (read from `results/summary.json`), the latency race chart, and the outsider test.
 - **`/dashboard/` is the evidence.** The live state of the contracts on all three chains: treasury, queue and Reactive's recent callbacks, the lender and borrower *Live demo*, the latency tables, the cross-chain loops, the race replay, the Lifeline probes and a contracts table. A third scene (a summit above the clouds) sits faintly behind it.
