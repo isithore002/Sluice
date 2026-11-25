@@ -20,6 +20,10 @@ When a lending vault runs out of free cash, withdrawals queue up. Today someone 
 - spare credit in a sibling vault on another chain;
 - a new deposit.
 
+One Morpho repayment paid 40 queued withdrawals in order across two callbacks. Across 104 Base Sepolia runs, repayment to payout took 1.20 s at the median and 1.80 s at p95, measured on Base's block clock.
+
+**[Live site](https://sluice-eight.vercel.app)** · [Demo: lender and borrower](#live-demo-lender-and-borrower) · [Transaction receipts: the 40-withdrawal run](#one-repayment-many-withdrawals), [verify a loop yourself](#verify-a-loop-yourself) · [Benchmark data](results/SUMMARY.md) ([raw records](results/))
+
 Built for the [Reactive Omni Buildathon](https://dorahacks.io/hackathon/reactive-omni-buildathon), track **Every Second Counts**. The track's [announcement](https://blog.reactive.network/reactive-omni-buildathon-thirty-days-to-find-out-what-one-second-buys/) lists, among its example ideas, *"vaults that rebalance as conditions shift, or withdrawal queues that settle the moment they can."* Sluice is the second, and its cross-chain flow is a form of the first.
 
 | | |
