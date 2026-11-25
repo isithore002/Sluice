@@ -20,7 +20,7 @@ When a lending vault runs out of free cash, withdrawals queue up. Today someone 
 - spare credit in a sibling vault on another chain;
 - a new deposit.
 
-Built for the [Reactive Omni Buildathon](https://dorahacks.io/hackathon/reactive-omni-buildathon), track **Every Second Counts**. It implements two ideas from that track's brief: *"withdrawal queues that settle the moment they can"* and *"liquidity that moves to wherever it's needed."*
+Built for the [Reactive Omni Buildathon](https://dorahacks.io/hackathon/reactive-omni-buildathon), track **Every Second Counts**. The track's [announcement](https://blog.reactive.network/reactive-omni-buildathon-thirty-days-to-find-out-what-one-second-buys/) lists, among its example ideas, *"vaults that rebalance as conditions shift, or withdrawal queues that settle the moment they can."* Sluice is the second, and its cross-chain flow is a form of the first.
 
 | | |
 |---|---|
@@ -47,8 +47,12 @@ Built for the [Reactive Omni Buildathon](https://dorahacks.io/hackathon/reactive
 
 ## The problem
 
-- **Depositors get stuck when liquidity runs out.** Euler and Morpho vaults hit 100% utilization during the [November 2025 liquidity crunch](https://sentora.com/research/articles/defi-s-november-liquidity-crunch-causes-and-impacts). Aave's ETH, USDT and USDC pools hit full utilization after the [April 2026 KelpDAO exploit](https://parameter.io/aave-aave-loses-15-billion-in-tvl-following-kelpdao-security-breach/). In both cases lenders couldn't withdraw.
-- **Queued withdrawals wait for an operator.** Async vaults ([ERC-7540](https://ethereum.org/developers/docs/standards/tokens/erc-7540/)) queue redemptions, but a manager or bot decides when to pay them. Cross-chain vaults add [bridge latency](https://centrifuge.io/blog/asynchronous-vaults) on top.
+The figures below are as the linked pages state them. Everything we measured ourselves is in [Results](#results).
+
+- **A fully lent-out pool freezes its lenders.** Sentora's review of the November 2025 DeFi stress says an Euler vault reportedly reached 100% utilization, which ["functionally freezes withdrawals for any remaining lenders"](https://sentora.com/research/articles/defi-s-november-liquidity-crunch-causes-and-impacts), and describes borrow rates on the stressed tokens spiking above 20% APY.
+- **Panic is fast and large.** In the 48 hours after the $292 million KelpDAO exploit in April 2026, DeFi's total value locked fell from $99.5B to $86.3B, a $13.21B decline, and Aave alone lost $8.45B of deposits ([CoinDesk, Apr 20, 2026](https://www.coindesk.com/markets/2026/04/20/defi-tvl-drops-more-than-usd13-billion-in-two-days-following-kelp-dao-hack)).
+- **Queues exist, and someone has to settle them.** [ERC-7540](https://ethereum.org/developers/docs/standards/tokens/erc-7540/) "extends the ERC-4626 Tokenized Vault Standard by adding support for asynchronous deposit and redemption flows": a lender requests, and claims later. Who settles the queue, and when, is left to a manager or a bot. Cross-chain vaults add [bridge latency](https://centrifuge.io/blog/asynchronous-vaults) on top.
+- **Seconds matter, and Omni sells them.** Reactive's [buildathon announcement](https://blog.reactive.network/reactive-omni-buildathon-thirty-days-to-find-out-what-one-second-buys/) says blocks on the previous network came every ~7 seconds, and that Omni runs with "~1s blocks and instant finality". The same post lists "withdrawal queues that settle the moment they can" as an idea for this track.
 - **Freed liquidity goes to the fastest bot.** It doesn't go to whoever has waited longest.
 
 ## How it works
