@@ -290,13 +290,15 @@ function countersFor(ev: Placed[]): Counters {
     receivedCount: 0, receivedAmount: 0n, queuedCount: 0, instantCount: 0, payoutCount: 0, paidAmount: 0n, ticketsPaidInFull: 0, byReactiveCount: 0,
     depositsAmount: 0n, repaidAmount: 0n, frontedAmount: 0n, borrowedAmount: 0n, paidOutAmount: 0n, medianSettleMs: null, lastSettleMs: null, settleSamples: 0,
   };
-  const queuedAt = new Map<string, number>();
+  // A payout sent by Reactive carries the repayment's transaction hash as its trace id. The time that matters is from that repayment
+  // (the cash coming back) to the payout, not the time the ticket spent waiting for cash, so look the repayment up by that id.
+  const repayBlock = new Map<bigint, bigint>();
+  for (const e of ev) if (e.kind === "repay") repayBlock.set(BigInt(e.tx), e.block);
   const samples: { at: number; ms: number }[] = [];
   for (const e of ev) {
     switch (e.kind) {
       case "queued":
         c.receivedCount++; c.queuedCount++; c.receivedAmount += e.amount;
-        if (e.ts !== null && e.requestId !== undefined) queuedAt.set(e.requestId.toString(), e.ts);
         break;
       case "instant":
         c.receivedCount++; c.instantCount++; c.receivedAmount += e.amount; c.paidOutAmount += e.amount;
@@ -304,11 +306,10 @@ function countersFor(ev: Placed[]): Counters {
       case "settled": {
         c.payoutCount++; c.paidAmount += e.amount; c.paidOutAmount += e.amount;
         if (e.traceId !== undefined && e.traceId !== 0n) c.byReactiveCount++;
-        if (e.remaining === 0n) {
-          c.ticketsPaidInFull++;
-          const q = e.requestId !== undefined ? queuedAt.get(e.requestId.toString()) : undefined;
-          if (q !== undefined && e.ts !== null) samples.push({ at: e.ts, ms: Math.max(0, e.ts - q) * 1000 });
-        }
+        if (e.remaining === 0n) c.ticketsPaidInFull++;
+        // Base Sepolia makes a block every 200 ms, so block numbers give a finer clock than the 1 s block timestamps.
+        const rb = e.traceId !== undefined && e.traceId !== 0n ? repayBlock.get(e.traceId) : undefined;
+        if (rb !== undefined && e.ts !== null) samples.push({ at: e.ts, ms: Math.max(0, Number(e.block - rb)) * 200 });
         break;
       }
       case "deposit": c.depositsAmount += e.amount; break;

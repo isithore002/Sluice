@@ -1,9 +1,9 @@
 "use client";
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Address } from "viem";
-import { useAccount, useBalance, useDisconnect, useSwitchChain } from "wagmi";
+import { useAccount, useBalance, useConfig, useDisconnect, useReconnect, useSwitchChain } from "wagmi";
 import { baseSepolia } from "wagmi/chains";
 
 const FAUCETS = [
@@ -57,6 +57,29 @@ export function WalletGate({ role, children, notice }: GateProps) {
   const [switching, setSwitching] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // wagmi keeps the remembered account in storage as plain data. If the page ends up showing that account without a live
+  // connector object (after a reload, a wallet restart or an account change), any click fails with "connector.getChainId is not
+  // a function". So the steps are held back until the connector is live: first try to rebuild it, then offer a fresh connect.
+  const { reconnect } = useReconnect();
+  const config = useConfig();
+  const live = typeof (connector as { getChainId?: unknown } | undefined)?.getChainId === "function";
+  const [stuck, setStuck] = useState(false);
+  const attempts = useRef(0);
+  useEffect(() => {
+    if (!address || live) {
+      attempts.current = 0;
+      setStuck(false);
+      return;
+    }
+    if (status === "reconnecting") return;
+    if (attempts.current < 2) {
+      attempts.current += 1;
+      reconnect();
+    }
+    const t = window.setTimeout(() => setStuck(true), 4000);
+    return () => window.clearTimeout(t);
+  }, [address, live, status, reconnect]);
+
   async function switchToBase() {
     setError(null);
     setSwitching(true);
@@ -77,6 +100,30 @@ export function WalletGate({ role, children, notice }: GateProps) {
         <p className="sl-note" aria-live="polite">
           Reconnecting your wallet…
         </p>
+      </div>
+    );
+  }
+
+  // disconnect() calls connector.disconnect(), which a plain-data connector does not have, so clear the stored connection directly.
+  function connectAgain() {
+    config.setState((x) => ({ ...x, connections: new Map(), current: null, status: "disconnected" }));
+  }
+
+  if (address && !live) {
+    return (
+      <div className="dm-gate">
+        {stuck ? (
+          <>
+            <p className="sl-note">Your wallet connection was interrupted and could not be restored.</p>
+            <button className="sl-btn primary" onClick={connectAgain}>
+              Connect again
+            </button>
+          </>
+        ) : (
+          <p className="sl-note" aria-live="polite">
+            Reconnecting your wallet…
+          </p>
+        )}
       </div>
     );
   }

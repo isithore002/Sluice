@@ -164,10 +164,14 @@ function Chart({
     for (const e of events) {
       const l = laneOf(e);
       if (!l || e.ts === null) continue;
-      const k = `${l.lane}:${e.kind}:${e.ts}`;
-      const got = byKey.get(k);
-      if (got) got.items.push(e);
-      else byKey.set(k, { key: k, lane: l.lane, ts: e.ts, shape: l.shape, color: l.color, size: 0, items: [e] });
+      // A withdrawal paid straight from the pool is a request AND cash leaving the pool, so it is marked in both lanes.
+      const targets = e.kind === "instant" ? [l, { lane: 3 as Lane, shape: "down" as const, color: C_CASHOUT }] : [l];
+      for (const t of targets) {
+        const k = `${t.lane}:${e.kind}:${e.ts}`;
+        const got = byKey.get(k);
+        if (got) got.items.push(e);
+        else byKey.set(k, { key: k, lane: t.lane, ts: e.ts, shape: t.shape, color: t.color, size: 0, items: [e] });
+      }
     }
     const all = [...byKey.values()];
     const biggest = all.reduce((a, mk) => {
@@ -176,7 +180,7 @@ function Chart({
     }, 1n);
     for (const mk of all) {
       const tot = mk.items.reduce((s, e) => s + e.amount, 0n);
-      mk.size = 6 + Math.round((12 * Number(tot)) / Number(biggest));
+      mk.size = 9 + Math.round((9 * Number(tot)) / Number(biggest)); // never smaller than 9 px, so small amounts stay visible
     }
     return all;
   }, [events]);
@@ -266,7 +270,7 @@ function Chart({
         <span><b style={{ color: C_FREE }}>◆</b> lender deposit</span>
         <span><b style={{ color: C_FREE }}>●</b> borrower repayment</span>
         <span><b style={{ color: C_FREE }}>■</b> cross-chain front</span>
-        <span><b style={{ color: C_CASHOUT }}>▼</b> borrow</span>
+        <span><b style={{ color: C_CASHOUT }}>▼</b> cash out (borrow or instant withdrawal)</span>
       </p>
       {empty && <p className="dm-t-empty">No requests or cash movements on this market in the last {Math.round(span / 60)} minutes. The lines are flat at today&apos;s values.</p>}
       <p className="dm-t-fine">
@@ -338,9 +342,9 @@ function Counts({ c, minutes }: { c: Counters; minutes: number }) {
       <Stat label="Cash in" value={mUSD(c.depositsAmount + c.repaidAmount + c.frontedAmount)} sub={`${mUSD(c.depositsAmount)} lender deposits, ${mUSD(c.repaidAmount)} borrower repayments${c.frontedAmount ? `, ${mUSD(c.frontedAmount)} cross-chain` : ""}`} />
       <Stat label="Cash out" value={mUSD(c.borrowedAmount + c.paidOutAmount)} sub={`${mUSD(c.borrowedAmount)} borrowed, ${mUSD(c.paidOutAmount)} paid to lenders`} />
       <Stat
-        label="Request to payout"
+        label="Repayment to payout"
         value={c.medianSettleMs === null ? "n/a" : dur(c.medianSettleMs)}
-        sub={c.settleSamples ? `median of ${c.settleSamples}; last ${dur(c.lastSettleMs)}. Time spent waiting for cash is included.` : "No request was queued and paid within this window."}
+        sub={c.settleSamples ? `median of ${c.settleSamples}; last ${dur(c.lastSettleMs)}. From the borrower's repayment to the payout sent by Reactive's signer; time a ticket spent waiting for cash is not counted.` : "No payout by Reactive within this window."}
       />
     </div>
   );
