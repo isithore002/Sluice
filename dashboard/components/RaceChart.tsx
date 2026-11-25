@@ -53,7 +53,9 @@ export function RaceChart({ cells, table = true }: { cells: RaceCell[]; table?: 
     let raf = 0;
     const ro = new ResizeObserver(([entry]) => {
       cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => setWidth(Math.max(300, Math.round(entry.contentRect.width))));
+      raf = requestAnimationFrame(() => {
+        if (entry.contentRect.width > 0) setWidth(Math.max(300, Math.round(entry.contentRect.width))); // a hidden chart reports 0: keep the last real width
+      });
     });
     ro.observe(el);
     // draw the lines in the first time the chart scrolls into view
@@ -174,7 +176,7 @@ export function RaceChart({ cells, table = true }: { cells: RaceCell[]; table?: 
         )}
       </div>
 
-      {asTable ? (
+      {asTable && (
         <div className="sl-scroll">
           <table className="sl-table">
             <thead>
@@ -205,8 +207,11 @@ export function RaceChart({ cells, table = true }: { cells: RaceCell[]; table?: 
             </tbody>
           </table>
         </div>
-      ) : (
-        <>
+      )}
+
+      {/* the chart stays mounted while the table shows (just hidden), so its size observers keep working and it is the right size when it comes back */}
+      {(
+        <div hidden={asTable} className="rc-views">
           <div className="chart-wrap rc-chart" ref={wrapRef} tabIndex={0} role="group" aria-roledescription="interactive chart" aria-label="Share of freed liquidity captured by the queue, by how long the competitor waits. Use the left and right arrow keys to choose a delay." onKeyDown={onKey}>
             <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
               {[0, 0.25, 0.5, 0.75, 1].map((t) => (
@@ -306,7 +311,7 @@ export function RaceChart({ cells, table = true }: { cells: RaceCell[]; table?: 
           <p className="sr-only" aria-live="polite">
             {summary}
           </p>
-        </>
+        </div>
       )}
     </div>
   );
@@ -324,7 +329,9 @@ function Readout({ series, active, acts, hidden }: { series: { key: Key; label: 
     let raf = 0;
     const ro = new ResizeObserver(([e]) => {
       cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => setLaneW(Math.max(280, Math.round(e.contentRect.width))));
+      raf = requestAnimationFrame(() => {
+        if (e.contentRect.width > 0) setLaneW(Math.max(280, Math.round(e.contentRect.width)));
+      });
     });
     ro.observe(el);
     return () => {
