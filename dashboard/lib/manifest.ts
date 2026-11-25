@@ -25,6 +25,8 @@ export interface Summary {
     reactiveToCallbackWallMs: Stats;
     totalChainSeconds: Stats;
     example: Record<string, string> | null;
+    /** Every recorded repay-to-paid time in ms (added by the dashboard's data sync). */
+    samplesMs?: number[];
   };
   flowC: {
     attempted: number;

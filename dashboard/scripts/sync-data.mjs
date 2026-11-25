@@ -71,6 +71,17 @@ const lifelineLocal = readJson(resolve(results, "lifeline-probe.json"));
 const lifelineRemote = readJson(resolve(results, "lifeline-remote-probe.json"));
 const lifeline = lifelineLocal && lifelineRemote ? { local: lifelineLocal, remote: lifelineRemote } : null;
 
+// Every recorded Morpho-repayment-to-queue-paid time (ms), for the landing page's histogram. The summary's median and 95th percentile
+// are computed from exactly these.
+if (summary?.flowB && existsSync(results)) {
+  summary.flowB.samplesMs = readdirSync(results)
+    .filter((f) => /^flowB-.*\.json$/.test(f))
+    .sort()
+    .flatMap((f) => readJson(resolve(results, f)) ?? [])
+    .filter((r) => r.ok && Number.isFinite(r.wallMs?.total))
+    .map((r) => r.wallMs.total);
+}
+
 const manifest = { generatedAt: new Date().toISOString(), deployed, addresses, summary, raceReplay, batch, caseStudy, demoRun, lifeline };
 writeFileSync(resolve(outDir, "manifest.json"), JSON.stringify(manifest, null, 2));
 console.log(
