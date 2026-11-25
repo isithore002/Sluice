@@ -60,10 +60,9 @@ The figures below are as the linked pages state them. Everything we measured our
 ```mermaid
 flowchart LR
   subgraph BASE["Base Sepolia"]
-    direction TB
     MORPHO["<b>Morpho Blue</b><br/>third party<br/>our isolated market"]
-    VAULT["<b>SluiceVault</b><br/>FIFO queue, partial fills<br/>reservation rule<br/><code>pullFromMorpho()</code>"]
-    RESERVE["<b>RelayerReserve</b><br/><code>front(fill)</code>"]
+    VAULT["<b>SluiceVault</b><br/>FIFO queue, partial fills<br/>reservation rule"]
+    RESERVE["<b>RelayerReserve</b><br/>pays the user from inventory"]
   end
 
   subgraph LASNA["Reactive Lasna"]
@@ -71,16 +70,13 @@ flowchart LR
   end
 
   subgraph UNI["Unichain Sepolia"]
-    SIBLING["<b>SiblingVault</b><br/>surplus above a safety buffer<br/>becomes credit<br/><code>reimburse(fill, sent)</code>"]
+    SIBLING["<b>SiblingVault</b><br/>surplus above a safety buffer<br/>becomes credit"]
   end
 
   MORPHO -- "Repay event" --> REACTIVE
-  VAULT -- "StateUpdated" --> REACTIVE
-  RESERVE -- "Fronted" --> REACTIVE
-  SIBLING -- "credit" --> REACTIVE
-  REACTIVE == "pull (flow B)" ==> VAULT
-  REACTIVE == "(1) front: pays the user in one hop" ==> RESERVE
-  REACTIVE == "(2) reimburse: only after Fronted,<br/>for exactly what was sent" ==> SIBLING
+  VAULT <-- "StateUpdated in<br/>pullFromMorpho() out" --> REACTIVE
+  RESERVE <-- "Fronted in<br/>(1) front(fill) out:<br/>the user is paid in one hop" --> REACTIVE
+  SIBLING <-- "credit in<br/>(2) reimburse(fill, sent) out:<br/>only after Fronted" --> REACTIVE
 
   classDef ours fill:#14141a,stroke:#8a8a92,color:#f4f4f5
   classDef third fill:#1c1c22,stroke:#5a5a62,color:#c8c8ce,stroke-dasharray: 4 3
@@ -90,7 +86,7 @@ flowchart LR
   class REACTIVE rx
 ```
 
-Thin arrows are events that Reactive watches. Thick arrows are the callbacks Reactive sends (delivered by Reactive's signer, not by us). The (1) and (2) mark the cross-chain order: the user is paid first, and the relayer is reimbursed only after that payout is confirmed.
+Each arrow shows what comes in to Reactive (an event it watches) and what goes out (a callback, delivered by Reactive's signer, not by us). The (1) and (2) mark the cross-chain order: the user is paid first, and the relayer is reimbursed only after that payout is confirmed.
 
 Three liquidity sources, three flows:
 
