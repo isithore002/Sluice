@@ -231,15 +231,16 @@ export function Intro({ children }: { children?: ReactNode }) {
     let cloud: { key: string; cells: CloudCell[]; maxD: number } | null = null;
     let dirty = true;
     let visible = true;
-    let clock = reduce ? 60 : 0; // time since the page opened; it only runs while the page is visible
-    let storyStart: number | null = reduce ? 0 : null; // when the story began: the first click, tap or key press, and never before
+    const skip = reduce || window.scrollY > 40; // a refresh restores the scroll position: arriving part-way down, there is no intro to wait for
+    let clock = skip ? 60 : 0; // time since the page opened; it only runs while the page is visible
+    let storyStart: number | null = skip ? 0 : null; // when the story began: the first click, tap or key press, and never before
     const begin = () => {
       if (storyStart !== null) return;
       storyStart = clock;
       hint.current?.classList.add("gone");
       void fx.current?.resume(); // the click is also what lets the browser play the footsteps
     };
-    if (reduce) hint.current?.classList.add("gone");
+    if (skip) hint.current?.classList.add("gone");
     let lastStep = -1;
     let last = performance.now();
     let lastP = -1;
@@ -362,6 +363,7 @@ export function Intro({ children }: { children?: ReactNode }) {
       last = now;
       lastP = p;
       dirty = false;
+      if (p > 0.01) hint.current?.classList.add("gone"); // scrolled away from the top: the prompt no longer applies
       draw(storyStart === null ? -1 : clock - storyStart, p);
     };
 
