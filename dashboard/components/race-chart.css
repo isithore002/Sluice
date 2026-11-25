@@ -67,8 +67,10 @@
 .rc-res { justify-self: end; text-align: center; }
 .rc-res.rc-chip { width: 100%; padding: 7px 8px; font-size: 12px; }
 /* the finish line: where the competitor's transaction lands */
-.rc-guide { position: absolute; top: 0; bottom: 22px; width: 0; margin-left: calc(118px + 12px); pointer-events: none; border-left: 2px dashed rgba(255, 255, 255, 0.7); z-index: 1; }
+.rc-guide-wrap { position: absolute; top: 0; bottom: 22px; left: 130px; right: 108px; pointer-events: none; }
+.rc-guide { position: absolute; top: 0; bottom: 0; width: 0; pointer-events: none; border-left: 2px dashed rgba(255, 255, 255, 0.7); z-index: 1; }
 .rc-guide span { position: absolute; top: 0; left: 8px; transform: translateY(-2px); font: 600 11.5px/1 var(--sans); color: var(--ink); white-space: nowrap; }
+.rc-guide.flip span { left: auto; right: 8px; }
 .rc-axis { position: relative; height: 18px; margin: 0 108px 0 130px; }
 .rc-axis span { position: absolute; transform: translateX(-50%); font: 11.5px/1 var(--sans); color: var(--muted); }
 .rc-axis span { white-space: nowrap; }
@@ -83,7 +85,7 @@
   .rc-res { grid-column: 2; grid-row: 1; justify-self: end; }
   .rc-res.rc-chip { width: auto; padding: 5px 10px; }
   .rc-lane-bar { grid-column: 1 / -1; grid-row: 2; }
-  .rc-guide { margin-left: 0; }
+  .rc-guide-wrap { left: 0; right: 0; }
   .rc-guide span { left: auto; right: 8px; width: 120px; white-space: normal; text-align: right; top: -8px; }
   .rc-axis { margin: 0; }
 }

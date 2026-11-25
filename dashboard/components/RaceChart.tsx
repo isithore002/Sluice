@@ -362,8 +362,10 @@ function Readout({ series, active, acts, hidden }: { series: { key: Key; label: 
       <div className="rc-lane">
         <div className="rc-lane-t">The race at {active} s: who got there first</div>
         <div className="rc-track">
-          <div className="rc-guide" style={{ left: `${pos(active + LAND_MS / 1000)}%` }}>
-            <span>competitor&apos;s transaction lands</span>
+          <div className="rc-guide-wrap" aria-hidden="true">
+            <div className={`rc-guide${pos(active + LAND_MS / 1000) > 60 ? " flip" : ""}`} style={{ left: `${pos(active + LAND_MS / 1000)}%` }}>
+              <span>competitor&apos;s transaction lands</span>
+            </div>
           </div>
 
           <div className="rc-row">
