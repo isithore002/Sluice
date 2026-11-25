@@ -32,6 +32,7 @@ export function LatencyTable({ summary }: { summary: Summary }) {
         </thead>
         <tbody>
           {flowB.succeeded > 0 && <StatRow name="Morpho repay → queue paid" s={flowB.totalWallMs} />}
+          {flowB.succeeded > 0 && flowB.totalBlockMs && <StatRow name="by Base block numbers (× 200 ms)" s={flowB.totalBlockMs} sub />}
           {flowB.succeeded > 0 && <StatRow name="repay → Lasna react" s={flowB.originToReactiveWallMs} sub />}
           {flowC.succeeded > 0 && <StatRow name="Shortfall → user paid by reserve" s={flowC.userPaidWallMs} />}
           {flowC.succeeded > 0 && <StatRow name="Shortfall → relayer reimbursed (Unichain)" s={flowC.relayerReimbursedWallMs} />}

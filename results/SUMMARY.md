@@ -1,6 +1,6 @@
 # Sluice measurement summary
 
-Generated 2026-11-23T17:16:55.216Z.
+Generated 2026-11-25T13:30:03.966Z.
 
 ## Flow B: Morpho repayment → queue paid (one reactive hop)
 
@@ -11,7 +11,10 @@ Succeeded 104/104.
 | Repay → queue paid (wall clock) | 1.32 s | 1.79 s | 2.44 s |
 | Repay → Lasna react (wall clock) | 1.22 s | 1.99 s | 2.92 s |
 | Lasna react → Base callback (wall clock) | 0.05 s | 0.60 s | 1.34 s |
+| Repay → queue paid (Base block numbers × 200 ms) | 1.20 s | 1.80 s | 2.00 s |
 | Repay → queue paid (block timestamps, 1 s resolution) | 1 s | 2 s | 2 s |
+
+The block-number row is (block of the payout callback − block of the repayment) × 200 ms, because Base Sepolia makes a block every 200 ms while block timestamps only have 1 s resolution. Every loop's record in `results/flowB-*.json` holds both transaction hashes (`txs.origin`, `txs.callback`) and both block numbers (`blocks.origin`, `blocks.callback`), so the figure can be recomputed from them. It assumes the 200 ms cadence held between those two blocks.
 
 ## Flow C: Base shortfall → fronted by reserve, reimbursed on Unichain
 

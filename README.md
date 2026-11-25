@@ -156,16 +156,19 @@ It also happened to us: on 2026-11-23 a long measurement run drained `SluiceReac
 ## Results
 
 <!-- RESULTS:START -->
-Measured on live testnets and generated from [`results/summary.json`](results/summary.json) (2026-11-23). Every record in [`results/`](results/) carries the transaction hashes of each hop. Wall-clock times come from polling every ~150 ms, so each includes up to one poll interval of observation delay.
+Measured on live testnets and generated from [`results/summary.json`](results/summary.json) (2026-11-25). Every record in [`results/`](results/) carries the transaction hashes of each hop. Wall-clock times come from polling every ~150 ms, so each includes up to one poll interval of observation delay.
 
 ### Latency
 
 | Loop | Success | Median | p95 | Max |
 |---|---|---|---|---|
 | **Flow B:** Morpho repay → queue paid | 104/104 | **1.32 s** | 1.79 s | 2.44 s |
+|   by Base block numbers (callback block − repay block) × 200 ms | | 1.20 s | 1.80 s | 2.00 s |
 |   of which repay → Lasna react | | 1.22 s | 1.99 s | 2.92 s |
 | **Flow C:** shortfall → user paid by the reserve | 31/32 | **1.36 s** | 2.16 s | 2.19 s |
 |   shortfall → relayer reimbursed on Unichain | | 4.60 s | 5.08 s | 5.31 s |
+
+The block-number row is (block of the payout callback − block of the repayment) × 200 ms, since Base Sepolia makes a block every 200 ms and block timestamps only have 1 s resolution. Each loop's record in [`results/`](results/) (`flowB-*.json`) holds both transaction hashes (`txs.origin`, `txs.callback`) and both block numbers (`blocks.origin`, `blocks.callback`), so anyone can recompute it; it assumes the 200 ms cadence held between those two blocks. Medians use the same method as the other rows.
 
 The user is paid after **one** reactive hop; the relayer is reimbursed one hop later, only after `Fronted` is confirmed.
 

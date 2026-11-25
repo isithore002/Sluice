@@ -24,6 +24,8 @@ export interface Summary {
     originToReactiveWallMs: Stats;
     reactiveToCallbackWallMs: Stats;
     totalChainSeconds: Stats;
+    /** (callback block - repay block) x 200 ms on Base Sepolia. Absent in older summaries. */
+    totalBlockMs?: Stats;
     example: Record<string, string> | null;
     /** Every recorded repay-to-paid time in ms (added by the dashboard's data sync). */
     samplesMs?: number[];

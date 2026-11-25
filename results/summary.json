@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-23T17:16:55.216Z",
+  "generatedAt": "2026-11-25T13:30:03.966Z",
   "flowB": {
     "attempted": 104,
     "succeeded": 104,
@@ -34,6 +34,14 @@
       "p95": 2,
       "max": 2,
       "mean": 1.2884615384615385
+    },
+    "totalBlockMs": {
+      "n": 104,
+      "min": 600,
+      "median": 1200,
+      "p95": 1800,
+      "max": 2000,
+      "mean": 1261.5384615384614
     },
     "example": {
       "origin": "https://sepolia.basescan.org/tx/0x3b8552c579a76f54fbb3d982478a2420ab18b3bd7429a9f1be5c8952570bc6d5",

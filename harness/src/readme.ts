@@ -47,9 +47,12 @@ Measured on live testnets and generated from [\`results/summary.json\`](results/
 | Loop | Success | Median | p95 | Max |
 |---|---|---|---|---|
 | **Flow B:** Morpho repay → queue paid | ${B.succeeded}/${B.attempted} | **${s(B.totalWallMs.median)}** | ${s(B.totalWallMs.p95)} | ${s(B.totalWallMs.max)} |
+|   by Base block numbers (callback block − repay block) × 200 ms | | ${s(B.totalBlockMs.median)} | ${s(B.totalBlockMs.p95)} | ${s(B.totalBlockMs.max)} |
 |   of which repay → Lasna react | | ${s(B.originToReactiveWallMs.median)} | ${s(B.originToReactiveWallMs.p95)} | ${s(B.originToReactiveWallMs.max)} |
 | **Flow C:** shortfall → user paid by the reserve | ${C.succeeded}/${C.attempted} | **${s(C.userPaidWallMs.median)}** | ${s(C.userPaidWallMs.p95)} | ${s(C.userPaidWallMs.max)} |
 |   shortfall → relayer reimbursed on Unichain | | ${s(C.relayerReimbursedWallMs.median)} | ${s(C.relayerReimbursedWallMs.p95)} | ${s(C.relayerReimbursedWallMs.max)} |
+
+The block-number row is (block of the payout callback − block of the repayment) × 200 ms, since Base Sepolia makes a block every 200 ms and block timestamps only have 1 s resolution. Each loop's record in [\`results/\`](results/) (\`flowB-*.json\`) holds both transaction hashes (\`txs.origin\`, \`txs.callback\`) and both block numbers (\`blocks.origin\`, \`blocks.callback\`), so anyone can recompute it; it assumes the 200 ms cadence held between those two blocks. Medians use the same method as the other rows.
 
 The user is paid after **one** reactive hop; the relayer is reimbursed one hop later, only after \`Fronted\` is confirmed.${CASE ? `
 

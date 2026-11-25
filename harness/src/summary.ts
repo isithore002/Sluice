@@ -29,6 +29,7 @@ const batchOk = batches.filter((x) => x.ok).pop() ?? null;
 const caseFile = resolve(RESULTS, "case-study-flowC.json");
 const caseStudy = existsSync(caseFile) ? JSON.parse(readFileSync(caseFile, "utf8")) : null;
 
+const BASE_BLOCK_MS = 200;
 const bOk = b.filter((r) => r.ok);
 const cOk = c.filter((r) => r.ok);
 const iOk = ind.filter((r) => r.ok);
@@ -42,6 +43,9 @@ const summary = {
     originToReactiveWallMs: stats(bOk.map((r) => r.wallMs.originToReactive)),
     reactiveToCallbackWallMs: stats(bOk.map((r) => r.wallMs.reactiveToCallback)),
     totalChainSeconds: stats(bOk.map((r) => r.chainSeconds.total)),
+    // Base Sepolia makes a block every 200 ms and block timestamps only have 1 s resolution, so the repay -> payout gap is also
+    // measured as (callback block number - repay block number) x 200 ms. Both blocks and both transaction hashes are in each loop's record.
+    totalBlockMs: stats(bOk.filter((r) => r.blocks).map((r) => (Number(r.blocks.callback) - Number(r.blocks.origin)) * BASE_BLOCK_MS)),
     example: bOk[0]?.links ?? null,
   },
   flowC: {
@@ -120,8 +124,11 @@ const row = (name: string, s: ReturnType<typeof stats>) => md.push(`| ${name} | 
 row("Repay → queue paid (wall clock)", summary.flowB.totalWallMs);
 row("Repay → Lasna react (wall clock)", summary.flowB.originToReactiveWallMs);
 row("Lasna react → Base callback (wall clock)", summary.flowB.reactiveToCallbackWallMs);
+row("Repay → queue paid (Base block numbers × 200 ms)", summary.flowB.totalBlockMs);
 md.push(
   `| Repay → queue paid (block timestamps, 1 s resolution) | ${summary.flowB.totalChainSeconds.median} s | ${summary.flowB.totalChainSeconds.p95} s | ${summary.flowB.totalChainSeconds.max} s |`,
+  "",
+  "The block-number row is (block of the payout callback − block of the repayment) × 200 ms, because Base Sepolia makes a block every 200 ms while block timestamps only have 1 s resolution. Every loop's record in `results/flowB-*.json` holds both transaction hashes (`txs.origin`, `txs.callback`) and both block numbers (`blocks.origin`, `blocks.callback`), so the figure can be recomputed from them. It assumes the 200 ms cadence held between those two blocks.",
   "",
 );
 md.push("## Flow C: Base shortfall → fronted by reserve, reimbursed on Unichain", "");
