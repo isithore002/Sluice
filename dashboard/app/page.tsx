@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { Intro } from "../components/Intro";
 import { CountUp, Reveal } from "../components/Motion";
+import { LoopHistogram } from "../components/LoopHistogram";
 import { PixelGlyph } from "../components/PixelGlyph";
 import { QueueRun } from "../components/QueueRun";
 import { RaceChart } from "../components/RaceChart";
@@ -67,13 +68,32 @@ const CONTEXT = [
 const short = (h: string, a = 6, b = 4) => `${h.slice(0, a + 2)}…${h.slice(-b)}`;
 const baseTx = (h: string) => `https://sepolia.basescan.org/tx/${h}`;
 
-function Tile({ big, label, note, href, linkLabel }: { big: ReactNode; label: string; note?: string; href?: string; linkLabel?: string }) {
+function Tile({ big, label, note, href, linkLabel, visual }: { big: ReactNode; label: string; note?: string; href?: string; linkLabel?: string; visual?: ReactNode }) {
   return (
     <div className="lp-tile">
+      {visual && <div className="lp-tile-vis">{visual}</div>}
       <div className="lp-tile-big">{big}</div>
       <p className="lp-tile-label">{label}</p>
       {note && <p className="lp-tile-note">{note}</p>}
       {href && <span className="lp-tile-link">{linkLabel}</span>}
+    </div>
+  );
+}
+
+/** A two-colour bar: the share the queue captured (brass) against the share the competitor took. */
+function CaptureBar({ label, queue }: { label: string; queue: number }) {
+  const q = Math.max(0, Math.min(1, queue));
+  return (
+    <div className="lp-cap">
+      <div className="lp-cap-l">
+        <span>{label}</span>
+        <span>
+          <b>{Math.round(q * 100)}%</b> queue
+        </span>
+      </div>
+      <div className="lp-cap-bar" role="img" aria-label={`${label}: the queue captured ${Math.round(q * 100)} percent`}>
+        <span style={{ width: `${q * 100}%` }} />
+      </div>
     </div>
   );
 }
@@ -105,6 +125,7 @@ export default function Landing() {
       href: `${BASE}/dashboard/#latency`,
       content: (
         <Tile
+          visual={s.flowB.samplesMs?.length ? <LoopHistogram samplesMs={s.flowB.samplesMs} medianMs={s.flowB.totalWallMs.median} p95Ms={s.flowB.totalWallMs.p95} /> : undefined}
           big={<CountUp to={s.flowB.totalWallMs.median / 1000} decimals={2} suffix=" s" />}
           label="from a Morpho repayment to the queue being paid"
           note={`Median over ${s.flowB.succeeded} of ${s.flowB.attempted} live loops that all settled. 95th percentile ${(s.flowB.totalWallMs.p95 / 1000).toFixed(2)}\u00a0s. Every loop is traced by its origin transaction hash.`}
@@ -151,6 +172,12 @@ export default function Landing() {
               <CountUp to={native4.meanCapture * 100} suffix="%" /> <span className="lp-vs">against</span> {Math.round(legacy4.meanCapture * 100)}%
             </>
           }
+          visual={
+            <>
+              <CaptureBar label="Omni native" queue={native4.meanCapture} />
+              <CaptureBar label="+legacy delay" queue={legacy4.meanCapture} />
+            </>
+          }
           label="of freed liquidity captured by the queue, against a competitor that reacts after 4 s"
           note={`At Omni speed, then the same system slowed by ${legacy4.delayBlocks} Lasna blocks to mimic the legacy network.`}
           href="x"
@@ -177,6 +204,7 @@ export default function Landing() {
     colSpan: 3,
     content: (
       <Tile
+        visual={native0 ? <CaptureBar label="Against a competitor firing at once" queue={native0.meanCapture} /> : undefined}
         big="Not faster than every bot"
         label="What this does not claim"
         note={`A bot acting in the same block still wins${native0 ? ` (the queue captured ${Math.round(native0.meanCapture * 100)}% against one)` : ""}, and a fast polling keeper is roughly level with Reactive. Sluice removes the bot and the operator, not the race.`}
