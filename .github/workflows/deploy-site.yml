@@ -1,0 +1,143 @@
+name: Site
+
+# Builds the website on every push and pull request, and deploys it to Vercel when the change lands on main.
+#
+# One-time setup: three repository secrets (Settings > Secrets and variables > Actions), see the "Deploying" section of the README.
+#   VERCEL_TOKEN        a Vercel access token for the account that owns the project
+#   VERCEL_ORG_ID       the team id, from dashboard/.vercel or <deploy dir>/.vercel/project.json ("orgId")
+#   VERCEL_PROJECT_ID   the project id, from the same file ("projectId")
+#
+# Why we build here and upload the result instead of letting Vercel build: the build step (`npm run sync`) reads ../results and
+# ../deployments, which sit outside the dashboard/ folder. Building in CI and uploading the static export avoids depending on Vercel's
+# root-directory settings, and the site that was tested is exactly the site that ships.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "dashboard/**"
+      - "results/**"
+      - "deployments/**"
+      - ".github/workflows/deploy-site.yml"
+  pull_request:
+    paths:
+      - "dashboard/**"
+      - "results/**"
+      - "deployments/**"
+      - ".github/workflows/deploy-site.yml"
+  workflow_dispatch:
+
+permissions: {}
+
+# Never run two deploys at once, and let a newer push replace one that is still waiting. A deploy that has started is left to finish.
+concurrency:
+  group: site-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Type-check and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: dashboard
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+
+      - name: Install
+        run: npm ci --no-audit --no-fund
+
+      - name: Type-check
+        run: npm run typecheck
+
+      # `npm run build` first runs `npm run sync`, which writes public/data/manifest.json from ../results and ../deployments.
+      - name: Build the static site
+        run: npm run build
+
+      - name: Check the build output
+        run: |
+          test -f out/index.html
+          test -f out/dashboard/index.html
+          test -f out/data/manifest.json
+          # the site holds no secrets: fail the build if anything key-shaped ended up in the output
+          if grep -rIlE "PRIVATE_KEY|BEGIN (RSA|EC|OPENSSH) PRIVATE KEY" out; then
+            echo "A secret-looking string is in the build output" >&2
+            exit 1
+          fi
+          du -sh out
+
+      - name: Stage the upload
+        run: |
+          mkdir -p ../.deploy
+          cp -r out/. ../.deploy/
+          cp vercel.json ../.deploy/
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: site
+          path: .deploy
+          include-hidden-files: true
+          retention-days: 7
+
+  deploy:
+    name: Deploy to Vercel
+    # only a push to main deploys (pull requests, including ones from forks, never see the secrets)
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: https://sluice-eight.vercel.app
+    permissions:
+      contents: read
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - name: Check the secrets are set
+        run: |
+          missing=0
+          for v in VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID; do
+            if [ -z "${!v}" ]; then echo "::error::The repository secret $v is not set. See the README's Deploying section."; missing=1; fi
+          done
+          exit $missing
+
+      - uses: actions/download-artifact@v5
+        with:
+          name: site
+          path: site
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      # The project is identified by the two ids above, so there is no `vercel link` and nothing to commit.
+      - name: Deploy to production
+        run: npx --yes vercel@54.1.0 deploy --prod --yes
+        working-directory: site
+
+      - name: Check the live site
+        run: |
+          for i in 1 2 3 4 5 6; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" https://sluice-eight.vercel.app/ || true)
+            [ "$code" = "200" ] && break
+            sleep 5
+          done
+          echo "landing page: $code"
+          [ "$code" = "200" ]
+          code=$(curl -s -o /dev/null -w "%{http_code}" https://sluice-eight.vercel.app/dashboard/)
+          echo "dashboard: $code"
+          [ "$code" = "200" ]
