@@ -380,7 +380,7 @@ Your wallet sends only the repayment. The queued withdrawal belongs to Alice (ab
 | [`dashboard/`](dashboard/) | The website: a landing page at `/` and the live dashboard at `/dashboard/` (Next.js static export; reads the chains directly; the *Live demo* and *One-click repay* shortcut connect your wallet through wagmi and RainbowKit). See [Landing page and dashboard](#landing-page-and-dashboard) |
 | [`results/`](results/) | Every measured run as JSON, with the transaction hash of each hop, plus [`SUMMARY.md`](results/SUMMARY.md) and the record of failures and discarded runs |
 | [`deployments/`](deployments/), [`broadcast/`](broadcast/) | Deployed addresses, and every deployment transaction |
-| [`.github/workflows/`](.github/workflows/test.yml) | CI: `forge fmt --check`, `forge build --sizes`, `forge test`, and Slither |
+| [`.github/workflows/`](.github/workflows/) | CI for the contracts (`forge fmt --check`, `forge build --sizes`, `forge test`, Slither) and CI/CD for the site ([`deploy-site.yml`](.github/workflows/deploy-site.yml)) |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Full spec: verified addresses, every function and event, flows, failure modes |
 | [`docs/BUILD_GUIDE.md`](docs/BUILD_GUIDE.md) | Step-by-step guide from an empty machine to a running deployment |
 | [`docs/OMNI_FIELD_NOTES.md`](docs/OMNI_FIELD_NOTES.md) | What we verified directly on Lasna and Base Sepolia, and how |
@@ -462,7 +462,29 @@ npm run build        # static site in dashboard/out, hostable anywhere
 
 Both commands first run `npm run sync`, which copies the deployment addresses and measurement results into `public/data/manifest.json`, so the site always shows the files in this repository. To host under a sub-path, set `NEXT_PUBLIC_BASE_PATH` (for example `/Sluice`) when you build.
 
-**Deploying.** The live site runs on Vercel, uploaded with the Vercel CLI as a finished static export. We build locally and upload `out/` because the build step reads `../results` and `../deployments`, which sit outside the `dashboard/` folder. [`vercel.json`](dashboard/vercel.json) sets the trailing-slash behaviour and two security headers.
+**Deploying (automatic).** Pushing to `main` deploys the site. The workflow [`deploy-site.yml`](.github/workflows/deploy-site.yml) runs on every push and pull request that touches `dashboard/`, `results/` or `deployments/`:
+
+| Step | What it does | Runs on |
+|---|---|---|
+| Install | `npm ci` from the lockfile | every push and pull request |
+| Type-check | `tsc --noEmit` | every push and pull request |
+| Build | `npm run build`, which first syncs `results/` and `deployments/` into the site's data | every push and pull request |
+| Check | the pages and `data/manifest.json` exist, and nothing key-shaped is in the output | every push and pull request |
+| Deploy | uploads the finished build to Vercel production, then fetches the live pages and fails if they don't return 200 | pushes to `main` only |
+
+Pull requests are built and checked but never deployed, and they can't see the secrets. Two deploys never run at once. We build in CI and upload the static export, rather than letting Vercel build, because the build step reads `../results` and `../deployments`, outside the `dashboard/` folder. [`vercel.json`](dashboard/vercel.json) sets the trailing-slash behaviour and two security headers.
+
+*One-time setup:* add three repository secrets under **Settings > Secrets and variables > Actions**.
+
+| Secret | Where to get it |
+|---|---|
+| `VERCEL_TOKEN` | Vercel dashboard > Account Settings > Tokens > Create. Give it the team that owns the project, and an expiry. |
+| `VERCEL_ORG_ID` | `orgId` in the project's `.vercel/project.json` (run `vercel link` in any folder to create it) |
+| `VERCEL_PROJECT_ID` | `projectId` in the same file |
+
+Until they are set, the deploy job stops with a message naming the missing secret, and the build job still checks every change. To redeploy by hand, use **Actions > Site > Run workflow**.
+
+*Deploying from your own machine* still works, for a hotfix or a first deploy:
 
 ```shell
 npm i -g vercel && vercel login      # once
