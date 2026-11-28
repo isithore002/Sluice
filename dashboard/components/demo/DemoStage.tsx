@@ -5,6 +5,7 @@ import type { FeedEvent, LiveState } from "../../lib/useLive";
 import { BorrowerTab } from "./BorrowerTab";
 import { LenderTab } from "./LenderTab";
 import { RoleLegend } from "./PoolView";
+import { Tutorial } from "./Tutorial";
 import type { Role } from "./roles";
 import "./demo-stage.css";
 
@@ -99,9 +100,10 @@ export function DemoStage({ addresses }: DemoStageProps) {
 
   return (
     <div className="dm">
+      <Tutorial onOpenRole={setRole} />
       <BeforeYouStart />
 
-      <div className="dm-console">
+      <div className="dm-console" id="dm-console">
         <section className="sl-card dm-actions" aria-label="Your wallet">
           <div className="dm-actions-head">
             <h3>Your turn</h3>

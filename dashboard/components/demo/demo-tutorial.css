@@ -1,0 +1,69 @@
+/* The live-demo tutorial: a call-to-action card with the "Tutorial" button, and a native <dialog> guide. */
+.tut-cta { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 16px 20px; flex-wrap: wrap; }
+.tut-cta-k { margin: 0 0 2px; font: 600 12px/1.2 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--brass); }
+.tut-cta-t { margin: 0; color: var(--ink-2); font-size: 15px; max-width: 640px; }
+.tut-open { flex: none; }
+.tut-open svg { margin-right: 2px; }
+
+html.tut-lock { overflow: hidden; }
+
+.tut { width: min(760px, calc(100vw - 32px)); max-height: min(86vh, 820px); padding: 0; border: 1px solid var(--line-strong); border-radius: 20px;
+  background: #0e0e11; color: var(--ink); box-shadow: 0 40px 120px -30px rgba(0, 0, 0, 0.9); overflow: hidden; }
+.tut[open] { display: flex; flex-direction: column; }
+.tut::backdrop { background: rgba(3, 3, 5, 0.72); backdrop-filter: blur(4px); }
+
+.tut-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 0; }
+.tut-kicker { margin: 0; font: 600 12px/1.2 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.tut-x { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: transparent; color: var(--ink-2); font: 400 22px/1 var(--sans); cursor: pointer; }
+.tut-x:hover { color: var(--ink); border-color: var(--line-strong); }
+
+.tut-progress { list-style: none; margin: 12px 0 0; padding: 0 20px 14px; display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid var(--line); }
+.tut-progress button { display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 5px 11px 5px 5px; border-radius: 999px; border: 1px solid var(--line);
+  background: transparent; color: var(--muted); font: 500 12.5px/1 var(--sans); white-space: nowrap; cursor: pointer; }
+.tut-progress button:hover { color: var(--ink-2); }
+.tut-progress button.on { color: var(--ink); border-color: rgba(231, 189, 114, 0.7); background: rgba(231, 189, 114, 0.08); }
+.tut-progress button.done { color: var(--ink-2); }
+.tut-dot { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--line); font: 600 12px/1 var(--mono); }
+.tut-progress button.on .tut-dot { background: var(--brass); border-color: transparent; color: #0a0a0c; }
+.tut-progress button.done .tut-dot { background: rgba(95, 211, 160, 0.16); border-color: transparent; color: var(--good); }
+
+.tut-body { padding: 20px 24px 8px; overflow-y: auto; }
+.tut-body h3 { margin: 0 0 10px; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; font: 700 22px/1.25 var(--sans); letter-spacing: -0.01em; }
+.tut-n { color: var(--brass); }
+.tut-who { padding: 4px 10px; border-radius: 999px; font: 600 12px/1.2 var(--mono); border: 1px solid var(--line); color: var(--ink-2); }
+.tut-who.lender { border-color: rgba(231, 189, 114, 0.6); color: var(--brass); }
+.tut-who.borrower { border-color: rgba(200, 200, 206, 0.5); color: var(--ink); }
+.tut-intro { margin: 0 0 14px; color: var(--ink-2); font-size: 15px; line-height: 1.55; }
+.tut-intro b { color: var(--ink); }
+
+.tut-steps { margin: 0; padding: 0; list-style: none; counter-reset: tut; display: grid; gap: 10px; }
+.tut-steps li { counter-increment: tut; position: relative; padding: 12px 14px 12px 50px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255, 255, 255, 0.025);
+  font-size: 15px; line-height: 1.55; color: var(--ink-2); }
+.tut-steps li::before { content: counter(tut); position: absolute; left: 14px; top: 12px; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
+  border: 1px solid var(--line-strong); font: 600 12px/1 var(--mono); color: var(--ink); }
+.tut-steps b { color: var(--ink); }
+.tut-btn-label { display: inline-block; padding: 1px 9px; border-radius: 999px; background: #f4f4f5; color: #0a0a0c; font: 600 13px/1.6 var(--sans); white-space: nowrap; }
+
+.tut-result { margin: 14px 0 6px; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(95, 211, 160, 0.35); background: rgba(95, 211, 160, 0.06); color: var(--ink); font-size: 15px; line-height: 1.5; }
+.tut-result span { color: var(--good); margin-right: 4px; }
+
+.tut-tips { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.tut-tips li { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; color: var(--ink-2); font-size: 15px; line-height: 1.55; }
+.tut-tips b { color: var(--ink); }
+
+.tut-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 20px 18px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.tut-foot-r { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.tut-foot button:disabled { opacity: 0.4; cursor: default; transform: none; }
+
+@media (max-width: 640px) {
+  .tut-progress .tut-name { display: none; }
+  .tut-progress button { padding: 5px; }
+  .tut-progress button.on .tut-name { display: inline; }
+  .tut-progress button.on { padding-right: 11px; }
+  .tut-body { padding: 16px 16px 6px; }
+  .tut-body h3 { font-size: 19px; }
+  .tut-steps li { padding-left: 46px; }
+  .tut-foot { padding: 12px 16px 16px; }
+}
+
+#dm-console, #tutorial { scroll-margin-top: 96px; }

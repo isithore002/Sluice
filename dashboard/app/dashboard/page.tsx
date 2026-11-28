@@ -107,6 +107,7 @@ export default function Dashboard() {
       links={[
         { href: "#treasury", label: "Treasury" },
         { href: "#demo", label: "Live demo" },
+        { href: "#tutorial", label: "Tutorial" },
         { href: "#evidence", label: "Evidence" },
         ...(hasLatency ? [{ href: "#latency", label: "Latency" }] : []),
         ...(hasLoops ? [{ href: "#crosschain", label: "Cross-chain" }] : []),
@@ -176,6 +177,7 @@ export default function Dashboard() {
           {[
             { href: "#treasury", label: "Treasury" },
             { href: "#demo", label: "Live demo" },
+            { href: "#tutorial", label: "Tutorial" },
             { href: "#evidence", label: "Evidence" },
             ...(hasLatency ? [{ href: "#latency", label: "Latency" }] : []),
             ...(hasLoops ? [{ href: "#crosschain", label: "Cross-chain" }] : []),
