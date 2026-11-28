@@ -107,29 +107,46 @@ jobs:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
+      # Without the secrets the deploy cannot run. That is a setup gap, not a code failure, so it is reported as a warning (on the run page
+      # and in its summary) and the deploy steps are skipped, instead of turning every push to main red.
       - name: Check the secrets are set
+        id: check
         run: |
-          missing=0
+          missing=""
           for v in VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID; do
-            if [ -z "${!v}" ]; then echo "::error::The repository secret $v is not set. See the README's Deploying section."; missing=1; fi
+            [ -z "${!v}" ] && missing="$missing $v"
           done
-          exit $missing
+          if [ -n "$missing" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Not deployed::The site was built and checked but NOT deployed. Missing repository secrets:$missing. See the README's Deploying section."
+            {
+              echo "### Not deployed"
+              echo "The build passed, but these repository secrets are not set:$missing."
+              echo "Add them under Settings > Secrets and variables > Actions, then re-run this workflow."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
 
-      - uses: actions/download-artifact@v5
+      - if: steps.check.outputs.ready == 'true'
+        uses: actions/download-artifact@v5
         with:
           name: site
           path: site
 
-      - uses: actions/setup-node@v5
+      - if: steps.check.outputs.ready == 'true'
+        uses: actions/setup-node@v5
         with:
           node-version: 22
 
       # The project is identified by the two ids above, so there is no `vercel link` and nothing to commit.
       - name: Deploy to production
+        if: steps.check.outputs.ready == 'true'
         run: npx --yes vercel@54.1.0 deploy --prod --yes
         working-directory: site
 
       - name: Check the live site
+        if: steps.check.outputs.ready == 'true'
         run: |
           for i in 1 2 3 4 5 6; do
             code=$(curl -s -o /dev/null -w "%{http_code}" https://sluice-eight.vercel.app/ || true)

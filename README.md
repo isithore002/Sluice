@@ -482,7 +482,7 @@ Pull requests are built and checked but never deployed, and they can't see the s
 | `VERCEL_ORG_ID` | `orgId` in the project's `.vercel/project.json` (run `vercel link` in any folder to create it) |
 | `VERCEL_PROJECT_ID` | `projectId` in the same file |
 
-Until they are set, the deploy job stops with a message naming the missing secret, and the build job still checks every change. To redeploy by hand, use **Actions > Site > Run workflow**.
+Until they are set, the build job still checks every change, and the deploy job skips itself with a warning that names the missing secrets (the run page says "Not deployed"), so nothing reaches the site until you add them. To redeploy by hand, use **Actions > Site > Run workflow**.
 
 *Deploying from your own machine* still works, for a hotfix or a first deploy:
 
