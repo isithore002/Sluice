@@ -253,7 +253,8 @@ export function Tutorial({ onOpenRole }: { onOpenRole: (role: Role) => void }) {
         </button>
       </div>
 
-      <dialog ref={dlg} className="tut" aria-labelledby="tut-title">
+      {/* data-lenis-prevent: the page's smooth scroll (Lenis) takes over the wheel everywhere else; inside the guide the body scrolls natively. */}
+      <dialog ref={dlg} className="tut" aria-labelledby="tut-title" data-lenis-prevent="">
         <div className="tut-head">
           <p className="tut-kicker">Live demo tutorial</p>
           <button className="tut-x" onClick={close} aria-label="Close the tutorial">

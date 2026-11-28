@@ -27,7 +27,7 @@ html.tut-lock { overflow: hidden; }
 .tut-progress button.on .tut-dot { background: var(--brass); border-color: transparent; color: #0a0a0c; }
 .tut-progress button.done .tut-dot { background: rgba(95, 211, 160, 0.16); border-color: transparent; color: var(--good); }
 
-.tut-body { padding: 20px 24px 8px; overflow-y: auto; }
+.tut-body { padding: 20px 24px 8px; overflow-y: auto; overscroll-behavior: contain; min-height: 0; flex: 1 1 auto; }
 .tut-body h3 { margin: 0 0 10px; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; font: 700 22px/1.25 var(--sans); letter-spacing: -0.01em; }
 .tut-n { color: var(--brass); }
 .tut-who { padding: 4px 10px; border-radius: 999px; font: 600 12px/1.2 var(--mono); border: 1px solid var(--line); color: var(--ink-2); }
